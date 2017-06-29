@@ -75,7 +75,8 @@ def main():
         logging.debug("PID file: %s" % pid_file)
 
         with PIDControl(pid_file) as pid_control, \
-             MasterSocketHandler(config_file_reader.comm_target, config_file_reader.comm_port) as socket_handler:
+                MasterSocketHandler(config_file_reader.comm_target,
+                                    config_file_reader.comm_port) as socket_handler:
 
             if pid_control.lock():
 
