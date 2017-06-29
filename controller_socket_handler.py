@@ -23,6 +23,9 @@ import zmq
 from socket_handler import SocketHandler
 
 
+REQUEST_TIMEOUT = 1000
+
+
 class ControllerSocketHandler(SocketHandler):
 
     def __init__(self, target, port):
@@ -75,3 +78,22 @@ class ControllerSocketHandler(SocketHandler):
 
         self.disconnect()
         self.connect()
+
+    def recv(self):
+
+        events = dict(self.poller.poll(REQUEST_TIMEOUT))
+
+        if events.get(self.socket) == zmq.POLLIN:
+
+            recv_message = self.socket.recv()
+
+            if recv_message:
+
+                return recv_message
+
+        return None
+
+    def send(self):
+
+        send_message = "Controller Request"
+        self.socket.send(send_message)

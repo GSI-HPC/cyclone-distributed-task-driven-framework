@@ -81,30 +81,17 @@ def main():
                 socket_handler.connect()
 
                 request_retry_count = 0
-                REQUEST_TIMEOUT = 1000
                 MAX_REQUEST_RETRIES = 3
 
                 while True:
 
-                    print "Sending Message..."
-                    socket_handler.socket.send("Worker-ID: " + str(1))
-                    print "Message sent"
+                    socket_handler.send()
 
-                    print "Polling..."
+                    recv_message = socket_handler.recv()
 
-                    events = dict(socket_handler.poller.poll(REQUEST_TIMEOUT))
+                    if recv_message:
 
-                    if events.get(socket_handler.socket) == zmq.POLLIN:
-
-                        print "Trying to recv..."
-
-                        message = socket_handler.socket.recv()
-
-                        if message:
-
-                            print "Retrieved Message Size: " + str(len(message))
-                            print "Server Response: " + message
-
+                        logging.debug("Retrieved Message: " + recv_message)
                         time.sleep(2)
 
                     else:
@@ -113,15 +100,11 @@ def main():
 
                         if request_retry_count == MAX_REQUEST_RETRIES:
 
-                            print "Exiting since max request retries is reached!"
-
+                            logging.debug('Exiting, since maximum retry count is reached!')
                             socket_handler.disconnect()
                             sys.exit(1)
 
-                        print("No response from server, retrying...")
-
-                        print "Reconnecting..."
-
+                        logging.debug('No response retrieved - Reconnecting...')
                         socket_handler.reconnect()
 
     except Exception as e:
