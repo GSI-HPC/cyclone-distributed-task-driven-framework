@@ -21,9 +21,9 @@
 import abc
 
 
-class SocketHandler():
+class SocketHandler:
 
-    def __init__(object, target, port):
+    def __init__(self, target, port):
 
         __metaclass__ = abc.ABCMeta
 
@@ -36,15 +36,15 @@ class SocketHandler():
         if not (port in range(1024, 65535)):
             raise RuntimeError('Communication port must be a number between 1024 and 65535!')
 
-        object.target = target
-        object.port = port
+        self.target = target
+        self.port = port
 
-        object.endpoint = "tcp://" + object.target + ":" + str(object.port)
-        object.context = None
-        object.socket = None
-        object.poller = None
+        self.endpoint = "tcp://" + self.target + ":" + str(self.port)
+        self.context = None
+        self.socket = None
+        self.poller = None
 
-        object.is_connected = False
+        self.is_connected = False
 
     @abc.abstractmethod
     def connect(self):
@@ -54,8 +54,6 @@ class SocketHandler():
     def disconnect(self):
         return None
 
-    @classmethod
+    @abc.abstractmethod
     def reconnect(self):
-
-        self.disconnect()
-        self.connect()
+        return None

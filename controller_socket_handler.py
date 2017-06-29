@@ -70,3 +70,8 @@ class ControllerSocketHandler(SocketHandler):
                 self.context.term()
 
             self.is_connected = False
+
+    def reconnect(self):
+
+        self.disconnect()
+        self.connect()

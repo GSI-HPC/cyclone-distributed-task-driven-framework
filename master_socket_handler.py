@@ -55,3 +55,8 @@ class MasterSocketHandler(SocketHandler):
 
         if self.context:
             self.context.term()
+
+    def reconnect(self):
+
+        self.disconnect()
+        self.connect()
