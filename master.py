@@ -27,6 +27,10 @@ import os
 from pid_control import PIDControl
 from master_config_file_reader import MasterConfigFileReader
 from master_socket_handler import MasterSocketHandler
+from zmq import ZMQError
+
+
+RUN_CONDITION = True
 
 
 def init_arg_parser():
@@ -55,10 +59,20 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
 
-def signal_handler(signal, frame):
+def signal_handler_terminate(signal, frame):
 
-    logging.info('Exit')
+    logging.info('Terminate')
     sys.exit(0)
+
+
+def signal_handler_shutdown(signal, frame):
+
+    logging.info('Shutdown')
+
+    global RUN_CONDITION
+
+    if RUN_CONDITION:
+        RUN_CONDITION = False
 
 
 def main():
@@ -82,20 +96,37 @@ def main():
 
                 logging.info('Start')
 
-                signal.signal(signal.SIGINT, signal_handler)
+                signal.signal(signal.SIGINT, signal_handler_terminate)
+                signal.signal(signal.SIGUSR1, signal_handler_shutdown)
+                signal.siginterrupt(signal.SIGUSR1, True)
 
                 socket_handler.connect()
 
-                # Process exits on retrieving SIGINT signal.
                 while True:
 
-                    message = socket_handler.socket.recv()
+                    try:
+                        
+                        in_msg = socket_handler.socket.recv()
 
-                    print "Retrieved Message Size: " + str(len(message))
-                    print "Retrieved Message: " + message
+                        print "Retrieved message size: " + str(len(in_msg))
+                        print "Retrieved message: " + in_msg
 
-                    socket_handler.socket.send("Send: " + message)
-                    print "Send: " + message
+                        if RUN_CONDITION:
+
+                            socket_handler.socket.send("TASK")
+                            logging.debug("TASK sent to controller...")
+
+                        else:
+
+                            socket_handler.socket.send("EXIT")
+                            logging.debug("EXIT sent to controller...")
+
+                    except ZMQError as e:
+
+                        if RUN_CONDITION:
+                            logging.error("Caught ZMQ Exception: " + str(e))
+                        else:
+                            logging.warning("Caught ZMQ Exception: " + str(e))
 
     except Exception as e:
 
