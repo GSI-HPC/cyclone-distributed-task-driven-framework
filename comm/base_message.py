@@ -21,36 +21,6 @@
 import abc
 
 
-class MessageType:
-
-    def __init__(self):
-        __metaclass__ = abc.ABCMeta
-
-    @staticmethod
-    def TASK_REQUEST():
-        return 'TASK_REQ'
-
-
-class MessageFactory:
-
-    def __init__(self):
-        __metaclass__ = abc.ABCMeta
-
-    @staticmethod
-    def create_message(message):
-
-        if not message:
-            raise RuntimeError('Message text is not set!')
-
-        header, body = message.split(BaseMessage.field_separator)
-
-        if header == MessageType.TASK_REQUEST():
-            task_request = TaskRequest(body)
-            return task_request
-        else:
-            raise RuntimeError("No message type recognized: " + message)
-
-
 class BaseMessage:
 
     field_separator = ';'
@@ -80,21 +50,3 @@ class BaseMessage:
     @abc.abstractmethod
     def validate(self):
         return None
-
-
-class TaskRequest(BaseMessage):
-
-    def __init__(self, sender):
-
-        if not sender:
-            raise RuntimeError('No sender is set!')
-
-        BaseMessage.__init__(self, MessageType.TASK_REQUEST(), sender)
-
-    def validate(self):
-
-        if not self.message:
-            raise RuntimeError("Retrieved empty message!")
-
-        if self.message.count(BaseMessage.field_separator) != 1:
-            raise RuntimeError("Bad message format detected!")

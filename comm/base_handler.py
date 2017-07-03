@@ -22,7 +22,7 @@ import abc
 import socket
 
 
-class CommHandler:
+class BaseHandler:
 
     def __init__(self, target, port):
 

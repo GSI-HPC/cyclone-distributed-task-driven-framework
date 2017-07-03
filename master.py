@@ -20,18 +20,16 @@
 
 import argparse
 import logging
+import os
 import signal
 import sys
-import os
-
-from pid_control import PIDControl
-
-from master_config_file_reader import MasterConfigFileReader
-from master_comm_handler import MasterCommHandler
-from comm_messages import MessageFactory
-
 from zmq import ZMQError
 
+from comm.message_factory import MessageFactory
+from comm.master_handler import MasterCommHandler
+
+from master_config_file_reader import MasterConfigFileReader
+from pid_control import PIDControl
 
 RUN_CONDITION = True
 

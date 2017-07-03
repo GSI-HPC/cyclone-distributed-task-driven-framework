@@ -20,16 +20,15 @@
 
 import argparse
 import logging
-import sys
 import os
-
-import zmq
+import sys
 import time
 
-from pid_control import PIDControl
+from comm.controller_handler import ControllerCommHandler
+from comm.task_request import TaskRequest
+
 from controller_config_file_reader import ControllerConfigFileReader
-from controller_comm_handler import ControllerCommHandler
-from comm_messages import TaskRequest
+from pid_control import PIDControl
 
 
 def init_arg_parser():
