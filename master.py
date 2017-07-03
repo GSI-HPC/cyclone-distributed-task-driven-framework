@@ -28,7 +28,7 @@ from pid_control import PIDControl
 
 from master_config_file_reader import MasterConfigFileReader
 from master_comm_handler import MasterCommHandler
-from comm_messages import SEPARATOR
+from comm_messages import MessageFactory
 
 from zmq import ZMQError
 
@@ -114,9 +114,7 @@ def main():
                         in_msg = comm_handler.recv()
                         logging.debug("Retrieved Message from Worker: " + in_msg)
 
-                        header, body = in_msg.split(SEPARATOR)
-                        print header
-                        print body
+                        message = MessageFactory.create_message(in_msg)
 
                         if RUN_CONDITION:
 

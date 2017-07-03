@@ -64,6 +64,4 @@ class MasterCommHandler(CommHandler):
     def recv(self):
 
         in_msg = self.socket.recv()
-        self.validate_message(in_msg)
-
         return in_msg
