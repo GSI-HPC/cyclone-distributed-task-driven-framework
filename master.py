@@ -34,7 +34,6 @@ from comm.master_handler import MasterCommHandler
 
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
-from msg.exit_response import ExitResponse
 
 
 RUN_CONDITION = True
@@ -115,26 +114,28 @@ def main():
 
                     try:
 
-                        in_msg = comm_handler.recv()
-                        logging.debug("Retrieved Message from Worker: " + in_msg)
+                        in_raw_data = comm_handler.recv()
+                        logging.debug("Retrieved Message from Worker: " + in_raw_data)
+
+                        out_msg = None
 
                         if RUN_CONDITION:
 
-                            message = MessageFactory.create_message(in_msg)
+                            in_msg = MessageFactory.create_message(in_raw_data)
 
-                            if message.header == MessageType.TASK_REQUEST():
+                            if in_msg.header == MessageType.TASK_REQUEST():
 
-                                comm_handler.send("TASK")
-                                logging.debug("TASK sent to controller...")
+                                # TODO: Where to get the task response...!
+                                out_msg = MessageFactory.create_task_response('OST_NAME')
 
                         else:
+                            out_msg = MessageFactory.create_exit_response()
 
-                            exit_response = ExitResponse()
-
-                            print exit_response
-
-                            comm_handler.send(exit_response.to_string())
-                            logging.debug("EXIT sent to controller...")
+                        if out_msg:
+                            logging.debug("Sending message: " + out_msg.to_string())
+                            comm_handler.send(out_msg.to_string())  # Does not block.
+                        else:
+                            raise RuntimeError('Nothing to be send!')   # Should never happen!
 
                     except ZMQError as e:
 

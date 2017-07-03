@@ -18,22 +18,29 @@
 #
 
 
-from abc import ABCMeta
+from base_message import BaseMessage
+from message_type import MessageType
 
 
-class MessageType:
+class TaskResponse(BaseMessage):
 
-    def __init__(self):
-        __metaclass__ = ABCMeta
+    def __init__(self, ost_name):
 
-    @staticmethod
-    def TASK_REQUEST():
-        return 'TASK_REQ'
+        if not ost_name:
+            raise RuntimeError('No OST name is set!')
 
-    @staticmethod
-    def TASK_RESPONSE():
-        return 'TASK_RES'
+        BaseMessage.__init__(self, MessageType.TASK_RESPONSE(), ost_name)
 
-    @staticmethod
-    def EXIT_RESPONSE():
-        return 'EXIT_RES'
+    def validate(self):
+
+        if not self.header:
+            raise RuntimeError('No message header is set!')
+
+        if not self.body:
+            raise RuntimeError('No body is set!')
+
+        if not self.message:
+            raise RuntimeError('Retrieved empty message!')
+
+        if self.message.count(BaseMessage.field_separator) != 1:
+            raise RuntimeError('Bad message format detected!')

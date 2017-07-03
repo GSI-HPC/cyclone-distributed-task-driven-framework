@@ -23,6 +23,8 @@ from abc import ABCMeta
 from base_message import BaseMessage
 from message_type import MessageType
 from task_request import TaskRequest
+from task_response import TaskResponse
+from exit_response import ExitResponse
 
 
 class MessageFactory:
@@ -34,12 +36,35 @@ class MessageFactory:
     def create_message(message):
 
         if not message:
-            raise RuntimeError('Message text is not set!')
+            raise RuntimeError('Message is not set!')
 
-        header, body = message.split(BaseMessage.field_separator)
+        header = None
+
+        if message.find(BaseMessage.field_separator) >= 0:
+            header, body = message.split(BaseMessage.field_separator)
+        else:
+            header = message
 
         if header == MessageType.TASK_REQUEST():
-            task_request = TaskRequest(body)
-            return task_request
-        else:
-            raise RuntimeError("No message type recognized: " + message)
+            return TaskRequest(body)
+
+        if header == MessageType.TASK_RESPONSE():
+            return TaskResponse(body)
+
+        if header == MessageType.EXIT_RESPONSE():
+            return ExitResponse()
+
+        raise RuntimeError("No message type recognized: " + message)
+
+    # TODO: Check if Introspection could be used to create objects instead.
+    @staticmethod
+    def create_task_request(sender):
+        return TaskRequest(sender)
+
+    @staticmethod
+    def create_task_response(ost_name):
+        return TaskResponse(ost_name)
+
+    @staticmethod
+    def create_exit_response():
+        return ExitResponse()

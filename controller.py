@@ -24,10 +24,12 @@ import os
 import sys
 import time
 
-from comm.controller_handler import ControllerCommHandler
-from controller_config_file_reader import ControllerConfigFileReader
-from msg.task_request import TaskRequest
 from pid_control import PIDControl
+from controller_config_file_reader import ControllerConfigFileReader
+from comm.controller_handler import ControllerCommHandler
+
+from msg.message_factory import MessageFactory
+from msg.message_type import MessageType
 
 
 def init_arg_parser():
@@ -84,16 +86,24 @@ def main():
 
                 while True:
 
-                    task_request = TaskRequest(comm_handler.fqdn)
-
+                    task_request = MessageFactory.create_task_request(comm_handler.fqdn)
                     comm_handler.send(task_request.to_string())
 
-                    recv_message = comm_handler.recv()
+                    in_raw_data = comm_handler.recv()
 
-                    if recv_message:
+                    if in_raw_data:
 
-                        logging.debug("Retrieved Message: " + recv_message)
-                        time.sleep(2)
+                        logging.debug("Retrieved Message Raw Data: " + in_raw_data)
+                        in_msg = MessageFactory.create_message(in_raw_data)
+
+                        if in_msg.header == MessageType.TASK_RESPONSE():
+
+                            #TODO: What do to next with the task response...!
+                            logging.debug("Retrieved Task Response: " + in_msg.body)
+
+                        elif in_msg.header == MessageType.EXIT_RESPONSE():
+                            logging.debug('Time to say goodbye!')
+                            exit(0)
 
                     else:
 
@@ -107,6 +117,8 @@ def main():
 
                         logging.debug('No response retrieved - Reconnecting...')
                         comm_handler.reconnect()
+
+                    time.sleep(2)
 
     except Exception as e:
 
