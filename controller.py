@@ -28,7 +28,8 @@ import time
 
 from pid_control import PIDControl
 from controller_config_file_reader import ControllerConfigFileReader
-from controller_socket_handler import ControllerSocketHandler
+from controller_comm_handler import ControllerCommHandler
+from comm_messages import TaskRequest
 
 
 def init_arg_parser():
@@ -71,23 +72,25 @@ def main():
         logging.debug("PID file: %s" % pid_file)
 
         with PIDControl(pid_file) as pid_control, \
-                ControllerSocketHandler(config_file_reader.comm_target,
-                                        config_file_reader.comm_port) as socket_handler:
+                ControllerCommHandler(config_file_reader.comm_target,
+                                      config_file_reader.comm_port) as comm_handler:
 
             if pid_control.lock():
 
                 logging.info('Start')
 
-                socket_handler.connect()
+                comm_handler.connect()
 
                 request_retry_count = 0
                 MAX_REQUEST_RETRIES = 3
 
                 while True:
 
-                    socket_handler.send()
+                    task_request = TaskRequest(comm_handler.fqdn)
 
-                    recv_message = socket_handler.recv()
+                    comm_handler.send(task_request.to_string())
+
+                    recv_message = comm_handler.recv()
 
                     if recv_message:
 
@@ -101,11 +104,11 @@ def main():
                         if request_retry_count == MAX_REQUEST_RETRIES:
 
                             logging.debug('Exiting, since maximum retry count is reached!')
-                            socket_handler.disconnect()
+                            comm_handler.disconnect()
                             sys.exit(1)
 
                         logging.debug('No response retrieved - Reconnecting...')
-                        socket_handler.reconnect()
+                        comm_handler.reconnect()
 
     except Exception as e:
 

@@ -19,9 +19,10 @@
 
 
 import abc
+import socket
 
 
-class SocketHandler:
+class CommHandler:
 
     def __init__(self, target, port):
 
@@ -46,6 +47,11 @@ class SocketHandler:
 
         self.is_connected = False
 
+        self.fqdn = socket.getfqdn()
+
+        if self.fqdn == 'localhost':
+            raise RuntimeError("Fully qualified domain name is not meaningful!")
+
     @abc.abstractmethod
     def connect(self):
         return None
@@ -57,3 +63,10 @@ class SocketHandler:
     @abc.abstractmethod
     def reconnect(self):
         return None
+
+    @abc.abstractmethod
+    def recv(self):
+        return None
+
+    def send(self, message):
+        self.socket.send(message)

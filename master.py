@@ -25,8 +25,11 @@ import sys
 import os
 
 from pid_control import PIDControl
+
 from master_config_file_reader import MasterConfigFileReader
-from master_socket_handler import MasterSocketHandler
+from master_comm_handler import MasterCommHandler
+from comm_messages import SEPARATOR
+
 from zmq import ZMQError
 
 
@@ -89,8 +92,8 @@ def main():
         logging.debug("PID file: %s" % pid_file)
 
         with PIDControl(pid_file) as pid_control, \
-                MasterSocketHandler(config_file_reader.comm_target,
-                                    config_file_reader.comm_port) as socket_handler:
+                MasterCommHandler(config_file_reader.comm_target,
+                                  config_file_reader.comm_port) as comm_handler:
 
             if pid_control.lock():
 
@@ -100,25 +103,29 @@ def main():
                 signal.signal(signal.SIGUSR1, signal_handler_shutdown)
                 signal.siginterrupt(signal.SIGUSR1, True)
 
-                socket_handler.connect()
+                comm_handler.connect()
+
+                controller_status_map = dict()
 
                 while True:
 
                     try:
-                        
-                        in_msg = socket_handler.socket.recv()
 
-                        print "Retrieved message size: " + str(len(in_msg))
-                        print "Retrieved message: " + in_msg
+                        in_msg = comm_handler.recv()
+                        logging.debug("Retrieved Message from Worker: " + in_msg)
+
+                        header, body = in_msg.split(SEPARATOR)
+                        print header
+                        print body
 
                         if RUN_CONDITION:
 
-                            socket_handler.socket.send("TASK")
+                            comm_handler.send("TASK")
                             logging.debug("TASK sent to controller...")
 
                         else:
 
-                            socket_handler.socket.send("EXIT")
+                            comm_handler.send("EXIT")
                             logging.debug("EXIT sent to controller...")
 
                     except ZMQError as e:

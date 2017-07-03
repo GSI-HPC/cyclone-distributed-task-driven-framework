@@ -20,16 +20,13 @@
 
 import zmq
 
-from socket_handler import SocketHandler
+from comm_handler import CommHandler
 
 
-REQUEST_TIMEOUT = 1000
-
-
-class ControllerSocketHandler(SocketHandler):
+class MasterCommHandler(CommHandler):
 
     def __init__(self, target, port):
-        SocketHandler.__init__(self, target, port)
+        CommHandler.__init__(self, target, port)
 
     def __enter__(self):
         return self
@@ -44,35 +41,20 @@ class ControllerSocketHandler(SocketHandler):
         if not self.context:
             raise RuntimeError('Failed to create ZMQ context!')
 
-        self.socket = self.context.socket(zmq.REQ)
+        self.socket = self.context.socket(zmq.REP)
 
         if not self.socket:
             raise RuntimeError('Failed to create ZMQ socket!')
 
-        self.socket.connect(self.endpoint)
-
-        self.poller = zmq.Poller()
-        self.poller.register(self.socket, zmq.POLLIN)
-
-        self.is_connected = True
+        self.socket.bind(self.endpoint)
 
     def disconnect(self):
 
-        if self.is_connected:
+        if self.socket:
+            self.socket.close()
 
-            if self.socket:
-
-                self.socket.setsockopt(zmq.LINGER, 0)
-
-                if self.poller:
-                    self.poller.unregister(self.socket)
-
-                self.socket.close()
-
-            if self.context:
-                self.context.term()
-
-            self.is_connected = False
+        if self.context:
+            self.context.term()
 
     def reconnect(self):
 
@@ -81,19 +63,7 @@ class ControllerSocketHandler(SocketHandler):
 
     def recv(self):
 
-        events = dict(self.poller.poll(REQUEST_TIMEOUT))
+        in_msg = self.socket.recv()
+        self.validate_message(in_msg)
 
-        if events.get(self.socket) == zmq.POLLIN:
-
-            recv_message = self.socket.recv()
-
-            if recv_message:
-
-                return recv_message
-
-        return None
-
-    def send(self):
-
-        send_message = "Controller Request"
-        self.socket.send(send_message)
+        return in_msg

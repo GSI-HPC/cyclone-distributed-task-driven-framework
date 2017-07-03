@@ -20,13 +20,16 @@
 
 import zmq
 
-from socket_handler import SocketHandler
+from comm_handler import CommHandler
 
 
-class MasterSocketHandler(SocketHandler):
+REQUEST_TIMEOUT = 1000
+
+
+class ControllerCommHandler(CommHandler):
 
     def __init__(self, target, port):
-        SocketHandler.__init__(self, target, port)
+        CommHandler.__init__(self, target, port)
 
     def __enter__(self):
         return self
@@ -41,22 +44,50 @@ class MasterSocketHandler(SocketHandler):
         if not self.context:
             raise RuntimeError('Failed to create ZMQ context!')
 
-        self.socket = self.context.socket(zmq.REP)
+        self.socket = self.context.socket(zmq.REQ)
 
         if not self.socket:
             raise RuntimeError('Failed to create ZMQ socket!')
 
-        self.socket.bind(self.endpoint)
+        self.socket.connect(self.endpoint)
+
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, zmq.POLLIN)
+
+        self.is_connected = True
 
     def disconnect(self):
 
-        if self.socket:
-            self.socket.close()
+        if self.is_connected:
 
-        if self.context:
-            self.context.term()
+            if self.socket:
+
+                self.socket.setsockopt(zmq.LINGER, 0)
+
+                if self.poller:
+                    self.poller.unregister(self.socket)
+
+                self.socket.close()
+
+            if self.context:
+                self.context.term()
+
+            self.is_connected = False
 
     def reconnect(self):
 
         self.disconnect()
         self.connect()
+
+    def recv(self):
+
+        events = dict(self.poller.poll(REQUEST_TIMEOUT))
+
+        if events.get(self.socket) == zmq.POLLIN:
+
+            message = self.socket.recv()
+
+            if message:
+                return message
+
+        return None
