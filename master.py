@@ -23,13 +23,19 @@ import logging
 import os
 import signal
 import sys
+
 from zmq import ZMQError
 
-from comm.message_factory import MessageFactory
-from comm.master_handler import MasterCommHandler
+from pid_control import PIDControl
 
 from master_config_file_reader import MasterConfigFileReader
-from pid_control import PIDControl
+
+from comm.master_handler import MasterCommHandler
+
+from msg.message_factory import MessageFactory
+from msg.message_type import MessageType
+from msg.exit_response import ExitResponse
+
 
 RUN_CONDITION = True
 
@@ -112,16 +118,22 @@ def main():
                         in_msg = comm_handler.recv()
                         logging.debug("Retrieved Message from Worker: " + in_msg)
 
-                        message = MessageFactory.create_message(in_msg)
-
                         if RUN_CONDITION:
 
-                            comm_handler.send("TASK")
-                            logging.debug("TASK sent to controller...")
+                            message = MessageFactory.create_message(in_msg)
+
+                            if message.header == MessageType.TASK_REQUEST():
+
+                                comm_handler.send("TASK")
+                                logging.debug("TASK sent to controller...")
 
                         else:
 
-                            comm_handler.send("EXIT")
+                            exit_response = ExitResponse()
+
+                            print exit_response
+
+                            comm_handler.send(exit_response.to_string())
                             logging.debug("EXIT sent to controller...")
 
                     except ZMQError as e:

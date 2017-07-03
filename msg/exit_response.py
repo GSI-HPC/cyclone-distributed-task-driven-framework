@@ -20,26 +20,17 @@
 
 from base_message import BaseMessage
 from message_type import MessageType
-from task_request import TaskRequest
-
-from abc import ABCMeta
 
 
-class MessageFactory:
+class ExitResponse(BaseMessage):
 
     def __init__(self):
-        __metaclass__ = ABCMeta
+        BaseMessage.__init__(self, MessageType.EXIT_RESPONSE(), '')
 
-    @staticmethod
-    def create_message(message):
+    def validate(self):
 
-        if not message:
-            raise RuntimeError('Message text is not set!')
+        if not self.header:
+            raise RuntimeError('No message header is set!')
 
-        header, body = message.split(BaseMessage.field_separator)
-
-        if header == MessageType.TASK_REQUEST():
-            task_request = TaskRequest(body)
-            return task_request
-        else:
-            raise RuntimeError("No message type recognized: " + message)
+        if not self.message:
+            raise RuntimeError("Retrieved empty message!")

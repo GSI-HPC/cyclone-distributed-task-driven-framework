@@ -25,9 +25,8 @@ import sys
 import time
 
 from comm.controller_handler import ControllerCommHandler
-from comm.task_request import TaskRequest
-
 from controller_config_file_reader import ControllerConfigFileReader
+from msg.task_request import TaskRequest
 from pid_control import PIDControl
 
 

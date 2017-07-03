@@ -18,23 +18,18 @@
 #
 
 
-from base_message import BaseMessage
-from message_type import MessageType
+from abc import ABCMeta
 
 
-class TaskRequest(BaseMessage):
+class MessageType:
 
-    def __init__(self, sender):
+    def __init__(self):
+        __metaclass__ = ABCMeta
 
-        if not sender:
-            raise RuntimeError('No sender is set!')
+    @staticmethod
+    def TASK_REQUEST():
+        return 'TASK_REQ'
 
-        BaseMessage.__init__(self, MessageType.TASK_REQUEST(), sender)
-
-    def validate(self):
-
-        if not self.message:
-            raise RuntimeError("Retrieved empty message!")
-
-        if self.message.count(BaseMessage.field_separator) != 1:
-            raise RuntimeError("Bad message format detected!")
+    @staticmethod
+    def EXIT_RESPONSE():
+        return 'EXIT_RES'

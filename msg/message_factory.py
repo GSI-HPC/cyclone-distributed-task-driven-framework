@@ -20,12 +20,26 @@
 
 from abc import ABCMeta
 
+from base_message import BaseMessage
+from message_type import MessageType
+from task_request import TaskRequest
 
-class MessageType:
+
+class MessageFactory:
 
     def __init__(self):
         __metaclass__ = ABCMeta
 
     @staticmethod
-    def TASK_REQUEST():
-        return 'TASK_REQ'
+    def create_message(message):
+
+        if not message:
+            raise RuntimeError('Message text is not set!')
+
+        header, body = message.split(BaseMessage.field_separator)
+
+        if header == MessageType.TASK_REQUEST():
+            task_request = TaskRequest(body)
+            return task_request
+        else:
+            raise RuntimeError("No message type recognized: " + message)

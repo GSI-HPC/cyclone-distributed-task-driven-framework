@@ -29,15 +29,13 @@ class BaseMessage:
 
         __metaclass__ = abc.ABCMeta
 
-        if not header:
-            raise RuntimeError('No Message header is set!')
-
-        if not body:
-            raise RuntimeError('No Message body is set!')
-
         self.header = header
         self.body = body
-        self.message = self.header + BaseMessage.field_separator + self.body
+
+        if self.body:
+            self.message = self.header + BaseMessage.field_separator + self.body
+        else:
+            self.message = self.header
 
         self.validate()
 
