@@ -27,10 +27,7 @@ class ExitResponse(BaseMessage):
     def __init__(self):
         BaseMessage.__init__(self, MessageType.EXIT_RESPONSE(), '')
 
-    def validate(self):
-
-        if not self.header:
-            raise RuntimeError('No message header is set!')
+    def validate_body(self):
 
         if not self.message:
             raise RuntimeError("Retrieved empty message!")

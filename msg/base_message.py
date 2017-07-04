@@ -25,19 +25,23 @@ class BaseMessage:
 
     field_separator = ';'
 
-    def __init__(self, header, body):
+    def __init__(self, type, body):
 
         __metaclass__ = abc.ABCMeta
 
-        self.header = header
+        self.type = type
         self.body = body
 
-        if self.body:
-            self.message = self.header + BaseMessage.field_separator + self.body
-        else:
-            self.message = self.header
+        if not self.type:
+            raise RuntimeError('No message type is set!')
 
-        self.validate()
+        if self.body:
+            self.message = self.type + BaseMessage.field_separator + self.body
+        else:
+            if self.body:
+                self.message = self.type
+
+        self.validate_body()
 
     def __str__(self):
         return self.message
@@ -46,5 +50,5 @@ class BaseMessage:
         return self.message
 
     @abc.abstractmethod
-    def validate(self):
+    def validate_body(self):
         return None

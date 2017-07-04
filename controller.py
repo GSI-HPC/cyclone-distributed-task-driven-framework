@@ -96,12 +96,12 @@ def main():
                         logging.debug("Retrieved Message Raw Data: " + in_raw_data)
                         in_msg = MessageFactory.create_message(in_raw_data)
 
-                        if in_msg.header == MessageType.TASK_RESPONSE():
+                        if in_msg.type == MessageType.TASK_RESPONSE():
 
                             #TODO: What do to next with the task response...!
                             logging.debug("Retrieved Task Response: " + in_msg.body)
 
-                        elif in_msg.header == MessageType.EXIT_RESPONSE():
+                        elif in_msg.type == MessageType.EXIT_RESPONSE():
                             logging.debug('Time to say goodbye!')
                             exit(0)
 

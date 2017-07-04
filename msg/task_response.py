@@ -31,10 +31,7 @@ class TaskResponse(BaseMessage):
 
         BaseMessage.__init__(self, MessageType.TASK_RESPONSE(), ost_name)
 
-    def validate(self):
-
-        if not self.header:
-            raise RuntimeError('No message header is set!')
+    def validate_body(self):
 
         if not self.body:
             raise RuntimeError('No body is set!')

@@ -23,6 +23,7 @@ import logging
 import os
 import signal
 import sys
+import time
 
 from zmq import ZMQError
 
@@ -123,7 +124,9 @@ def main():
 
                             in_msg = MessageFactory.create_message(in_raw_data)
 
-                            if in_msg.header == MessageType.TASK_REQUEST():
+                            if in_msg.type == MessageType.TASK_REQUEST():
+
+                                controller_status_map[in_msg.body] = 'alive: ' + str(time.time())
 
                                 # TODO: Where to get the task response...!
                                 out_msg = MessageFactory.create_task_response('OST_NAME')
@@ -136,6 +139,8 @@ def main():
                             comm_handler.send(out_msg.to_string())  # Does not block.
                         else:
                             raise RuntimeError('Nothing to be send!')   # Should never happen!
+
+                        print controller_status_map[in_msg.body]
 
                     except ZMQError as e:
 
