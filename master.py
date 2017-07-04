@@ -25,16 +25,12 @@ import signal
 import sys
 import time
 
-from zmq import ZMQError
-
-from pid_control import PIDControl
-
-from master_config_file_reader import MasterConfigFileReader
-
 from comm.master_handler import MasterCommHandler
-
+from master_config_file_reader import MasterConfigFileReader
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
+from pid_control import PIDControl
+from zmq import ZMQError
 
 
 RUN_CONDITION = True
@@ -82,6 +78,21 @@ def signal_handler_shutdown(signal, frame):
         RUN_CONDITION = False
 
 
+def get_ost_lists():
+
+    active_ost_list = list()
+    active_ost_list.append('nyx-OST0000-osc-ffff88102f578800')
+    active_ost_list.append('nyx-OST0007-osc-ffff88102f578800')
+    active_ost_list.append('nyx-OST000e-osc-ffff88102f578800')
+    active_ost_list.append('nyx-OST0015-osc-ffff88102f578800')
+
+    inactive_ost_list = list()
+    inactive_ost_list.append('nyx-OST11ef-osc-ffff88102f578800')
+    inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578800')
+
+    return tuple(active_ost_list, inactive_ost_list)
+
+
 def main():
 
     try:
@@ -110,11 +121,14 @@ def main():
                 comm_handler.connect()
 
                 controller_last_heartbeat_map = dict()
+
                 controller_timeout_sec = config_file_reader.controller_timeout_sec
 
                 while True:
 
                     try:
+
+                        last_exec_timestamp = time.time()
 
                         in_raw_data = comm_handler.recv()
                         logging.debug("Retrieved Message from Worker: " + in_raw_data)
@@ -150,6 +164,7 @@ def main():
                                 logging.info('Shutdown complete!')
                                 sys.exit(0)
 
+                        # TODO
                         # controller_timeout_sec
 
                     except ZMQError as e:
