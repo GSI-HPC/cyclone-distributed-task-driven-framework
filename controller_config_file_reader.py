@@ -36,5 +36,6 @@ class ControllerConfigFileReader:
 
         self.comm_port = int(config.get('comm', 'port'))
         self.comm_target = config.get('comm', 'target')
+        self.poll_timeout = int(config.get('comm', 'poll_timeout'))
 
         self.log_filename = config.get('logging', 'filename')

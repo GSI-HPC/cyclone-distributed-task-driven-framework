@@ -23,13 +23,16 @@ import zmq
 from base_handler import BaseHandler
 
 
-REQUEST_TIMEOUT = 1000
-
-
 class ControllerCommHandler(BaseHandler):
 
-    def __init__(self, target, port):
+    def __init__(self, target, port, poll_timeout):
+
         BaseHandler.__init__(self, target, port)
+
+        if not poll_timeout:
+            raise RuntimeError('No poll timeout is set!')
+
+        self.poll_timeout = poll_timeout
 
     def __enter__(self):
         return self
@@ -81,7 +84,7 @@ class ControllerCommHandler(BaseHandler):
 
     def recv(self):
 
-        events = dict(self.poller.poll(REQUEST_TIMEOUT))
+        events = dict(self.poller.poll(self.poll_timeout))
 
         if events.get(self.socket) == zmq.POLLIN:
 

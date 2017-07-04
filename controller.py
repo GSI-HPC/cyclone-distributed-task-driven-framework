@@ -73,7 +73,8 @@ def main():
 
         with PIDControl(pid_file) as pid_control, \
                 ControllerCommHandler(config_file_reader.comm_target,
-                                      config_file_reader.comm_port) as comm_handler:
+                                      config_file_reader.comm_port,
+                                      config_file_reader.poll_timeout) as comm_handler:
 
             if pid_control.lock():
 
