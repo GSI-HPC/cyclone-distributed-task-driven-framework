@@ -108,7 +108,8 @@ def main():
 
         with PIDControl(pid_file) as pid_control, \
                 MasterCommHandler(config_file_reader.comm_target,
-                                  config_file_reader.comm_port) as comm_handler:
+                                  config_file_reader.comm_port,
+                                  1000) as comm_handler:
 
             if pid_control.lock():
 
@@ -131,41 +132,52 @@ def main():
                         last_exec_timestamp = time.time()
 
                         in_raw_data = comm_handler.recv()
-                        logging.debug("Retrieved Message from Worker: " + in_raw_data)
 
-                        in_msg = MessageFactory.create_message(in_raw_data)
+                        if in_raw_data:
 
-                        # Save last retrieved heartbeat from a controller
-                        controller_last_heartbeat_map[in_msg.sender] = time.time()
+                            logging.debug("Retrieved Message from Worker: " + in_raw_data)
 
-                        if RUN_CONDITION:
+                            in_msg = MessageFactory.create_message(in_raw_data)
 
-                            if in_msg.type == MessageType.TASK_REQUEST():
+                            # Save last retrieved heartbeat from a controller
+                            controller_last_heartbeat_map[in_msg.sender] = time.time()
 
-                                # TODO: Where to get the task response...!
-                                out_msg = MessageFactory.create_task_response('OST_NAME')
+                            if RUN_CONDITION:
+
+                                if in_msg.type == MessageType.TASK_REQUEST():
+
+                                    # TODO: Where to get the task response...!
+                                    out_msg = MessageFactory.create_task_response('OST_NAME')
+                                    logging.debug("Sending message: " + out_msg.to_string())
+                                    comm_handler.send(out_msg.to_string())  # Does not block.
+
+                                else:
+                                    raise RuntimeError('Undefined type found in message: ' + in_msg.to_string())
+
+                            else:   # NOT RUN CONDITION
+
+                                out_msg = MessageFactory.create_exit_response()
+
                                 logging.debug("Sending message: " + out_msg.to_string())
                                 comm_handler.send(out_msg.to_string())  # Does not block.
 
-                            else:
-                                raise RuntimeError('Undefined type found in message: ' + in_msg.to_string())
+                                controller_last_heartbeat_map.pop(in_msg.sender, None)
 
-                        else:   # not RUN_CONDITION
+                                len_ctrl_map = len(controller_last_heartbeat_map)
 
-                            out_msg = MessageFactory.create_exit_response()
+                                if not len_ctrl_map:
 
-                            logging.debug("Sending message: " + out_msg.to_string())
-                            comm_handler.send(out_msg.to_string())  # Does not block.
+                                    logging.info('Shutdown complete!')
+                                    sys.exit(0)
 
-                            controller_last_heartbeat_map.pop(in_msg.sender, None)
+                                logging.debug("Waiting for number of controllers to quit: " + str(len_ctrl_map))
 
-                            if not len(controller_last_heartbeat_map):
+                            # TODO
+                            # controller_timeout_sec
 
-                                logging.info('Shutdown complete!')
-                                sys.exit(0)
+                        else:   # POLL TIMEOUT
 
-                        # TODO
-                        # controller_timeout_sec
+                            logging.debug('*** Poll Timeout Reached ***')
 
                     except ZMQError as e:
 

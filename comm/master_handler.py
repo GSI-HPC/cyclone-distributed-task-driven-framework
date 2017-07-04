@@ -25,8 +25,8 @@ from base_handler import BaseHandler
 
 class MasterCommHandler(BaseHandler):
 
-    def __init__(self, target, port):
-        BaseHandler.__init__(self, target, port)
+    def __init__(self, target, port, poll_timeout):
+        BaseHandler.__init__(self, target, port, poll_timeout)
 
     def __enter__(self):
         return self
@@ -48,20 +48,7 @@ class MasterCommHandler(BaseHandler):
 
         self.socket.bind(self.endpoint)
 
-    def disconnect(self):
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, zmq.POLLIN)
 
-        if self.socket:
-            self.socket.close()
-
-        if self.context:
-            self.context.term()
-
-    def reconnect(self):
-
-        self.disconnect()
-        self.connect()
-
-    def recv(self):
-
-        in_msg = self.socket.recv()
-        return in_msg
+        self.is_connected = True

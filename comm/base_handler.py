@@ -20,11 +20,12 @@
 
 import abc
 import socket
+import zmq
 
 
 class BaseHandler:
 
-    def __init__(self, target, port):
+    def __init__(self, target, port, poll_timeout):
 
         __metaclass__ = abc.ABCMeta
 
@@ -37,8 +38,12 @@ class BaseHandler:
         if not (port in range(1024, 65535)):
             raise RuntimeError('Communication port must be a number between 1024 and 65535!')
 
+        if not poll_timeout:
+            raise RuntimeError('No poll timeout is set!')
+
         self.target = target
         self.port = port
+        self.poll_timeout = poll_timeout
 
         self.endpoint = "tcp://" + self.target + ":" + str(self.port)
         self.context = None
@@ -56,16 +61,40 @@ class BaseHandler:
     def connect(self):
         return None
 
-    @abc.abstractmethod
     def disconnect(self):
-        return None
 
-    @abc.abstractmethod
+        if self.is_connected:
+
+            if self.socket:
+
+                self.socket.setsockopt(zmq.LINGER, 0)
+
+                if self.poller:
+                    self.poller.unregister(self.socket)
+
+                self.socket.close()
+
+            if self.context:
+                self.context.term()
+
+            self.is_connected = False
+
     def reconnect(self):
-        return None
 
-    @abc.abstractmethod
+        self.disconnect()
+        self.connect()
+
     def recv(self):
+
+        events = dict(self.poller.poll(self.poll_timeout))
+
+        if events.get(self.socket) == zmq.POLLIN:
+
+            message = self.socket.recv()
+
+            if message:
+                return message
+
         return None
 
     def send(self, message):

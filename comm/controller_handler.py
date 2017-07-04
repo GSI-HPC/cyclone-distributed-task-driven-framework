@@ -26,13 +26,7 @@ from base_handler import BaseHandler
 class ControllerCommHandler(BaseHandler):
 
     def __init__(self, target, port, poll_timeout):
-
-        BaseHandler.__init__(self, target, port)
-
-        if not poll_timeout:
-            raise RuntimeError('No poll timeout is set!')
-
-        self.poll_timeout = poll_timeout
+        BaseHandler.__init__(self, target, port, poll_timeout)
 
     def __enter__(self):
         return self
@@ -58,39 +52,3 @@ class ControllerCommHandler(BaseHandler):
         self.poller.register(self.socket, zmq.POLLIN)
 
         self.is_connected = True
-
-    def disconnect(self):
-
-        if self.is_connected:
-
-            if self.socket:
-
-                self.socket.setsockopt(zmq.LINGER, 0)
-
-                if self.poller:
-                    self.poller.unregister(self.socket)
-
-                self.socket.close()
-
-            if self.context:
-                self.context.term()
-
-            self.is_connected = False
-
-    def reconnect(self):
-
-        self.disconnect()
-        self.connect()
-
-    def recv(self):
-
-        events = dict(self.poller.poll(self.poll_timeout))
-
-        if events.get(self.socket) == zmq.POLLIN:
-
-            message = self.socket.recv()
-
-            if message:
-                return message
-
-        return None
