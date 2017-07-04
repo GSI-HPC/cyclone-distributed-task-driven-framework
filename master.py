@@ -74,7 +74,7 @@ def signal_handler_terminate(signal, frame):
 
 def signal_handler_shutdown(signal, frame):
 
-    logging.info('Shutdown')
+    logging.info('Shutting down...')
 
     global RUN_CONDITION
 
@@ -109,7 +109,8 @@ def main():
 
                 comm_handler.connect()
 
-                controller_status_map = dict()
+                controller_last_heartbeat_map = dict()
+                controller_timeout_sec = config_file_reader.controller_timeout_sec
 
                 while True:
 
@@ -118,29 +119,38 @@ def main():
                         in_raw_data = comm_handler.recv()
                         logging.debug("Retrieved Message from Worker: " + in_raw_data)
 
-                        out_msg = None
+                        in_msg = MessageFactory.create_message(in_raw_data)
+
+                        # Save last retrieved heartbeat from a controller
+                        controller_last_heartbeat_map[in_msg.sender] = time.time()
 
                         if RUN_CONDITION:
 
-                            in_msg = MessageFactory.create_message(in_raw_data)
-
                             if in_msg.type == MessageType.TASK_REQUEST():
-
-                                controller_status_map[in_msg.body] = 'alive: ' + str(time.time())
 
                                 # TODO: Where to get the task response...!
                                 out_msg = MessageFactory.create_task_response('OST_NAME')
+                                logging.debug("Sending message: " + out_msg.to_string())
+                                comm_handler.send(out_msg.to_string())  # Does not block.
 
-                        else:
+                            else:
+                                raise RuntimeError('Undefined type found in message: ' + in_msg.to_string())
+
+                        else:   # not RUN_CONDITION
+
                             out_msg = MessageFactory.create_exit_response()
 
-                        if out_msg:
                             logging.debug("Sending message: " + out_msg.to_string())
                             comm_handler.send(out_msg.to_string())  # Does not block.
-                        else:
-                            raise RuntimeError('Nothing to be send!')   # Should never happen!
 
-                        print controller_status_map[in_msg.body]
+                            controller_last_heartbeat_map.pop(in_msg.sender, None)
+
+                            if not len(controller_last_heartbeat_map):
+
+                                logging.info('Shutdown complete!')
+                                sys.exit(0)
+
+                        # controller_timeout_sec
 
                     except ZMQError as e:
 

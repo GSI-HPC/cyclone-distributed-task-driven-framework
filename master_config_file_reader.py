@@ -35,6 +35,7 @@ class MasterConfigFileReader:
         self.pid_file_dir = config.get('control', 'pid_file_dir')
         self.ost_reg_ex = config.get('control', 'ost_reg_ex')
         self.ip_reg_ex = config.get('control', 'ip_reg_ex')
+        self.controller_timeout_sec = config.get('control', 'controller_timeout_sec')
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))
