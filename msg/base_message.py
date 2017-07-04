@@ -35,19 +35,18 @@ class BaseMessage:
         if not self.type:
             raise RuntimeError('No message type is set!')
 
-        if self.body:
-            self.message = self.type + BaseMessage.field_separator + self.body
-        else:
-            if self.body:
-                self.message = self.type
-
         self.validate_body()
 
-    def __str__(self):
-        return self.message
-
     def to_string(self):
-        return self.message
+
+        message = None
+
+        if self.body:
+            message = self.type + BaseMessage.field_separator + self.body
+        else:
+            message = self.type
+
+        return message
 
     @abc.abstractmethod
     def validate_body(self):

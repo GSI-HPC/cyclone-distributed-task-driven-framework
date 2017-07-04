@@ -35,9 +35,3 @@ class TaskResponse(BaseMessage):
 
         if not self.body:
             raise RuntimeError('No body is set!')
-
-        if not self.message:
-            raise RuntimeError('Retrieved empty message!')
-
-        if self.message.count(BaseMessage.field_separator) != 1:
-            raise RuntimeError('Bad message format detected!')

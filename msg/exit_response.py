@@ -28,6 +28,4 @@ class ExitResponse(BaseMessage):
         BaseMessage.__init__(self, MessageType.EXIT_RESPONSE(), '')
 
     def validate_body(self):
-
-        if not self.message:
-            raise RuntimeError("Retrieved empty message!")
+        return None
