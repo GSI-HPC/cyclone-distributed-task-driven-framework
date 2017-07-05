@@ -78,6 +78,15 @@ def signal_handler_shutdown(signal, frame):
         RUN_CONDITION = False
 
 
+def try_shutdown(len_ctrl_map):
+
+    if not len_ctrl_map:
+        logging.info('Shutdown complete!')
+        sys.exit(0)
+
+    logging.debug("Waiting for number of controllers to quit: " + str(len_ctrl_map))
+
+
 def get_ost_lists():
 
     active_ost_list = list()
@@ -109,7 +118,7 @@ def main():
         with PIDControl(pid_file) as pid_control, \
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
-                                  1000) as comm_handler:
+                                  config_file_reader.poll_timeout) as comm_handler:
 
             if pid_control.lock():
 
@@ -121,9 +130,9 @@ def main():
 
                 comm_handler.connect()
 
-                controller_last_heartbeat_map = dict()
+                controller_heartbeat_map = dict()
 
-                controller_timeout_sec = config_file_reader.controller_timeout_sec
+                controller_timeout = config_file_reader.controller_timeout
 
                 while True:
 
@@ -131,53 +140,54 @@ def main():
 
                         last_exec_timestamp = time.time()
 
-                        in_raw_data = comm_handler.recv()
+                        recv_raw_data = comm_handler.recv()
 
-                        if in_raw_data:
+                        if recv_raw_data:
 
-                            logging.debug("Retrieved Message from Worker: " + in_raw_data)
-
-                            in_msg = MessageFactory.create_message(in_raw_data)
+                            logging.debug("Retrieved Message from Worker: " + recv_raw_data)
+                            recv_msg = MessageFactory.create_message(recv_raw_data)
 
                             # Save last retrieved heartbeat from a controller
-                            controller_last_heartbeat_map[in_msg.sender] = time.time()
+                            controller_heartbeat_map[recv_msg.sender] = time.time()
 
                             if RUN_CONDITION:
 
-                                if in_msg.type == MessageType.TASK_REQUEST():
+                                if recv_msg.type == MessageType.TASK_REQUEST():
 
                                     # TODO: Where to get the task response...!
-                                    out_msg = MessageFactory.create_task_response('OST_NAME')
-                                    logging.debug("Sending message: " + out_msg.to_string())
-                                    comm_handler.send(out_msg.to_string())  # Does not block.
+                                    send_msg = MessageFactory.create_task_response('OST_NAME')
+                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    comm_handler.send(send_msg.to_string())  # Does not block.
 
                                 else:
-                                    raise RuntimeError('Undefined type found in message: ' + in_msg.to_string())
+                                    raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
                             else:   # NOT RUN CONDITION
 
-                                out_msg = MessageFactory.create_exit_response()
+                                send_msg = MessageFactory.create_exit_response()
 
-                                logging.debug("Sending message: " + out_msg.to_string())
-                                comm_handler.send(out_msg.to_string())  # Does not block.
+                                logging.debug("Sending message: " + send_msg.to_string())
+                                comm_handler.send(send_msg.to_string())  # Does not block.
 
-                                controller_last_heartbeat_map.pop(in_msg.sender, None)
+                                controller_heartbeat_map.pop(recv_msg.sender, None)
 
-                                len_ctrl_map = len(controller_last_heartbeat_map)
+                                try_shutdown(len(controller_heartbeat_map))
 
-                                if not len_ctrl_map:
-
-                                    logging.info('Shutdown complete!')
-                                    sys.exit(0)
-
-                                logging.debug("Waiting for number of controllers to quit: " + str(len_ctrl_map))
-
-                            # TODO
-                            # controller_timeout_sec
-
-                        else:   # POLL TIMEOUT
+                        else:   # POLL TIMEOUT / MEASUREMENT INTERVAL
 
                             logging.debug('*** Poll Timeout Reached ***')
+
+                            if not RUN_CONDITION:
+
+                                # Check if a controller reached timeout
+                                for controller_name in controller_heartbeat_map.keys():
+
+                                    last_timestamp = controller_heartbeat_map[controller_name]
+
+                                    if (last_timestamp + controller_timeout) <= last_exec_timestamp:
+                                        controller_heartbeat_map.pop(controller_name, None)
+
+                                try_shutdown(len(controller_heartbeat_map))
 
                     except ZMQError as e:
 

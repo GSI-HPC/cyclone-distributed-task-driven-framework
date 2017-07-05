@@ -34,8 +34,8 @@ class ControllerConfigFileReader:
 
         self.pid_file_dir = config.get('control', 'pid_file_dir')
 
-        self.comm_port = int(config.get('comm', 'port'))
         self.comm_target = config.get('comm', 'target')
-        self.poll_timeout = int(config.get('comm', 'poll_timeout'))
+        self.comm_port = int(config.get('comm', 'port'))
+        self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
 
         self.log_filename = config.get('logging', 'filename')
