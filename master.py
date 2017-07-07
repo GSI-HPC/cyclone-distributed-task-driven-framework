@@ -35,7 +35,8 @@ from pid_control import PIDControl
 from zmq import ZMQError
 
 
-RUN_CONDITION = True
+MAIN_LOOP_RUN_FLAG = True
+TASK_DISTRIBUTION_FLAG = True
 
 
 def init_arg_parser():
@@ -74,25 +75,26 @@ def signal_handler_shutdown(signal, frame):
 
     logging.info('Shutting down...')
 
-    global RUN_CONDITION
+    global TASK_DISTRIBUTION_FLAG
 
-    if RUN_CONDITION:
-        RUN_CONDITION = False
+    if TASK_DISTRIBUTION_FLAG:
+        TASK_DISTRIBUTION_FLAG = False
 
 
-def try_shutdown(len_ctrl_map):
+def wait_for_controllers_shutdown(len_ctrl_map):
 
     if not len_ctrl_map:
-        logging.info('Shutdown complete!')
-        sys.exit(0)
+
+        logging.info('Shutdown of controllers complete!')
+        return True
 
     logging.debug("Waiting for number of controllers to quit: " + str(len_ctrl_map))
+    return False
 
 
 def process_ost_lists(active_ost_list_queue, measure_interval):
 
-    counter = 1
-
+    # TODO RUN FLAG...
     while True:
 
         try:
@@ -104,12 +106,11 @@ def process_ost_lists(active_ost_list_queue, measure_interval):
                 if active_ost_list_queue.has_item():
                     active_ost_list_queue.clear_item()
 
-                active_ost_list_queue.put_item("Counter: " + str(counter) + "\n".join(active_list))
-                counter += 1
-
+                active_ost_list_queue.put_item(active_list)
                 active_ost_list_queue.lock.release()
 
             time.sleep(measure_interval)
+            print 'sleep done'
 
         except Exception as e:
             logging.error("Caught exception in OST List Processor: " + str(e))
@@ -128,6 +129,20 @@ def get_ost_lists():
     inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578800')
 
     return tuple((active_ost_list, inactive_ost_list))
+
+
+def update_active_ost_list(active_ost_list_queue):
+
+    if active_ost_list_queue.has_item() and active_ost_list_queue.lock.acquire(False):
+
+        if active_ost_list_queue.has_item():
+
+            active_ost_list = active_ost_list_queue.get_item()
+
+            if active_ost_list:
+                print 'active_ost_list'
+
+                active_ost_list_queue.lock.release()
 
 
 def main():
@@ -172,23 +187,16 @@ def main():
 
                 ost_lists_update_timestamp = time.time()
 
-                while True:
+                global MAIN_LOOP_RUN_FLAG
+                while MAIN_LOOP_RUN_FLAG:
 
                     try:
 
-                        # TEST ACCESSING QUEUE
-                        if active_ost_list_queue.has_item() and active_ost_list_queue.lock.acquire(False):
-
-                            if active_ost_list_queue.has_item():
-
-                                active_ost_list = active_ost_list_queue.get_item()
-
-                                if active_ost_list:
-                                    print 'active_ost_list'
-
-                                    active_ost_list_queue.lock.release()
-
                         last_exec_timestamp = time.time()
+
+                        if TASK_DISTRIBUTION_FLAG:
+
+                            update_active_ost_list(active_ost_list_queue)
 
                         recv_data = comm_handler.recv()
 
@@ -201,7 +209,7 @@ def main():
                             # Save last retrieved heartbeat from a controller
                             controller_heartbeat_map[recv_msg.sender] = time.time()
 
-                            if RUN_CONDITION:
+                            if TASK_DISTRIBUTION_FLAG:
 
                                 if recv_msg.type == MessageType.TASK_REQUEST():
 
@@ -213,7 +221,7 @@ def main():
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
-                            else:   # NOT RUN_CONDITION
+                            else:   # NOT TASK_DISTRIBUTION_FLAG
 
                                 send_msg = MessageFactory.create_exit_response()
 
@@ -222,13 +230,14 @@ def main():
 
                                 controller_heartbeat_map.pop(recv_msg.sender, None)
 
-                                try_shutdown(len(controller_heartbeat_map))
+                                if wait_for_controllers_shutdown(len(controller_heartbeat_map)):
+                                    MAIN_LOOP_RUN_FLAG = False
 
                         else:   # POLL-TIMEOUT
 
                             logging.debug('*** POLL TIMEOUT ***')
 
-                            if not RUN_CONDITION:
+                            if not TASK_DISTRIBUTION_FLAG:
 
                                 # Check if a controller reached timeout
                                 for controller_name in controller_heartbeat_map.keys():
@@ -238,14 +247,20 @@ def main():
                                     if (last_timestamp + controller_timeout) <= last_exec_timestamp:
                                         controller_heartbeat_map.pop(controller_name, None)
 
-                                try_shutdown(len(controller_heartbeat_map))
+                                if wait_for_controllers_shutdown(len(controller_heartbeat_map)):
+                                    MAIN_LOOP_RUN_FLAG = False
 
                     except ZMQError as e:
 
-                        if RUN_CONDITION:
+                        if TASK_DISTRIBUTION_FLAG:
                             logging.error("Caught ZMQ Exception: " + str(e))
                         else:
                             logging.warning("Caught ZMQ Exception: " + str(e))
+
+                # TODO NO GOOD!!! BETTER USE RUN FLAG WITH INTERRUPTION POSSIBILITY!
+                print 'MAIN waiting for OST Processor to quit'
+                ost_lists_processor.terminate()
+                ost_lists_processor.join()
 
     except Exception as e:
 
