@@ -62,16 +62,14 @@ class ActiveOstQueue:
 
     def pop(self):
 
-        item = None
-
         with CriticalSection(self.__lock, False):
 
             try:
-                item = self.__queue.get_nowait()
+                return self.__queue.get_nowait()
             except Queue.Empty:
                 print '>>>>>>> pop caught exception <<<<<<<<'
 
-        return item
+        return None
 
     def is_empty(self):
 
