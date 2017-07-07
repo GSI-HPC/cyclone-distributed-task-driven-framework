@@ -26,7 +26,7 @@ import sys
 import time
 import multiprocessing
 
-from single_item_shared_queue import SingleItemSharedQueue
+from active_ost_queue import ActiveOstQueue
 from comm.master_handler import MasterCommHandler
 from master_config_file_reader import MasterConfigFileReader
 from msg.message_factory import MessageFactory
@@ -37,6 +37,8 @@ from zmq import ZMQError
 
 MAIN_LOOP_RUN_FLAG = True
 TASK_DISTRIBUTION_FLAG = True
+
+ACTIVE_OST_QUEUE = list()
 
 
 def init_arg_parser():
@@ -92,7 +94,7 @@ def wait_for_controllers_shutdown(len_ctrl_map):
     return False
 
 
-def process_ost_lists(active_ost_list_queue, measure_interval):
+def process_ost_lists(active_ost_queue, measure_interval):
 
     # TODO RUN FLAG...
     while True:
@@ -101,16 +103,12 @@ def process_ost_lists(active_ost_list_queue, measure_interval):
 
             active_list, inactive_list = get_ost_lists()
 
-            if active_ost_list_queue.lock.acquire():
+            if not active_ost_queue.is_empty():
+                active_ost_queue.clear()
 
-                if active_ost_list_queue.has_item():
-                    active_ost_list_queue.clear_item()
-
-                active_ost_list_queue.put_item(active_list)
-                active_ost_list_queue.lock.release()
+            active_ost_queue.fill(active_list)
 
             time.sleep(measure_interval)
-            print 'sleep done'
 
         except Exception as e:
             logging.error("Caught exception in OST List Processor: " + str(e))
@@ -129,20 +127,6 @@ def get_ost_lists():
     inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578800')
 
     return tuple((active_ost_list, inactive_ost_list))
-
-
-def update_active_ost_list(active_ost_list_queue):
-
-    if active_ost_list_queue.has_item() and active_ost_list_queue.lock.acquire(False):
-
-        if active_ost_list_queue.has_item():
-
-            active_ost_list = active_ost_list_queue.get_item()
-
-            if active_ost_list:
-                print 'active_ost_list'
-
-                active_ost_list_queue.lock.release()
 
 
 def main():
@@ -178,10 +162,10 @@ def main():
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
 
-                active_ost_list_queue = SingleItemSharedQueue()
+                active_ost_queue = ActiveOstQueue()
 
                 ost_lists_processor = \
-                    multiprocessing.Process(target=process_ost_lists, args=(active_ost_list_queue, measure_interval))
+                    multiprocessing.Process(target=process_ost_lists, args=(active_ost_queue, measure_interval))
 
                 ost_lists_processor.start()
 
@@ -193,10 +177,6 @@ def main():
                     try:
 
                         last_exec_timestamp = time.time()
-
-                        if TASK_DISTRIBUTION_FLAG:
-
-                            update_active_ost_list(active_ost_list_queue)
 
                         recv_data = comm_handler.recv()
 
@@ -212,6 +192,9 @@ def main():
                             if TASK_DISTRIBUTION_FLAG:
 
                                 if recv_msg.type == MessageType.TASK_REQUEST():
+
+                                    if not active_ost_queue.is_empty():
+                                        print active_ost_queue.pop()
 
                                     # TODO: Where to get the task response...!
                                     send_msg = MessageFactory.create_task_response('OST_NAME')
