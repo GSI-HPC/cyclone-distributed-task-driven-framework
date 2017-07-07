@@ -32,6 +32,7 @@ class ControllerConfigFileReader:
         config = ConfigParser.ConfigParser()
         config.read(config_file)
 
+        # TODO: Check parameter values!
         self.pid_file_dir = config.get('control', 'pid_file_dir')
 
         self.comm_target = config.get('comm', 'target')

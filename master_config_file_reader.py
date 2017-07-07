@@ -32,10 +32,12 @@ class MasterConfigFileReader:
         config = ConfigParser.ConfigParser()
         config.read(config_file)
 
+        # TODO: Check parameter values!
         self.pid_file_dir = config.get('control', 'pid_file_dir')
         self.ost_reg_ex = config.get('control', 'ost_reg_ex')
         self.ip_reg_ex = config.get('control', 'ip_reg_ex')
         self.controller_timeout = float(config.get('control', 'controller_timeout'))
+        self.measure_interval = float(config.get('control', 'measure_interval'))
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))

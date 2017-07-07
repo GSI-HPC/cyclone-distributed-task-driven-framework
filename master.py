@@ -24,7 +24,9 @@ import os
 import signal
 import sys
 import time
+import multiprocessing
 
+from single_item_shared_queue import SingleItemSharedQueue
 from comm.master_handler import MasterCommHandler
 from master_config_file_reader import MasterConfigFileReader
 from msg.message_factory import MessageFactory
@@ -87,6 +89,32 @@ def try_shutdown(len_ctrl_map):
     logging.debug("Waiting for number of controllers to quit: " + str(len_ctrl_map))
 
 
+def process_ost_lists(active_ost_list_queue, measure_interval):
+
+    counter = 1
+
+    while True:
+
+        try:
+
+            active_list, inactive_list = get_ost_lists()
+
+            if active_ost_list_queue.lock.acquire():
+
+                if active_ost_list_queue.has_item():
+                    active_ost_list_queue.clear_item()
+
+                active_ost_list_queue.put_item("Counter: " + str(counter) + "\n".join(active_list))
+                counter += 1
+
+                active_ost_list_queue.lock.release()
+
+            time.sleep(measure_interval)
+
+        except Exception as e:
+            logging.error("Caught exception in OST List Processor: " + str(e))
+
+
 def get_ost_lists():
 
     active_ost_list = list()
@@ -99,7 +127,7 @@ def get_ost_lists():
     inactive_ost_list.append('nyx-OST11ef-osc-ffff88102f578800')
     inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578800')
 
-    return tuple(active_ost_list, inactive_ost_list)
+    return tuple((active_ost_list, inactive_ost_list))
 
 
 def main():
@@ -133,19 +161,42 @@ def main():
                 controller_heartbeat_map = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
+                measure_interval = config_file_reader.measure_interval
+
+                active_ost_list_queue = SingleItemSharedQueue()
+
+                ost_lists_processor = \
+                    multiprocessing.Process(target=process_ost_lists, args=(active_ost_list_queue, measure_interval))
+
+                ost_lists_processor.start()
+
+                ost_lists_update_timestamp = time.time()
 
                 while True:
 
                     try:
 
+                        # TEST ACCESSING QUEUE
+                        if active_ost_list_queue.has_item() and active_ost_list_queue.lock.acquire(False):
+
+                            if active_ost_list_queue.has_item():
+
+                                active_ost_list = active_ost_list_queue.get_item()
+
+                                if active_ost_list:
+                                    print 'active_ost_list'
+
+                                    active_ost_list_queue.lock.release()
+
                         last_exec_timestamp = time.time()
 
-                        recv_raw_data = comm_handler.recv()
+                        recv_data = comm_handler.recv()
 
-                        if recv_raw_data:
+                        # Check if new data has been received from a controller
+                        if recv_data:
 
-                            logging.debug("Retrieved Message from Worker: " + recv_raw_data)
-                            recv_msg = MessageFactory.create_message(recv_raw_data)
+                            logging.debug("Retrieved Message from Worker: " + recv_data)
+                            recv_msg = MessageFactory.create_message(recv_data)
 
                             # Save last retrieved heartbeat from a controller
                             controller_heartbeat_map[recv_msg.sender] = time.time()
@@ -162,7 +213,7 @@ def main():
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
-                            else:   # NOT RUN CONDITION
+                            else:   # NOT RUN_CONDITION
 
                                 send_msg = MessageFactory.create_exit_response()
 
@@ -173,9 +224,9 @@ def main():
 
                                 try_shutdown(len(controller_heartbeat_map))
 
-                        else:   # POLL TIMEOUT / MEASUREMENT INTERVAL
+                        else:   # POLL-TIMEOUT
 
-                            logging.debug('*** Poll Timeout Reached ***')
+                            logging.debug('*** POLL TIMEOUT ***')
 
                             if not RUN_CONDITION:
 
