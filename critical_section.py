@@ -20,14 +20,15 @@
 
 class CriticalSection:
 
-    def __init__(self, lock, block=True):
+    def __init__(self, lock, block=True, timeout=None):
 
         self.__lock = lock
         self.__block = block
+        self.__timeout = timeout
 
     def __enter__(self):
 
-        self.__lock.acquire(self.__block)
+        self.__lock.acquire(self.__block, self.__timeout)
 
         return self
 

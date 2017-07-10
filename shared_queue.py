@@ -21,14 +21,11 @@
 import multiprocessing
 import Queue
 
-from critical_section import CriticalSection
 
-
-class ActiveOstQueue:
+class SharedQueue:
 
     def __init__(self):
         self.__queue = multiprocessing.Queue()
-        self.__lock = multiprocessing.Lock()
 
     def __enter__(self):
         return self
@@ -41,33 +38,27 @@ class ActiveOstQueue:
         if len(in_list) == 0:
             raise RuntimeError('Input list is empty!')
 
-        with CriticalSection(self.__lock):
+        if not self.__queue.empty():
+            raise RuntimeError('Shared Queue is not empty!')
 
-            if not self.__queue.empty():
-                raise RuntimeError('Shared Queue is not empty!')
-
-            for item in in_list:
-                self.__queue.put(item)
+        for item in in_list:
+            self.__queue.put(item)
 
     def clear(self):
 
-        with CriticalSection(self.__lock):
+        while not self.__queue.empty():
 
-            while not self.__queue.empty():
-
-                try:
-                    self.__queue.get()
-                except Queue.Empty:
-                    print '>>>>>>> clear: get item caught exception <<<<<<<<'
+            try:
+                self.__queue.get()
+            except Queue.Empty:
+                print '>>>>>>> clear: get item caught exception <<<<<<<<'
 
     def pop(self):
 
-        with CriticalSection(self.__lock, False):
-
-            try:
-                return self.__queue.get_nowait()
-            except Queue.Empty:
-                print '>>>>>>> pop caught exception <<<<<<<<'
+        try:
+            return self.__queue.get_nowait()
+        except Queue.Empty:
+            print '>>>>>>> pop caught exception <<<<<<<<'
 
         return None
 
