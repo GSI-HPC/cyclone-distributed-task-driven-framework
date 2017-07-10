@@ -166,6 +166,7 @@ def main():
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
                 lock_ost_queue_timeout = config_file_reader.lock_ost_queue_timeout
+                controller_wait_duration = config_file_reader.controller_wait_duration
 
                 lock_ost_queue = multiprocessing.Lock()
                 active_ost_queue = SharedQueue()
@@ -200,7 +201,7 @@ def main():
 
                                 logging.info("active_ost_queue empty: " + str(active_ost_queue.is_empty()))
 
-                                if recv_msg.type == MessageType.TASK_REQUEST():
+                                if recv_msg.header == MessageType.TASK_REQUEST():
 
                                     active_ost_name = None
 
@@ -217,7 +218,7 @@ def main():
 
                                     else:
 
-                                        send_msg = MessageFactory.create_task_response("DUMMY")
+                                        send_msg = MessageFactory.create_wait_command(controller_wait_duration)
                                         logging.debug("Sending message: " + send_msg.to_string())
                                         comm_handler.send(send_msg.to_string())
 

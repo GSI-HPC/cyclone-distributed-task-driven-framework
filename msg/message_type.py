@@ -35,5 +35,9 @@ class MessageType:
         return 'TASK_RES'
 
     @staticmethod
+    def WAIT_COMMAND():
+        return 'WAIT_CMD'
+
+    @staticmethod
     def EXIT_RESPONSE():
         return 'EXIT_RES'

@@ -24,6 +24,7 @@ from base_message import BaseMessage
 from message_type import MessageType
 from task_request import TaskRequest
 from task_response import TaskResponse
+from wait_command import WaitCommand
 from exit_response import ExitResponse
 
 
@@ -51,6 +52,9 @@ class MessageFactory:
         if header == MessageType.TASK_RESPONSE():
             return TaskResponse(body)
 
+        if header == MessageType.WAIT_COMMAND():
+            return WaitCommand(body)
+
         if header == MessageType.EXIT_RESPONSE():
             return ExitResponse()
 
@@ -64,6 +68,10 @@ class MessageFactory:
     @staticmethod
     def create_task_response(ost_name):
         return TaskResponse(ost_name)
+
+    @staticmethod
+    def create_wait_command(duration):
+        return WaitCommand(duration)
 
     @staticmethod
     def create_exit_response():

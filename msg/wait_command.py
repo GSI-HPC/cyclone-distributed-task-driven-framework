@@ -18,37 +18,23 @@
 #
 
 
-import abc
+from base_message import BaseMessage
+from message_type import MessageType
 
 
-class BaseMessage:
+class WaitCommand(BaseMessage):
 
-    field_separator = ';'
+    def __init__(self, duration):
 
-    def __init__(self, header, body):
+        BaseMessage.__init__(self, MessageType.WAIT_COMMAND(), duration)
 
-        __metaclass__ = abc.ABCMeta
-
-        self.header = header
-        self.body = body
-
-        if not self.header:
-            raise RuntimeError('No message type is set!')
-
-        self.validate_body()
-
-    def to_string(self):
-
-        message = None
-
-        if self.body:
-            message = self.header + BaseMessage.field_separator + self.body
-        else:
-            message = self.header
-
-        return message
-
-    #TODO: Raise EXCEPTION?
-    @abc.abstractmethod
     def validate_body(self):
-        return None
+
+        if not self.body:
+            raise RuntimeError('No body is set!')
+
+        # Validate duration as int value...
+
+    @property
+    def duration(self):
+        return int(self.body)
