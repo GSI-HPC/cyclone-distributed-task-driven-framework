@@ -26,7 +26,8 @@ import sys
 import time
 import multiprocessing
 
-from active_ost_queue import ActiveOstQueue
+from critical_section import CriticalSection
+from shared_queue import SharedQueue
 from comm.master_handler import MasterCommHandler
 from master_config_file_reader import MasterConfigFileReader
 from msg.message_factory import MessageFactory
@@ -94,19 +95,22 @@ def wait_for_controllers_shutdown(len_ctrl_map):
     return False
 
 
-def process_ost_lists(active_ost_queue, measure_interval):
+def process_ost_lists(active_ost_queue, measure_interval, lock_ost_queue):
 
     # TODO RUN FLAG...
     while True:
 
         try:
+            logging.debug("OST processor active...")
 
             active_list, inactive_list = get_ost_lists()
 
-            if not active_ost_queue.is_empty():
-                active_ost_queue.clear()
+            with CriticalSection(lock_ost_queue):
 
-            active_ost_queue.fill(active_list)
+                if not active_ost_queue.is_empty():
+                    active_ost_queue.clear()
+
+                active_ost_queue.fill(active_list)
 
             time.sleep(measure_interval)
 
@@ -161,11 +165,14 @@ def main():
 
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
+                lock_ost_queue_timeout = config_file_reader.lock_ost_queue_timeout
 
-                active_ost_queue = ActiveOstQueue()
+                lock_ost_queue = multiprocessing.Lock()
+                active_ost_queue = SharedQueue()
 
                 ost_lists_processor = \
-                    multiprocessing.Process(target=process_ost_lists, args=(active_ost_queue, measure_interval))
+                    multiprocessing.Process(
+                        target=process_ost_lists, args=(active_ost_queue, measure_interval, lock_ost_queue))
 
                 ost_lists_processor.start()
 
@@ -191,15 +198,28 @@ def main():
 
                             if TASK_DISTRIBUTION_FLAG:
 
+                                logging.info("active_ost_queue empty: " + str(active_ost_queue.is_empty()))
+
                                 if recv_msg.type == MessageType.TASK_REQUEST():
 
-                                    if not active_ost_queue.is_empty():
-                                        print active_ost_queue.pop()
+                                    active_ost_name = None
 
-                                    # TODO: Where to get the task response...!
-                                    send_msg = MessageFactory.create_task_response('OST_NAME')
-                                    logging.debug("Sending message: " + send_msg.to_string())
-                                    comm_handler.send(send_msg.to_string())  # Does not block.
+                                    with CriticalSection(lock_ost_queue, True, lock_ost_queue_timeout):
+
+                                        if not active_ost_queue.is_empty():
+                                            active_ost_name = active_ost_queue.pop()
+
+                                    if active_ost_name:
+
+                                        send_msg = MessageFactory.create_task_response(active_ost_name)
+                                        logging.debug("Sending message: " + send_msg.to_string())
+                                        comm_handler.send(send_msg.to_string())
+
+                                    else:
+
+                                        send_msg = MessageFactory.create_task_response("DUMMY")
+                                        logging.debug("Sending message: " + send_msg.to_string())
+                                        comm_handler.send(send_msg.to_string())
 
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
