@@ -40,6 +40,7 @@ class MasterConfigFileReader:
         self.measure_interval = float(config.get('control', 'measure_interval'))
         self.lock_ost_queue_timeout = int(config.get('control', 'lock_ost_queue_timeout'))
         self.controller_wait_duration = config.get('control', 'controller_wait_duration')
+        self.task_resend_timeout = int(config.get('control', 'task_resend_timeout'))
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))

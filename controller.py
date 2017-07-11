@@ -91,7 +91,7 @@ def main():
 
                 while True:
 
-                    # # TODO Just testing Finished Response...
+                    # TODO: REMOVE TESTING BLOCK AGAIN
                     if finished_ost_name:
 
                         task_finished = TaskFinished(comm_handler.fqdn, finished_ost_name)
@@ -119,7 +119,7 @@ def main():
                             ost_name = in_msg.body
                             logging.debug("Retrieved Task Response with OST name: " + ost_name)
 
-                            # TODO REMOVE AGAIN
+                            # TODO: REMOVE TESTING BLOCK AGAIN
                             finished_ost_name = ost_name
 
                         elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():

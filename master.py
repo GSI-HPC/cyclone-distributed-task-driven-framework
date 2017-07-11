@@ -36,6 +36,8 @@ from msg.task_response import TaskResponse
 from msg.task_acknowledge import TaskAcknowledge
 from msg.wait_command import WaitCommand
 from msg.exit_response import ExitResponse
+from ost_status_item import OstStatusItem
+from ost_status_item import OstState
 from pid_control import PIDControl
 from zmq import ZMQError
 
@@ -125,14 +127,14 @@ def process_ost_lists(active_ost_queue, measure_interval, lock_ost_queue):
 def get_ost_lists():
 
     active_ost_list = list()
-    active_ost_list.append('nyx-OST0000-osc-ffff88102f578800')
-    active_ost_list.append('nyx-OST0007-osc-ffff88102f578800')
-    active_ost_list.append('nyx-OST000e-osc-ffff88102f578800')
-    active_ost_list.append('nyx-OST0015-osc-ffff88102f578800')
+    active_ost_list.append('nyx-OST0000-osc-ffff88102f578801')
+    active_ost_list.append('nyx-OST0007-osc-ffff88102f578802')
+    active_ost_list.append('nyx-OST000e-osc-ffff88102f578803')
+    active_ost_list.append('nyx-OST0015-osc-ffff88102f578804')
 
     inactive_ost_list = list()
-    inactive_ost_list.append('nyx-OST11ef-osc-ffff88102f578800')
-    inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578800')
+    inactive_ost_list.append('nyx-OST11ef-osc-ffff88102f578801')
+    inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578802')
 
     return tuple((active_ost_list, inactive_ost_list))
 
@@ -165,12 +167,14 @@ def main():
 
                 comm_handler.connect()
 
-                controller_heartbeat_map = dict()
+                controller_heartbeat_dict = dict()
+                ost_status_lookup_dict = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
                 lock_ost_queue_timeout = config_file_reader.lock_ost_queue_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
+                task_resend_timeout = config_file_reader.task_resend_timeout
 
                 lock_ost_queue = multiprocessing.Lock()
                 active_ost_queue = SharedQueue()
@@ -181,14 +185,12 @@ def main():
 
                 ost_lists_processor.start()
 
-                ost_lists_update_timestamp = time.time()
-
                 global MAIN_LOOP_RUN_FLAG
                 while MAIN_LOOP_RUN_FLAG:
 
                     try:
 
-                        last_exec_timestamp = time.time()
+                        last_exec_timestamp = int(time.time())
 
                         recv_data = comm_handler.recv()
 
@@ -198,7 +200,7 @@ def main():
                             recv_msg = MessageFactory.create(recv_data)
 
                             # Save last retrieved heartbeat from a controller
-                            controller_heartbeat_map[recv_msg.sender] = time.time()
+                            controller_heartbeat_dict[recv_msg.sender] = int(time.time())
 
                             if TASK_DISTRIBUTION_FLAG:
 
@@ -206,29 +208,76 @@ def main():
 
                                 if MessageType.TASK_REQUEST() == recv_msg.header:
 
-                                    active_ost_name = None
+                                    ost_name = None
 
                                     with CriticalSection(lock_ost_queue, True, lock_ost_queue_timeout):
 
                                         if not active_ost_queue.is_empty():
-                                            active_ost_name = active_ost_queue.pop()
+                                            ost_name = active_ost_queue.pop()
 
-                                    if active_ost_name:
+                                    if ost_name:
 
-                                        send_msg = TaskResponse(active_ost_name)
-                                        logging.debug("Sending message: " + send_msg.to_string())
-                                        comm_handler.send(send_msg.to_string())
+                                        if ost_name in ost_status_lookup_dict:
+
+                                            if ost_status_lookup_dict[ost_name].state == OstState.FINISHED:
+
+                                                ost_status_lookup_dict[ost_name] = \
+                                                    OstStatusItem(ost_name,
+                                                                  OstState.ASSIGNED,
+                                                                  recv_msg.sender,
+                                                                  int(time.time()))
+
+                                                send_msg = TaskResponse(ost_name)
+
+                                            elif last_exec_timestamp >= \
+                                                    (ost_status_lookup_dict[ost_name].timestamp + task_resend_timeout):
+
+                                                ost_status_lookup_dict[ost_name] = \
+                                                    OstStatusItem(ost_name,
+                                                                  OstState.ASSIGNED,
+                                                                  recv_msg.sender,
+                                                                  int(time.time()))
+
+                                                send_msg = TaskResponse(ost_name)
+
+                                            elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
+                                                            last_exec_timestamp < \
+                                                            (ost_status_lookup_dict[ost_name].timestamp + task_resend_timeout):
+
+                                                send_msg = WaitCommand(controller_wait_duration)
+
+                                            else:
+                                                # TODO: Program should terminate then or send an mail on error!
+                                                raise RuntimeError("Undefined state processing task: ", ost_name)
+
+                                        else:
+
+                                            ost_status_lookup_dict[ost_name] = \
+                                                OstStatusItem(ost_name,
+                                                              OstState.ASSIGNED,
+                                                              recv_msg.sender,
+                                                              int(time.time()))
+
+                                            send_msg = TaskResponse(ost_name)
 
                                     else:
-
                                         send_msg = WaitCommand(controller_wait_duration)
-                                        logging.debug("Sending message: " + send_msg.to_string())
-                                        comm_handler.send(send_msg.to_string())
+
+                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    comm_handler.send(send_msg.to_string())
 
                                 elif MessageType.TASK_FINISHED() == recv_msg.header:
 
                                     finished_ost_name = recv_msg.ost_name
                                     logging.debug("Retrieved finished OST name: " + finished_ost_name)
+
+                                    if ost_name in ost_status_lookup_dict:
+
+                                        ost_status_lookup_dict[ost_name].state = OstState.FINISHED
+                                        ost_status_lookup_dict[ost_name].timestamp = int(time.time())
+
+                                    else:
+                                        raise RuntimeError("Inconsistency detected on task finished!")
 
                                     send_msg = TaskAcknowledge()
                                     logging.debug("Sending message: " + send_msg.to_string())
@@ -244,26 +293,27 @@ def main():
                                 logging.debug("Sending message: " + send_msg.to_string())
                                 comm_handler.send(send_msg.to_string())  # Does not block.
 
-                                controller_heartbeat_map.pop(recv_msg.sender, None)
+                                controller_heartbeat_dict.pop(recv_msg.sender, None)
 
-                                if wait_for_controllers_shutdown(len(controller_heartbeat_map)):
+                                if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
                                     MAIN_LOOP_RUN_FLAG = False
 
                         else:   # POLL-TIMEOUT
 
-                            logging.debug('*** POLL TIMEOUT ***')
+                            logging.debug('*** RECV-MSG TIMEOUT ***')
 
                             if not TASK_DISTRIBUTION_FLAG:
 
                                 # Check if a controller reached timeout
-                                for controller_name in controller_heartbeat_map.keys():
+                                for controller_name in controller_heartbeat_dict.keys():
 
-                                    last_timestamp = controller_heartbeat_map[controller_name]
+                                    controller_threshold = \
+                                        controller_heartbeat_dict[controller_name] + controller_timeout
 
-                                    if (last_timestamp + controller_timeout) <= last_exec_timestamp:
-                                        controller_heartbeat_map.pop(controller_name, None)
+                                    if last_exec_timestamp >= controller_threshold:
+                                        controller_heartbeat_dict.pop(controller_name, None)
 
-                                if wait_for_controllers_shutdown(len(controller_heartbeat_map)):
+                                if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
                                     MAIN_LOOP_RUN_FLAG = False
 
                     except ZMQError as e:
