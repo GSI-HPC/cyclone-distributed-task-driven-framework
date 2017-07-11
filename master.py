@@ -219,18 +219,11 @@ def main():
 
                                         if ost_name in ost_status_lookup_dict:
 
-                                            if ost_status_lookup_dict[ost_name].state == OstState.FINISHED:
+                                            task_resend_threshold = \
+                                                (ost_status_lookup_dict[ost_name].timestamp + task_resend_timeout)
 
-                                                ost_status_lookup_dict[ost_name] = \
-                                                    OstStatusItem(ost_name,
-                                                                  OstState.ASSIGNED,
-                                                                  recv_msg.sender,
-                                                                  int(time.time()))
-
-                                                send_msg = TaskResponse(ost_name)
-
-                                            elif last_exec_timestamp >= \
-                                                    (ost_status_lookup_dict[ost_name].timestamp + task_resend_timeout):
+                                            if (ost_status_lookup_dict[ost_name].state == OstState.FINISHED) or \
+                                                    last_exec_timestamp >= task_resend_threshold:
 
                                                 ost_status_lookup_dict[ost_name] = \
                                                     OstStatusItem(ost_name,
@@ -241,8 +234,7 @@ def main():
                                                 send_msg = TaskResponse(ost_name)
 
                                             elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
-                                                            last_exec_timestamp < \
-                                                            (ost_status_lookup_dict[ost_name].timestamp + task_resend_timeout):
+                                                    last_exec_timestamp < task_resend_threshold:
 
                                                 send_msg = WaitCommand(controller_wait_duration)
 
