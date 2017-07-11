@@ -32,6 +32,10 @@ from comm.master_handler import MasterCommHandler
 from master_config_file_reader import MasterConfigFileReader
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
+from msg.task_response import TaskResponse
+from msg.task_acknowledge import TaskAcknowledge
+from msg.wait_command import WaitCommand
+from msg.exit_response import ExitResponse
 from pid_control import PIDControl
 from zmq import ZMQError
 
@@ -188,11 +192,10 @@ def main():
 
                         recv_data = comm_handler.recv()
 
-                        # Check if new data has been received from a controller
                         if recv_data:
 
                             logging.debug("Retrieved Message from Worker: " + recv_data)
-                            recv_msg = MessageFactory.create_message(recv_data)
+                            recv_msg = MessageFactory.create(recv_data)
 
                             # Save last retrieved heartbeat from a controller
                             controller_heartbeat_map[recv_msg.sender] = time.time()
@@ -201,7 +204,7 @@ def main():
 
                                 logging.info("active_ost_queue empty: " + str(active_ost_queue.is_empty()))
 
-                                if recv_msg.header == MessageType.TASK_REQUEST():
+                                if MessageType.TASK_REQUEST() == recv_msg.header:
 
                                     active_ost_name = None
 
@@ -212,22 +215,31 @@ def main():
 
                                     if active_ost_name:
 
-                                        send_msg = MessageFactory.create_task_response(active_ost_name)
+                                        send_msg = TaskResponse(active_ost_name)
                                         logging.debug("Sending message: " + send_msg.to_string())
                                         comm_handler.send(send_msg.to_string())
 
                                     else:
 
-                                        send_msg = MessageFactory.create_wait_command(controller_wait_duration)
+                                        send_msg = WaitCommand(controller_wait_duration)
                                         logging.debug("Sending message: " + send_msg.to_string())
                                         comm_handler.send(send_msg.to_string())
+
+                                elif MessageType.TASK_FINISHED() == recv_msg.header:
+
+                                    finished_ost_name = recv_msg.ost_name
+                                    logging.debug("Retrieved finished OST name: " + finished_ost_name)
+
+                                    send_msg = TaskAcknowledge()
+                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    comm_handler.send(send_msg.to_string())
 
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
                             else:   # NOT TASK_DISTRIBUTION_FLAG
 
-                                send_msg = MessageFactory.create_exit_response()
+                                send_msg = ExitResponse()
 
                                 logging.debug("Sending message: " + send_msg.to_string())
                                 comm_handler.send(send_msg.to_string())  # Does not block.

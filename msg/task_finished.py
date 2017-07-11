@@ -18,34 +18,33 @@
 #
 
 
-from abc import ABCMeta
+from base_message import BaseMessage
+from message_type import MessageType
 
 
-class MessageType:
+class TaskFinished(BaseMessage):
 
-    def __init__(self):
-        __metaclass__ = ABCMeta
+    def __init__(self, sender, ost_name):
 
-    @staticmethod
-    def TASK_REQUEST():
-        return 'TASK_REQ'
+        if not sender:
+            raise RuntimeError('No sender is set!')
 
-    @staticmethod
-    def TASK_RESPONSE():
-        return 'TASK_RES'
+        if not ost_name:
+            raise RuntimeError('No OST name is set!')
 
-    @staticmethod
-    def WAIT_COMMAND():
-        return 'WAIT_CMD'
+        body = sender + self.field_separator + ost_name
 
-    @staticmethod
-    def TASK_FINISHED():
-        return 'TASK_FIN'
+        BaseMessage.__init__(self, MessageType.TASK_FINISHED(), body)
 
-    @staticmethod
-    def TASK_ACKNOWLEDGE():
-        return 'TASK_ACK'
+    def validate_body(self):
 
-    @staticmethod
-    def EXIT_RESPONSE():
-        return 'EXIT_RES'
+        if not self.body:
+            raise RuntimeError('No body is set!')
+
+    @property
+    def sender(self):
+        return self.body.split(BaseMessage.field_separator)[0]
+
+    @property
+    def ost_name(self):
+        return self.body.split(BaseMessage.field_separator)[1]

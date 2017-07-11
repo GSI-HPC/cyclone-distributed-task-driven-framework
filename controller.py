@@ -30,6 +30,8 @@ from comm.controller_handler import ControllerCommHandler
 
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
+from msg.task_request import TaskRequest
+from msg.task_finished import TaskFinished
 
 
 def init_arg_parser():
@@ -85,22 +87,43 @@ def main():
                 request_retry_count = 0
                 MAX_REQUEST_RETRIES = 3
 
+                finished_ost_name = None
+
                 while True:
 
-                    task_request = MessageFactory.create_task_request(comm_handler.fqdn)
-                    comm_handler.send(task_request.to_string())
+                    # # TODO Just testing Finished Response...
+                    if finished_ost_name:
+
+                        task_finished = TaskFinished(comm_handler.fqdn, finished_ost_name)
+                        comm_handler.send(task_finished.to_string())
+                        finished_ost_name = None
+                        logging.debug('sent task finished')
+
+                    else:
+
+                        task_request = TaskRequest(comm_handler.fqdn)
+                        print task_request.to_string()
+                        comm_handler.send(task_request.to_string())
+                        logging.debug('sent task request')
 
                     in_raw_data = comm_handler.recv()
 
                     if in_raw_data:
 
                         logging.debug("Retrieved Message Raw Data: " + in_raw_data)
-                        in_msg = MessageFactory.create_message(in_raw_data)
+                        in_msg = MessageFactory.create(in_raw_data)
 
                         if in_msg.header == MessageType.TASK_RESPONSE():
 
                             #TODO: What do to next with the task response...!
-                            logging.debug("Retrieved Task Response: " + in_msg.body)
+                            ost_name = in_msg.body
+                            logging.debug("Retrieved Task Response with OST name: " + ost_name)
+
+                            # TODO REMOVE AGAIN
+                            finished_ost_name = ost_name
+
+                        elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():
+                            logging.debug("Retrieved Task Acknowledge!")
 
                         elif in_msg.header == MessageType.WAIT_COMMAND():
 

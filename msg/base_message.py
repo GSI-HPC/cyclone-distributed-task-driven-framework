@@ -39,12 +39,10 @@ class BaseMessage:
 
     def to_string(self):
 
-        message = None
+        message = self.header + BaseMessage.field_separator
 
         if self.body:
-            message = self.header + BaseMessage.field_separator + self.body
-        else:
-            message = self.header
+            message += self.body
 
         return message
 

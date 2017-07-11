@@ -25,6 +25,8 @@ from message_type import MessageType
 from task_request import TaskRequest
 from task_response import TaskResponse
 from wait_command import WaitCommand
+from task_finished import TaskFinished
+from task_acknowledge import TaskAcknowledge
 from exit_response import ExitResponse
 
 
@@ -34,45 +36,46 @@ class MessageFactory:
         __metaclass__ = ABCMeta
 
     @staticmethod
-    def create_message(message):
+    def create(message):
 
         if not message:
             raise RuntimeError('Message is not set!')
 
+        message_items = None
+
+        if message.find(BaseMessage.field_separator) >= 1:
+            message_items = filter(None, message.split(BaseMessage.field_separator))
+
         header = None
+        len_message_items = 0
 
-        if message.find(BaseMessage.field_separator) >= 0:
-            header, body = message.split(BaseMessage.field_separator)
-        else:
-            header = message
+        if message_items:
 
-        if header == MessageType.TASK_REQUEST():
-            return TaskRequest(body)
+            header = message_items[0]
+            len_message_items = len(message_items)
 
-        if header == MessageType.TASK_RESPONSE():
-            return TaskResponse(body)
+        if header == MessageType.TASK_REQUEST() \
+                and len_message_items == 2:
+            return TaskRequest(message_items[1])
 
-        if header == MessageType.WAIT_COMMAND():
-            return WaitCommand(body)
+        if header == MessageType.TASK_RESPONSE() \
+                and len_message_items == 2:
+            return TaskResponse(message_items[1])
 
-        if header == MessageType.EXIT_RESPONSE():
+        if header == MessageType.TASK_FINISHED() \
+                and len_message_items == 3:
+            return TaskFinished(message_items[1], message_items[2])
+
+        if header == MessageType.TASK_ACKNOWLEDGE() \
+                and len_message_items == 1:
+            return TaskAcknowledge()
+
+        if header == MessageType.WAIT_COMMAND() \
+                and len_message_items == 2:
+            return WaitCommand(message_items[1])
+
+        if header == MessageType.EXIT_RESPONSE() \
+                and len_message_items == 1:
             return ExitResponse()
 
-        raise RuntimeError("No message type recognized: " + message)
-
-    # TODO: Check if Introspection could be used to create objects instead.
-    @staticmethod
-    def create_task_request(sender):
-        return TaskRequest(sender)
-
-    @staticmethod
-    def create_task_response(ost_name):
-        return TaskResponse(ost_name)
-
-    @staticmethod
-    def create_wait_command(duration):
-        return WaitCommand(duration)
-
-    @staticmethod
-    def create_exit_response():
-        return ExitResponse()
+        raise RuntimeError("No message could be created from: " + message)
