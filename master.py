@@ -260,13 +260,19 @@ def main():
 
                                 elif MessageType.TASK_FINISHED() == recv_msg.header:
 
-                                    finished_ost_name = recv_msg.ost_name
-                                    logging.debug("Retrieved finished OST name: " + finished_ost_name)
+                                    ost_name = recv_msg.ost_name
 
                                     if ost_name in ost_status_lookup_dict:
 
-                                        ost_status_lookup_dict[ost_name].state = OstState.FINISHED
-                                        ost_status_lookup_dict[ost_name].timestamp = int(time.time())
+                                        if recv_msg.sender == ost_status_lookup_dict[ost_name].controller:
+
+                                            logging.debug("Retrieved finished OST message: " + ost_name)
+
+                                            ost_status_lookup_dict[ost_name].state = OstState.FINISHED
+                                            ost_status_lookup_dict[ost_name].timestamp = int(time.time())
+
+                                        else:
+                                            logging.info("Retrieved task finished from different controller!")
 
                                     else:
                                         raise RuntimeError("Inconsistency detected on task finished!")
