@@ -24,14 +24,13 @@ import os
 import sys
 import time
 
-from pid_control import PIDControl
-from controller_config_file_reader import ControllerConfigFileReader
 from comm.controller_handler import ControllerCommHandler
-
+from conf.controller_config_file_reader import ControllerConfigFileReader
+from ctrl.pid_control import PIDControl
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
-from msg.task_request import TaskRequest
 from msg.task_finished import TaskFinished
+from msg.task_request import TaskRequest
 
 
 def init_arg_parser():
