@@ -25,56 +25,56 @@ import fcntl
 
 class PIDControl:
 
-   def __init__(self, pid_file):
-      self.pid_file = pid_file
+    def __init__(self, pid_file):
+        self.pid_file = pid_file
 
-   def __enter__(self):
-      return self
+    def __enter__(self):
+        return self
 
-   def __exit__(self, exc_type, exc_value, traceback):
-      self.unlock()
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.unlock()
 
-   def lock(self):
-      
-      if not os.path.isfile(self.pid_file):
-         
-         fd = open(self.pid_file, 'wb')
-         
-         fcntl.lockf(fd, fcntl.LOCK_EX)
-         
-         timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
-         
-         fd.write(str(os.getpid()) + ";" + timestamp)
-         fd.close()
-         
-         return True
-         
-      else:
-         
-         if self.read_pid_from_file() == os.getpid():
-            raise RuntimeError("Calling process (PID=%s) is already owning the PID file!" % str(os.getpid()))
-         
-         return False
-   
-   def unlock(self):
-      
-      if self.read_pid_from_file() == os.getpid():
-         os.remove(self.pid_file)
+    def lock(self):
 
-   def read_pid_from_file(self):
-      
-      if os.path.isfile(self.pid_file):
-      
-         fd = open(self.pid_file, 'rb')
-         content = fd.read()
-         fd.close()
-         
-         if content == '':
-            raise RuntimeError("PID file is empty: %s" % self.pid_file)
-         
-         content_lines = content.split(';')
-         pid_from_file = int(content_lines[0])
-         
-         return pid_from_file
-   
-      return -1
+        if not os.path.isfile(self.pid_file):
+
+            fd = open(self.pid_file, 'wb')
+
+            fcntl.lockf(fd, fcntl.LOCK_EX)
+
+            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+
+            fd.write(str(os.getpid()) + ";" + timestamp)
+            fd.close()
+
+            return True
+
+        else:
+
+            if self.read_pid_from_file() == os.getpid():
+                raise RuntimeError("Calling process (PID=%s) is already owning the PID file!" % str(os.getpid()))
+
+            return False
+
+    def unlock(self):
+
+        if self.read_pid_from_file() == os.getpid():
+            os.remove(self.pid_file)
+
+    def read_pid_from_file(self):
+
+        if os.path.isfile(self.pid_file):
+
+            fd = open(self.pid_file, 'rb')
+            content = fd.read()
+            fd.close()
+
+            if content == '':
+                raise RuntimeError("PID file is empty: %s" % self.pid_file)
+
+            content_lines = content.split(';')
+            pid_from_file = int(content_lines[0])
+
+            return pid_from_file
+
+        return -1
