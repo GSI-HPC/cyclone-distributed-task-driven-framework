@@ -101,7 +101,6 @@ def main():
                     else:
 
                         task_request = TaskRequest(comm_handler.fqdn)
-                        print task_request.to_string()
                         comm_handler.send(task_request.to_string())
                         logging.debug('sent task request')
 
