@@ -77,13 +77,14 @@ class OstListProcessor(Process):
     def get_ost_lists(self):
 
         active_ost_list = list()
-        active_ost_list.append('nyx-OST0000-osc-ffff88102f578801')
-        active_ost_list.append('nyx-OST0007-osc-ffff88102f578802')
-        active_ost_list.append('nyx-OST000e-osc-ffff88102f578803')
-        active_ost_list.append('nyx-OST0015-osc-ffff88102f578804')
+        active_ost_list.append('nyx-OST0000')
+        active_ost_list.append('nyx-OST0001')
+        active_ost_list.append('nyx-OST0002')
+        active_ost_list.append('nyx-OST0003')
+
 
         inactive_ost_list = list()
-        inactive_ost_list.append('nyx-OST11ef-osc-ffff88102f578801')
-        inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578802')
+        inactive_ost_list.append('nyx-OST11ef')
+        inactive_ost_list.append('nyx-OST11ff')
 
         return tuple((active_ost_list, inactive_ost_list))
