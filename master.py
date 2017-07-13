@@ -43,7 +43,6 @@ from msg.task_response import TaskResponse
 from msg.wait_command import WaitCommand
 
 
-MAIN_LOOP_RUN_FLAG = True
 TASK_DISTRIBUTION_FLAG = True
 
 ACTIVE_OST_QUEUE = list()
@@ -147,8 +146,9 @@ def main():
                 ost_list_processor = OstListProcessor(active_ost_queue, measure_interval, lock_ost_queue)
                 ost_list_processor.start()
 
-                global MAIN_LOOP_RUN_FLAG
-                while MAIN_LOOP_RUN_FLAG:
+                main_loop_run_flag = True
+
+                while main_loop_run_flag:
 
                     try:
 
@@ -256,7 +256,7 @@ def main():
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
 
                                 if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
-                                    MAIN_LOOP_RUN_FLAG = False
+                                    main_loop_run_flag = False
 
                         else:   # POLL-TIMEOUT
 
@@ -274,7 +274,7 @@ def main():
                                         controller_heartbeat_dict.pop(controller_name, None)
 
                                 if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
-                                    MAIN_LOOP_RUN_FLAG = False
+                                    main_loop_run_flag = False
 
                     except ZMQError as e:
 
