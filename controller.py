@@ -131,7 +131,7 @@ def main():
 
                         elif in_msg.header == MessageType.EXIT_RESPONSE():
 
-                            logging.debug('Quit!')
+                            logging.debug('Finished')
                             exit(0)
 
                     else:
@@ -146,8 +146,6 @@ def main():
 
                         logging.debug('No response retrieved - Reconnecting...')
                         comm_handler.reconnect()
-
-                    time.sleep(2)
 
     except Exception as e:
 
