@@ -149,19 +149,19 @@ def main():
                 ost_list_processor = OstListProcessor(task_queue, measure_interval, lock_ost_queue)
 
                 if test_mode:
+
                     logging.info("TESTING MODE ON!")
                     logging.info("Task Count: " + str(task_count))
                     logging.info("Capture Interval: " + str(capture_interval))
+
+                    perf_test_next_timestamp = int(time.time()) + capture_interval
+                    perf_test_task_counter = 0
 
                     ost_list_processor.task_count = task_count
 
                 ost_list_processor.start()
 
                 main_loop_run_flag = True
-
-                if test_mode:
-                    perf_test_next_timestamp = int(time.time()) + capture_interval
-                    perf_test_task_counter = 0
 
                 while main_loop_run_flag:
 
@@ -230,7 +230,7 @@ def main():
                                                 # TODO: Program should terminate then or send an mail on error!
                                                 raise RuntimeError("Undefined state processing task: ", ost_name)
 
-                                        else:
+                                        else:   # Task not in OST Status Lookup Dict:
 
                                             ost_status_lookup_dict[ost_name] = \
                                                 OstStatusItem(ost_name,
