@@ -45,8 +45,6 @@ from msg.wait_command import WaitCommand
 
 TASK_DISTRIBUTION_FLAG = True
 
-ACTIVE_OST_QUEUE = list()
-
 
 def init_arg_parser():
 
