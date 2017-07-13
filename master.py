@@ -34,6 +34,7 @@ from ctrl.ost_status_item import OstStatusItem
 from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
 from ctrl.critical_section import CriticalSection
+from lfs.ost_list_processor import OstListProcessor
 from msg.exit_response import ExitResponse
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
@@ -101,44 +102,6 @@ def wait_for_controllers_shutdown(len_ctrl_map):
     return False
 
 
-def process_ost_lists(active_ost_queue, measure_interval, lock_ost_queue):
-
-    # TODO RUN FLAG...
-    while True:
-
-        try:
-            logging.debug("OST processor active...")
-
-            active_list, inactive_list = get_ost_lists()
-
-            with CriticalSection(lock_ost_queue):
-
-                if not active_ost_queue.is_empty():
-                    active_ost_queue.clear()
-
-                active_ost_queue.fill(active_list)
-
-            time.sleep(measure_interval)
-
-        except Exception as e:
-            logging.error("Caught exception in OST List Processor: " + str(e))
-
-
-def get_ost_lists():
-
-    active_ost_list = list()
-    active_ost_list.append('nyx-OST0000-osc-ffff88102f578801')
-    active_ost_list.append('nyx-OST0007-osc-ffff88102f578802')
-    active_ost_list.append('nyx-OST000e-osc-ffff88102f578803')
-    active_ost_list.append('nyx-OST0015-osc-ffff88102f578804')
-
-    inactive_ost_list = list()
-    inactive_ost_list.append('nyx-OST11ef-osc-ffff88102f578801')
-    inactive_ost_list.append('nyx-OST22ef-osc-aaaa88102f578802')
-
-    return tuple((active_ost_list, inactive_ost_list))
-
-
 def main():
 
     try:
@@ -150,12 +113,15 @@ def main():
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
         pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
-        logging.debug("PID file: %s" % pid_file)
+
+        error_flag = False
+        ost_list_processor = None
 
         with PIDControl(pid_file) as pid_control, \
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
-                                  config_file_reader.poll_timeout) as comm_handler:
+                                  config_file_reader.poll_timeout) as comm_handler, \
+                SharedQueue() as active_ost_queue:
 
             if pid_control.lock():
 
@@ -177,13 +143,9 @@ def main():
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
                 lock_ost_queue = multiprocessing.Lock()
-                active_ost_queue = SharedQueue()
 
-                ost_lists_processor = \
-                    multiprocessing.Process(
-                        target=process_ost_lists, args=(active_ost_queue, measure_interval, lock_ost_queue))
-
-                ost_lists_processor.start()
+                ost_list_processor = OstListProcessor(active_ost_queue, measure_interval, lock_ost_queue)
+                ost_list_processor.start()
 
                 global MAIN_LOOP_RUN_FLAG
                 while MAIN_LOOP_RUN_FLAG:
@@ -321,15 +283,43 @@ def main():
                         else:
                             logging.warning("Caught ZMQ Exception: " + str(e))
 
-                # TODO NO GOOD!!! BETTER USE RUN FLAG WITH INTERRUPTION POSSIBILITY!
-                print 'MAIN waiting for OST Processor to quit'
-                ost_lists_processor.terminate()
-                ost_lists_processor.join()
+            else:
+
+                logging.info("Another instance is already running!")
+                exit(0)
 
     except Exception as e:
 
-        logging.error("Caught exception on last instance: " + str(e))
-        exit(1)
+        logging.error("Caught exception on main block: " + str(e))
+        error_flag = True
+
+    try:
+        if ost_list_processor and ost_list_processor.is_alive():
+
+            os.kill(ost_list_processor.pid, signal.SIGUSR1)
+
+            for i in range(0, 10, 1):
+
+                if ost_list_processor.is_alive():
+                    logging.debug("Waiting for OST Processor to finish...")
+                    time.sleep(1)
+                else:
+                    break
+
+            if ost_list_processor.is_alive():
+                ost_list_processor.terminate()
+
+            ost_list_processor.join()
+
+    except Exception as e:
+
+        logging.error("Caught exception terminating OST Processor: " + str(e))
+        error_flag = True
+
+    logging.info("Finished")
+
+    if error_flag:
+        return exit(1)
 
     exit(0)
 
