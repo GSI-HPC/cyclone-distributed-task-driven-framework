@@ -118,7 +118,7 @@ def main():
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as active_ost_queue:
+                SharedQueue() as task_queue:
 
             if pid_control.lock():
 
@@ -141,7 +141,7 @@ def main():
 
                 lock_ost_queue = multiprocessing.Lock()
 
-                ost_list_processor = OstListProcessor(active_ost_queue, measure_interval, lock_ost_queue)
+                ost_list_processor = OstListProcessor(task_queue, measure_interval, lock_ost_queue)
                 ost_list_processor.start()
 
                 main_loop_run_flag = True
@@ -164,7 +164,7 @@ def main():
 
                             if TASK_DISTRIBUTION_FLAG:
 
-                                logging.info("active_ost_queue empty: " + str(active_ost_queue.is_empty()))
+                                logging.info("Task Queue is empty: " + str(task_queue.is_empty()))
 
                                 if MessageType.TASK_REQUEST() == recv_msg.header:
 
@@ -172,8 +172,8 @@ def main():
 
                                     with CriticalSection(lock_ost_queue, True, lock_ost_queue_timeout):
 
-                                        if not active_ost_queue.is_empty():
-                                            ost_name = active_ost_queue.pop()
+                                        if not task_queue.is_empty():
+                                            ost_name = task_queue.pop()
 
                                     if ost_name:
 
