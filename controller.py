@@ -70,7 +70,6 @@ def main():
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
         pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
-        logging.debug("PID file: %s" % pid_file)
 
         with PIDControl(pid_file) as pid_control, \
                 ControllerCommHandler(config_file_reader.comm_target,
@@ -131,11 +130,13 @@ def main():
 
                         elif in_msg.header == MessageType.EXIT_RESPONSE():
 
-                            logging.debug('Finished')
+                            # TODO: add run_flag
+                            logging.info('Finished')
                             exit(0)
 
                     else:
 
+                        # TODO: Fix this...
                         request_retry_count = request_retry_count + 1
 
                         if request_retry_count == MAX_REQUEST_RETRIES:
@@ -147,11 +148,17 @@ def main():
                         logging.debug('No response retrieved - Reconnecting...')
                         comm_handler.reconnect()
 
+            else:
+                logging.error("Another instance might be already running as well!")
+                logging.info("PID lock file: " + pid_file)
+                exit(1)
+
     except Exception as e:
 
         logging.error("Caught exception on last instance: " + str(e))
         exit(1)
 
+    logging.info('Finished')
     exit(0)
 
 
