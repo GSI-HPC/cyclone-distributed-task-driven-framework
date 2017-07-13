@@ -38,6 +38,8 @@ class OstListProcessor(Process):
 
         self.run_flag = False
 
+        self.task_count = 10
+
     def start(self):
 
         self.run_flag = True
@@ -67,6 +69,7 @@ class OstListProcessor(Process):
 
             except Exception as e:
                 logging.error("Caught exception in OST List Processor: " + str(e))
+                exit(1)
 
         logging.debug("OST Processor finished!")
         exit(0)
@@ -77,11 +80,30 @@ class OstListProcessor(Process):
     def get_ost_lists(self):
 
         active_ost_list = list()
-        active_ost_list.append('nyx-OST0000')
-        active_ost_list.append('nyx-OST0001')
-        active_ost_list.append('nyx-OST0002')
-        active_ost_list.append('nyx-OST0003')
 
+        ost_name_prefix = "nyx-OST"
+
+        for i in xrange(0, self.task_count, 1):
+
+            ost_name = None
+            i_str = str(i)
+
+            if len(i_str) == 1:
+                ost_name = ost_name_prefix + "000" + i_str
+
+            elif len(i_str) == 2:
+                ost_name = ost_name_prefix + "00" + i_str
+
+            elif len(i_str) == 3:
+                ost_name = ost_name_prefix + "0" + i_str
+
+            elif len(i_str) == 4:
+                ost_name = ost_name_prefix + i_str
+
+            else:
+                raise RuntimeError('Not supported limit for creating OST test data!')
+
+            active_ost_list.append(ost_name)
 
         inactive_ost_list = list()
         inactive_ost_list.append('nyx-OST11ef')

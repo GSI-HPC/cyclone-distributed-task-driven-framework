@@ -47,3 +47,7 @@ class MasterConfigFileReader:
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
 
         self.log_filename = config.get('logging', 'filename')
+
+        self.test_mode = int(config.get('testing', 'mode'))
+        self.capture_interval = int(config.get('testing', 'capture_interval'))
+        self.task_count = int(config.get('testing', 'task_count'))
