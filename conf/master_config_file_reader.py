@@ -38,7 +38,7 @@ class MasterConfigFileReader:
         self.ip_reg_ex = config.get('control', 'ip_reg_ex')
         self.controller_timeout = float(config.get('control', 'controller_timeout'))
         self.measure_interval = float(config.get('control', 'measure_interval'))
-        self.lock_ost_queue_timeout = int(config.get('control', 'lock_ost_queue_timeout'))
+        self.lock_shared_queue_timeout = int(config.get('control', 'lock_shared_queue_timeout'))
         self.controller_wait_duration = config.get('control', 'controller_wait_duration')
         self.task_resend_timeout = int(config.get('control', 'task_resend_timeout'))
 
@@ -47,7 +47,3 @@ class MasterConfigFileReader:
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
 
         self.log_filename = config.get('logging', 'filename')
-
-        self.test_mode = int(config.get('testing', 'mode'))
-        self.capture_interval = int(config.get('testing', 'capture_interval'))
-        self.task_count = int(config.get('testing', 'task_count'))

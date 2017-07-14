@@ -118,7 +118,7 @@ def main():
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as task_queue:
+                SharedQueue() as shared_queue:
 
             if pid_control.lock():
 
@@ -135,29 +135,13 @@ def main():
 
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
-                lock_ost_queue_timeout = config_file_reader.lock_ost_queue_timeout
+                lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                # TODO Remove again, just for presentation...
-                test_mode = config_file_reader.test_mode
-                capture_interval = config_file_reader.capture_interval
-                task_count = config_file_reader.task_count
+                lock_shared_queue = multiprocessing.Lock()
 
-                lock_ost_queue = multiprocessing.Lock()
-
-                ost_list_processor = OstListProcessor(task_queue, measure_interval, lock_ost_queue)
-
-                if test_mode:
-
-                    logging.info("TESTING MODE ON!")
-                    logging.info("Task Count: " + str(task_count))
-                    logging.info("Capture Interval: " + str(capture_interval))
-
-                    perf_test_next_timestamp = int(time.time()) + capture_interval
-                    perf_test_task_counter = 0
-
-                    ost_list_processor.task_count = task_count
+                ost_list_processor = OstListProcessor(shared_queue, measure_interval, lock_shared_queue)
 
                 ost_list_processor.start()
 
@@ -168,14 +152,6 @@ def main():
                     try:
 
                         last_exec_timestamp = int(time.time())
-
-                        if test_mode and (last_exec_timestamp >= perf_test_next_timestamp):
-
-                            if perf_test_task_counter:
-                                logging.info("Task Counter: " + str(perf_test_task_counter))
-
-                            perf_test_task_counter = 0
-                            perf_test_next_timestamp = int(time.time()) + capture_interval
 
                         recv_data = comm_handler.recv()
 
@@ -189,16 +165,16 @@ def main():
 
                             if TASK_DISTRIBUTION_FLAG:
 
-                                logging.debug("Task Queue is empty: " + str(task_queue.is_empty()))
+                                logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
 
                                 if MessageType.TASK_REQUEST() == recv_msg.header:
 
                                     ost_name = None
 
-                                    with CriticalSection(lock_ost_queue, True, lock_ost_queue_timeout):
+                                    with CriticalSection(lock_shared_queue, True, lock_shared_queue_timeout):
 
-                                        if not task_queue.is_empty():
-                                            ost_name = task_queue.pop()
+                                        if not shared_queue.is_empty():
+                                            ost_name = shared_queue.pop()
 
                                     if ost_name:
 
@@ -218,9 +194,6 @@ def main():
 
                                                 send_msg = TaskResponse(ost_name)
 
-                                                if test_mode:
-                                                    perf_test_task_counter += 1
-
                                             elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
 
@@ -239,9 +212,6 @@ def main():
                                                               int(time.time()))
 
                                             send_msg = TaskResponse(ost_name)
-
-                                            if test_mode:
-                                                perf_test_task_counter += 1
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)

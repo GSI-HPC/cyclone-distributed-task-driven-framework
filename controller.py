@@ -85,31 +85,11 @@ def main():
                 request_retry_count = 0
                 MAX_REQUEST_RETRIES = 3
 
-                test_mode = config_file_reader.test_mode
-                capture_interval = config_file_reader.capture_interval
-
-                if test_mode:
-
-                    logging.info("TESTING MODE ON!")
-                    logging.info("Capture Interval: " + str(capture_interval))
-
-                    perf_test_next_timestamp = int(time.time()) + capture_interval
-                    perf_test_task_counter = 0
-
                 finished_ost_name = None
 
                 while True:
 
                     last_exec_timestamp = int(time.time())
-
-                    if test_mode and (last_exec_timestamp >= perf_test_next_timestamp):
-
-                        if perf_test_task_counter:
-
-                            logging.info("Task Counter: " + str(perf_test_task_counter))
-
-                            perf_test_next_timestamp = int(time.time()) + capture_interval
-                            perf_test_task_counter = 0
 
                     # TODO: REMOVE TESTING BLOCK AGAIN
                     if finished_ost_name:
@@ -140,9 +120,6 @@ def main():
 
                             # TODO: REMOVE TESTING BLOCK AGAIN
                             finished_ost_name = ost_name
-
-                            if test_mode:
-                                perf_test_task_counter += 1
 
                         elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():
                             logging.debug("Retrieved Task Acknowledge!")
