@@ -38,5 +38,6 @@ class ControllerConfigFileReader:
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
+        self.request_retry_wait_duration = int(config.get('comm', 'request_retry_wait_duration'))
 
         self.log_filename = config.get('logging', 'filename')

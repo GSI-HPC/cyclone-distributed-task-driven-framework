@@ -83,7 +83,8 @@ def main():
                 comm_handler.connect()
 
                 request_retry_count = 0
-                MAX_REQUEST_RETRIES = 3
+                max_num_request_retries = 3
+                request_retry_wait_duration = config_file_reader.request_retry_wait_duration
 
                 finished_ost_name = None
 
@@ -136,19 +137,22 @@ def main():
                             logging.info('Finished')
                             exit(0)
 
+                        # Reset after retrieving a message
+                        if request_retry_count > 0:
+                            request_retry_count = 0
+
                     else:
 
-                        # TODO: Fix this...
-                        request_retry_count = request_retry_count + 1
-
-                        if request_retry_count == MAX_REQUEST_RETRIES:
+                        if request_retry_count == max_num_request_retries:
 
                             logging.debug('Exiting, since maximum retry count is reached!')
                             comm_handler.disconnect()
                             sys.exit(1)
 
+                        time.sleep(request_retry_wait_duration)
                         logging.debug('No response retrieved - Reconnecting...')
                         comm_handler.reconnect()
+                        request_retry_count += 1
 
             else:
                 logging.error("Another instance might be already running as well!")
