@@ -29,7 +29,7 @@ class TaskResponse(BaseMessage):
         if not ost_name:
             raise RuntimeError('No OST name is set!')
 
-        BaseMessage.__init__(self, MessageType.TASK_RESPONSE(), ost_name)
+        super(TaskResponse, self).__init__(MessageType.TASK_RESPONSE(), ost_name)
 
     def validate_body(self):
 

@@ -25,7 +25,7 @@ from message_type import MessageType
 class ExitResponse(BaseMessage):
 
     def __init__(self):
-        BaseMessage.__init__(self, MessageType.EXIT_RESPONSE(), '')
+        super(ExitResponse, self).__init__(MessageType.EXIT_RESPONSE(), '')
 
     def validate_body(self):
         return None

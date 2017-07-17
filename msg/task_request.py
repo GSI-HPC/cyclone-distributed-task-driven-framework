@@ -29,7 +29,7 @@ class TaskRequest(BaseMessage):
         if not sender:
             raise RuntimeError('No sender is set!')
 
-        BaseMessage.__init__(self, MessageType.TASK_REQUEST(), sender)
+        super(TaskRequest, self).__init__(MessageType.TASK_REQUEST(), sender)
 
     def validate_body(self):
 

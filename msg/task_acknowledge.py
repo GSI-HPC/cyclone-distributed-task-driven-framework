@@ -25,7 +25,7 @@ from message_type import MessageType
 class TaskAcknowledge(BaseMessage):
 
     def __init__(self):
-        BaseMessage.__init__(self, MessageType.TASK_ACKNOWLEDGE(), '')
+        super(TaskAcknowledge, self).__init__(MessageType.TASK_ACKNOWLEDGE(), '')
 
     def validate_body(self):
         return None

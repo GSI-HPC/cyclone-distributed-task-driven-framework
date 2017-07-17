@@ -25,8 +25,7 @@ from message_type import MessageType
 class WaitCommand(BaseMessage):
 
     def __init__(self, duration):
-
-        BaseMessage.__init__(self, MessageType.WAIT_COMMAND(), duration)
+        super(WaitCommand, self).__init__(MessageType.WAIT_COMMAND(), duration)
 
     def validate_body(self):
 

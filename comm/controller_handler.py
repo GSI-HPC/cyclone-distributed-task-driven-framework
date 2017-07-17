@@ -26,8 +26,8 @@ from base_handler import BaseHandler
 class ControllerCommHandler(BaseHandler):
 
     def __init__(self, target, port, poll_timeout):
-        BaseHandler.__init__(self, target, port, poll_timeout)
-
+        super(ControllerCommHandler, self).__init__(target, port, poll_timeout)
+        
     def __enter__(self):
         return self
 

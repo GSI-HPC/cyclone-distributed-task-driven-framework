@@ -23,10 +23,12 @@ import socket
 import zmq
 
 
-class BaseHandler:
+class BaseHandler(object):
 
     def __init__(self, target, port, poll_timeout):
-
+        
+        super(BaseHandler, self).__init__()
+        
         __metaclass__ = abc.ABCMeta
 
         if not target:

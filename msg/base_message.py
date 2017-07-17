@@ -21,11 +21,13 @@
 import abc
 
 
-class BaseMessage:
+class BaseMessage(object):
 
     field_separator = ';'
 
     def __init__(self, header, body):
+
+        super(BaseMessage, self).__init__()
 
         __metaclass__ = abc.ABCMeta
 
