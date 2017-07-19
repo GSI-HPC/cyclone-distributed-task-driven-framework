@@ -41,3 +41,12 @@ class ControllerConfigFileReader:
         self.request_retry_wait_duration = int(config.get('comm', 'request_retry_wait_duration'))
 
         self.log_filename = config.get('logging', 'filename')
+
+        self.worker_count = int(config.get('processing', 'worker_count'))
+
+        self.validate()
+
+    def validate(self):
+
+        if self.worker_count <= 0 or self.worker_count > 20:
+            raise RuntimeError("Not supported worker count detected: %s" % self.worker_count)

@@ -21,7 +21,7 @@
 from base_message import BaseMessage
 from message_type import MessageType
 
-
+# TODO: Rename... its not a task, just an acknowledgement!
 class TaskAcknowledge(BaseMessage):
 
     def __init__(self):

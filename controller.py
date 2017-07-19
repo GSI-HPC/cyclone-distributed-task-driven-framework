@@ -23,14 +23,72 @@ import logging
 import os
 import sys
 import time
+import multiprocessing
+import ctypes
+import abc
 
 from comm.controller_handler import ControllerCommHandler
 from conf.controller_config_file_reader import ControllerConfigFileReader
 from ctrl.pid_control import PIDControl
+from ctrl.critical_section import CriticalSection
+from ctrl.shared_queue import SharedQueue
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
+
+
+class WorkerState:
+
+    __metaclass__ = abc.ABCMeta
+
+    @classmethod
+    def ready(cls):
+        return 0
+
+    @classmethod
+    def to_string(cls, state):
+
+        if state == 0:
+            return "READY"
+        else:
+            raise RuntimeError("Not supported worker state detected: %i" % state)
+
+
+class WorkerStateTableItem:
+
+    def __init__(self):
+
+        # # RETURNS STDOUT: self._state = "TEXT" + str(NUMBER)
+        # # RETURNS BAD VALUE: self._timestamp.value = 1234567890.99
+        # self._state = multiprocessing.RawValue(ctypes.c_char_p)
+        # self._task_name = multiprocessing.RawValue(ctypes.c_char_p)
+        # self._timestamp = multiprocessing.RawValue(ctypes.c_float)
+
+        self._state = multiprocessing.RawValue(ctypes.c_int)
+        self._task_name = multiprocessing.RawArray('c', 10)
+        self._timestamp = multiprocessing.RawValue(ctypes.c_uint)
+
+    @property
+    def get_state(self):
+        return self._state.value
+
+    @property
+    def get_task_name(self):
+        return self._task_name.value.decode()
+
+    @property
+    def get_timestamp(self):
+        return self._timestamp.value
+
+    def set_state(self, state):
+        self._state.value = state
+
+    def set_task_name(self, task_name):
+        self._task_name.value = task_name.encode()
+
+    def set_timestamp(self, timestamp):
+        self._timestamp.value = timestamp
 
 
 def init_arg_parser():
@@ -59,6 +117,70 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
 
+def worker_func(worker_state_table_item, worker_state_table_lock,
+                task_queue, result_queue, task_queue_lock, result_queue_lock):
+
+    print ("PID: %s" % multiprocessing.current_process().pid)
+    print ("Worker-Name: %s" % multiprocessing.current_process().name)
+
+    with CriticalSection(worker_state_table_lock):
+
+        time.sleep(1)
+
+        print ("Worker-Name: %s - In critical section!" % multiprocessing.current_process().name)
+
+        worker_state_table_item.set_state(WorkerState.ready())
+        worker_state_table_item.set_timestamp(int(time.time()))
+
+    if not task_queue.is_empty():
+        print("Queue-Pop: %s" % task_queue.pop())
+
+    exit(0)
+
+
+def create_worker_state_table(worker_count):
+
+    worker_state_table = dict()
+
+    for i in range(0, worker_count):
+        worker_state_table[i] = WorkerStateTableItem()
+
+    if len(worker_state_table) != worker_count:
+        raise RuntimeError("Inconsistent worker state table size found: %s - expected: %s"
+                           % (len(worker_state_table), worker_count))
+
+    return worker_state_table
+
+
+def create_worker(worker_count, worker_state_table, worker_state_table_lock,
+                  task_queue, result_queue, task_queue_lock, result_queue_lock):
+
+    worker_handle_dict = dict()
+
+    for i in range(0, worker_count):
+
+        worker_state_table_item = worker_state_table[i]
+
+        worker_handle = multiprocessing.Process(name=str(i),
+                                                target=worker_func,
+                                                args=(worker_state_table_item, worker_state_table_lock,
+                                                      task_queue, result_queue, task_queue_lock, result_queue_lock))
+
+        worker_handle_dict[i] = worker_handle
+
+    return worker_handle_dict
+
+
+def check_worker_for_ready_state(worker_state_table):
+
+    for i in range(0, len(worker_state_table)):
+
+        if worker_state_table[i].get_state != WorkerState.ready():
+            raise RuntimeError("Not all worker are ready!")
+
+    logging.info("All workers are ready!")
+
+
 def main():
 
     try:
@@ -74,7 +196,9 @@ def main():
         with PIDControl(pid_file) as pid_control, \
                 ControllerCommHandler(config_file_reader.comm_target,
                                       config_file_reader.comm_port,
-                                      config_file_reader.poll_timeout) as comm_handler:
+                                      config_file_reader.poll_timeout) as comm_handler, \
+                SharedQueue() as task_queue, \
+                SharedQueue() as result_queue:
 
             if pid_control.lock():
 
@@ -86,25 +210,27 @@ def main():
                 max_num_request_retries = 3
                 request_retry_wait_duration = config_file_reader.request_retry_wait_duration
 
-                finished_ost_name = None
+                worker_worker_state_table_lock = multiprocessing.Lock()
+                task_queue_lock = multiprocessing.Lock()
+                result_queue_lock = multiprocessing.Lock()
+
+                worker_count = config_file_reader.worker_count
+                worker_state_table = create_worker_state_table(worker_count)
+                worker_handle_dict = create_worker(worker_count, worker_state_table, worker_worker_state_table_lock,
+                                                   task_queue, result_queue, task_queue_lock, result_queue_lock)
+
+                check_worker_for_ready_state(worker_state_table)
+
+                exit(0)
 
                 while True:
 
                     last_exec_timestamp = int(time.time())
 
-                    # TODO: REMOVE TESTING BLOCK AGAIN
-                    if finished_ost_name:
-
-                        task_finished = TaskFinished(comm_handler.fqdn, finished_ost_name)
-                        comm_handler.send(task_finished.to_string())
-                        finished_ost_name = None
-                        logging.debug('sent task finished')
-
-                    else:
-
-                        task_request = TaskRequest(comm_handler.fqdn)
-                        comm_handler.send(task_request.to_string())
-                        logging.debug('sent task request')
+                    # TODO: Does just task requests for testing...
+                    task_request = TaskRequest(comm_handler.fqdn)
+                    comm_handler.send(task_request.to_string())
+                    logging.debug('sent task request')
 
                     in_raw_data = comm_handler.recv()
 
@@ -118,9 +244,6 @@ def main():
                             #TODO: What do to next with the task response...!
                             ost_name = in_msg.body
                             logging.debug("Retrieved Task Response with OST name: " + ost_name)
-
-                            # TODO: REMOVE TESTING BLOCK AGAIN
-                            finished_ost_name = ost_name
 
                         elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():
                             logging.debug("Retrieved Task Acknowledge!")
@@ -155,7 +278,7 @@ def main():
                         request_retry_count += 1
 
             else:
-                logging.error("Another instance might be already running as well!")
+                logging.error("Another instance might be already ru:nning as well!")
                 logging.info("PID lock file: " + pid_file)
                 exit(1)
 

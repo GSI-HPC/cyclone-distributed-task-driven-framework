@@ -197,6 +197,8 @@ def main():
                                             elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
 
+                                                logging.debug("Waiting for OST-Task to finish: %s" % ost_name)
+
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:

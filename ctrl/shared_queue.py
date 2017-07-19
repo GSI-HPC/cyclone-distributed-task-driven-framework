@@ -22,49 +22,57 @@ import multiprocessing
 import Queue
 
 
+# TODO: Think about an item counter for the queue, hence it is not reliable because of multiprocessing semantics!
 class SharedQueue:
 
     def __init__(self):
-        self.__queue = multiprocessing.Queue()
+        self._queue = multiprocessing.Queue()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.__queue.close()
+        self._queue.close()
 
     def fill(self, in_list):
-
+        """Fills the queue with the passed input list (blocking)"""
         if len(in_list) == 0:
             raise RuntimeError('Input list is empty!')
 
-        if not self.__queue.empty():
+        if not self._queue.empty():
             raise RuntimeError('Shared Queue is not empty!')
 
         for item in in_list:
-            self.__queue.put(item)
+            self._queue.put(item)
 
     def clear(self):
-
-        while not self.__queue.empty():
+        """Clears all items from the queue (blocking)"""
+        while not self._queue.empty():
 
             try:
-                self.__queue.get()
+                self._queue.get()
             except Queue.Empty:
                 print '>>>>>>> clear: get item caught exception <<<<<<<<'
 
-    def pop(self):
+    def push(self, item):
+        """Pushes an item into the queue (blocking)"""
+        if not item:
+            raise RuntimeError("Passed item for shared queue push was not set!")
 
+        self._queue.put(item)
+
+    def pop(self):
+        """Returns an item from the queue (non-blocking)"""
         try:
-            return self.__queue.get_nowait()
+            return self._queue.get_nowait()
         except Queue.Empty:
             print '>>>>>>> pop caught exception <<<<<<<<'
 
         return None
 
     def is_empty(self):
-
-        if self.__queue.empty():
+        """Checks if the queue is empty (non-blocking)"""
+        if self._queue.empty():
             return True
         else:
             return False
