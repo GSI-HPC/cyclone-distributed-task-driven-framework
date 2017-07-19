@@ -22,15 +22,14 @@ class CriticalSection:
 
     def __init__(self, lock, block=True, timeout=None):
 
-        self.__lock = lock
-        self.__block = block
-        self.__timeout = timeout
+        self._lock = lock
+        self._block = block
+        self._timeout = timeout
 
     def __enter__(self):
 
-        self.__lock.acquire(self.__block, self.__timeout)
-
+        self._lock.acquire(self._block, self._timeout)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.__lock.release()
+        self._lock.release()
