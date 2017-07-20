@@ -36,6 +36,7 @@ from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
+from ctrl.auto_release_condition import AutoReleaseCondition
 
 
 class WorkerState:
@@ -43,13 +44,19 @@ class WorkerState:
     __metaclass__ = abc.ABCMeta
 
     @classmethod
-    def ready(cls):
+    def not_ready(cls):
         return 0
+
+    @classmethod
+    def ready(cls):
+        return 1
 
     @classmethod
     def to_string(cls, state):
 
-        if state == 0:
+        if WorkerState.not_ready() == state:
+            return "NOT_READY"
+        elif WorkerState.ready() == state:
             return "READY"
         else:
             raise RuntimeError("Not supported worker state detected: %i" % state)
@@ -67,7 +74,7 @@ class WorkerStateTableItem:
 
         self._state = multiprocessing.RawValue(ctypes.c_int)
         self._task_name = multiprocessing.RawArray('c', 10)
-        self._timestamp = multiprocessing.RawValue(ctypes.c_uint)
+        self._timestamp = multiprocessing.RawValue(ctypes.c_uint, 0)
 
     @property
     def get_state(self):
@@ -117,23 +124,22 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
 
-def worker_func(worker_state_table_item, worker_state_table_lock,
-                task_queue, result_queue, task_queue_lock, result_queue_lock):
+def worker_func(worker_state_table_item, lock_worker_state_table,
+                task_queue, result_queue, lock_task_queue, lock_result_queue,
+                cond_task_queue, cond_result_queue):
 
-    print ("PID: %s" % multiprocessing.current_process().pid)
-    print ("Worker-Name: %s" % multiprocessing.current_process().name)
+    logging.debug("Started Worker with ID: %s" % multiprocessing.current_process().name)
 
-    with CriticalSection(worker_state_table_lock):
-
-        time.sleep(1)
-
-        print ("Worker-Name: %s - In critical section!" % multiprocessing.current_process().name)
+    with CriticalSection(lock_worker_state_table):
 
         worker_state_table_item.set_state(WorkerState.ready())
         worker_state_table_item.set_timestamp(int(time.time()))
 
-    if not task_queue.is_empty():
-        print("Queue-Pop: %s" % task_queue.pop())
+    with AutoReleaseCondition(cond_task_queue):
+
+        cond_task_queue.wait()
+
+    logging.debug("Exiting Worker with ID: %s" % multiprocessing.current_process().name)
 
     exit(0)
 
@@ -152,8 +158,9 @@ def create_worker_state_table(worker_count):
     return worker_state_table
 
 
-def create_worker(worker_count, worker_state_table, worker_state_table_lock,
-                  task_queue, result_queue, task_queue_lock, result_queue_lock):
+def create_worker(worker_count, worker_state_table, lock_worker_state_table,
+                  task_queue, result_queue, lock_task_queue, lock_result_queue,
+                  cond_task_queue, cond_result_queue):
 
     worker_handle_dict = dict()
 
@@ -163,22 +170,44 @@ def create_worker(worker_count, worker_state_table, worker_state_table_lock,
 
         worker_handle = multiprocessing.Process(name=str(i),
                                                 target=worker_func,
-                                                args=(worker_state_table_item, worker_state_table_lock,
-                                                      task_queue, result_queue, task_queue_lock, result_queue_lock))
+                                                args=(worker_state_table_item, lock_worker_state_table,
+                                                      task_queue, result_queue, lock_task_queue, lock_result_queue,
+                                                      cond_task_queue, cond_result_queue))
 
         worker_handle_dict[i] = worker_handle
 
     return worker_handle_dict
 
 
-def check_worker_for_ready_state(worker_state_table):
+def start_worker(worker_handle_dict, worker_state_table):
 
-    for i in range(0, len(worker_state_table)):
+    if not len(worker_handle_dict):
+        raise RuntimeError("Empty worker handle dict!")
 
-        if worker_state_table[i].get_state != WorkerState.ready():
-            raise RuntimeError("Not all worker are ready!")
+    if len(worker_handle_dict) != len(worker_state_table):
+        raise RuntimeError('Different sizes in worker handle dict and worker state table detected!')
 
-    logging.info("All workers are ready!")
+    for worker_id in range(0, len(worker_handle_dict)):
+        worker_handle_dict[worker_id].start()
+
+    max_retry_count = 3
+
+    for retry_count in range(1, max_retry_count+1):
+
+        worker_ready = True
+
+        for worker_id in range(0, len(worker_handle_dict)):
+
+            if not worker_handle_dict[worker_id].is_alive() \
+                    or worker_state_table[worker_id].get_state != WorkerState.ready():
+                worker_ready = False
+
+        if worker_ready:
+            return True
+
+        time.sleep(retry_count * len(worker_handle_dict))
+
+        logging.debug("Waiting for worker to be ready - Waiting seconds: %s" % (retry_count * len(worker_handle_dict)))
 
 
 def main():
@@ -210,20 +239,37 @@ def main():
                 max_num_request_retries = 3
                 request_retry_wait_duration = config_file_reader.request_retry_wait_duration
 
-                worker_worker_state_table_lock = multiprocessing.Lock()
-                task_queue_lock = multiprocessing.Lock()
-                result_queue_lock = multiprocessing.Lock()
+                lock_worker_state_table = multiprocessing.Lock()
+                lock_task_queue = multiprocessing.Lock()
+                lock_result_queue = multiprocessing.Lock()
+
+                cond_task_queue = multiprocessing.Condition(lock_task_queue)
+                cond_result_queue = multiprocessing.Condition(lock_result_queue)
 
                 worker_count = config_file_reader.worker_count
                 worker_state_table = create_worker_state_table(worker_count)
-                worker_handle_dict = create_worker(worker_count, worker_state_table, worker_worker_state_table_lock,
-                                                   task_queue, result_queue, task_queue_lock, result_queue_lock)
+                worker_handle_dict = create_worker(worker_count, worker_state_table, lock_worker_state_table,
+                                                   task_queue, result_queue, lock_task_queue, lock_result_queue,
+                                                   cond_task_queue, cond_result_queue)
 
-                check_worker_for_ready_state(worker_state_table)
+                run_condition = True
+
+                # TODO: Shutdown all worker!
+                # TODO: Detect not_readt worker and ready worker for poisen pill
+                # TODO -> Shutdown AFTER main loop!
+
+                if not start_worker(worker_handle_dict, worker_state_table):
+
+                    logging.error("Not all worker are ready!")
+                    run_condition = False
+
+                with AutoReleaseCondition(cond_task_queue):
+
+                    cond_task_queue.notify_all()
 
                 exit(0)
 
-                while True:
+                while run_condition:
 
                     last_exec_timestamp = int(time.time())
 

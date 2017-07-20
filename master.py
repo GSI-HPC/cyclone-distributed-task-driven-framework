@@ -145,9 +145,9 @@ def main():
 
                 ost_list_processor.start()
 
-                main_loop_run_flag = True
+                run_condition = True
 
-                while main_loop_run_flag:
+                while run_condition:
 
                     try:
 
@@ -257,7 +257,7 @@ def main():
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
 
                                 if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
-                                    main_loop_run_flag = False
+                                    run_condition = False
 
                         else:   # POLL-TIMEOUT
 
@@ -275,7 +275,7 @@ def main():
                                         controller_heartbeat_dict.pop(controller_name, None)
 
                                 if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
-                                    main_loop_run_flag = False
+                                    run_condition = False
 
                     except ZMQError as e:
 
