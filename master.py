@@ -39,7 +39,7 @@ from msg.exit_response import ExitResponse
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_acknowledge import TaskAcknowledge
-from msg.task_response import TaskResponse
+from msg.ost_task_response import OstTaskResponse
 from msg.wait_command import WaitCommand
 
 
@@ -192,7 +192,7 @@ def main():
                                                                   recv_msg.sender,
                                                                   int(time.time()))
 
-                                                send_msg = TaskResponse(ost_name)
+                                                send_msg = OstTaskResponse(ost_name)
 
                                             elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
@@ -213,7 +213,7 @@ def main():
                                                               recv_msg.sender,
                                                               int(time.time()))
 
-                                            send_msg = TaskResponse(ost_name)
+                                            send_msg = OstTaskResponse(ost_name)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)

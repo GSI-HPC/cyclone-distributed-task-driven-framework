@@ -18,15 +18,20 @@
 #
 
 
-class AutoReleaseCondition:
+from base_message import BaseMessage
+from message_type import MessageType
 
-    def __init__(self, condition):
-        self._condition = condition
 
-    def __enter__(self):
-        self._condition.acquire()
+class OstTaskResponse(BaseMessage):
 
-        return self
+    def __init__(self, task_name):
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._condition.release()
+        if not task_name:
+            raise RuntimeError('No OST name is set!')
+
+        super(OstTaskResponse, self).__init__(MessageType.OST_TASK_RESPONSE(), task_name)
+
+    def validate_body(self):
+
+        if not self.body:
+            raise RuntimeError('No body is set!')

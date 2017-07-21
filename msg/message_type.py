@@ -31,8 +31,8 @@ class MessageType:
         return 'TASK_REQ'
 
     @staticmethod
-    def TASK_RESPONSE():
-        return 'TASK_RES'
+    def OST_TASK_RESPONSE():
+        return 'OST_TASK_RES'
 
     @staticmethod
     def WAIT_COMMAND():

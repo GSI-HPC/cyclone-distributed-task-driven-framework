@@ -18,20 +18,20 @@
 #
 
 
-from base_message import BaseMessage
-from message_type import MessageType
+import abc
 
 
-class TaskResponse(BaseMessage):
+class Task(object):
 
-    def __init__(self, ost_name):
+    def __init__(self, name):
 
-        if not ost_name:
-            raise RuntimeError('No OST name is set!')
+        __metaclass__ = abc.ABCMeta
 
-        super(TaskResponse, self).__init__(MessageType.TASK_RESPONSE(), ost_name)
+        super(Task, self).__init__()
 
-    def validate_body(self):
+        self.name = name
 
-        if not self.body:
-            raise RuntimeError('No body is set!')
+    # TODO: Raise EXCEPTION?
+    @abc.abstractmethod
+    def execute(self):
+        return None

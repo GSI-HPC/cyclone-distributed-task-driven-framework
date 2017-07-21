@@ -23,7 +23,7 @@ from abc import ABCMeta
 from base_message import BaseMessage
 from message_type import MessageType
 from task_request import TaskRequest
-from task_response import TaskResponse
+from ost_task_response import OstTaskResponse
 from wait_command import WaitCommand
 from task_finished import TaskFinished
 from task_acknowledge import TaskAcknowledge
@@ -58,9 +58,9 @@ class MessageFactory:
                 and len_message_items == 2:
             return TaskRequest(message_items[1])
 
-        if header == MessageType.TASK_RESPONSE() \
+        if header == MessageType.OST_TASK_RESPONSE() \
                 and len_message_items == 2:
-            return TaskResponse(message_items[1])
+            return OstTaskResponse(message_items[1])
 
         if header == MessageType.TASK_FINISHED() \
                 and len_message_items == 3:

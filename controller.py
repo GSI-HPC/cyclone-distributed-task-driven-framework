@@ -36,28 +36,27 @@ from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
-from ctrl.auto_release_condition import AutoReleaseCondition
+from msg.ost_task_response import OstTaskResponse
+from task.ost_task import OSTTask
 
 
 class WorkerState:
 
     __metaclass__ = abc.ABCMeta
 
-    @classmethod
-    def not_ready(cls):
-        return 0
-
-    @classmethod
-    def ready(cls):
-        return 1
+    NOT_READY = 0
+    READY = 1
+    EXECUTING = 2
 
     @classmethod
     def to_string(cls, state):
 
-        if WorkerState.not_ready() == state:
+        if WorkerState.NOT_READY == state:
             return "NOT_READY"
-        elif WorkerState.ready() == state:
+        elif WorkerState.READY == state:
             return "READY"
+        elif WorkerState.EXECUTING == state:
+            return "EXECUTING"
         else:
             raise RuntimeError("Not supported worker state detected: %i" % state)
 
@@ -69,11 +68,11 @@ class WorkerStateTableItem:
         # # RETURNS STDOUT: self._state = "TEXT" + str(NUMBER)
         # # RETURNS BAD VALUE: self._timestamp.value = 1234567890.99
         # self._state = multiprocessing.RawValue(ctypes.c_char_p)
-        # self._task_name = multiprocessing.RawValue(ctypes.c_char_p)
+        # self._ost_name = multiprocessing.RawValue(ctypes.c_char_p)
         # self._timestamp = multiprocessing.RawValue(ctypes.c_float)
 
-        self._state = multiprocessing.RawValue(ctypes.c_int)
-        self._task_name = multiprocessing.RawArray('c', 10)
+        self._state = multiprocessing.RawValue(ctypes.c_int, WorkerState.NOT_READY)
+        self._ost_name = multiprocessing.RawArray('c', 64)
         self._timestamp = multiprocessing.RawValue(ctypes.c_uint, 0)
 
     @property
@@ -81,8 +80,8 @@ class WorkerStateTableItem:
         return self._state.value
 
     @property
-    def get_task_name(self):
-        return self._task_name.value.decode()
+    def get_ost_name(self):
+        return self._ost_name.value.decode()
 
     @property
     def get_timestamp(self):
@@ -91,8 +90,8 @@ class WorkerStateTableItem:
     def set_state(self, state):
         self._state.value = state
 
-    def set_task_name(self, task_name):
-        self._task_name.value = task_name.encode()
+    def set_ost_name(self, task_name):
+        self._ost_name.value = task_name.encode()
 
     def set_timestamp(self, timestamp):
         self._timestamp.value = timestamp
@@ -125,56 +124,89 @@ def init_logging(log_filename, enable_debug):
 
 
 def worker_func(worker_state_table_item, lock_worker_state_table,
-                task_queue, result_queue, lock_task_queue, lock_result_queue,
-                cond_task_queue, cond_result_queue):
+                task_queue, lock_task_assign, cond_task_assign):
 
     logging.debug("Started Worker with ID: %s" % multiprocessing.current_process().name)
 
     with CriticalSection(lock_worker_state_table):
 
-        worker_state_table_item.set_state(WorkerState.ready())
+        worker_state_table_item.set_state(WorkerState.READY)
         worker_state_table_item.set_timestamp(int(time.time()))
 
-    with AutoReleaseCondition(cond_task_queue):
+    run_condition = True
 
-        cond_task_queue.wait()
+    while run_condition:
+
+        task = None
+
+        with CriticalSection(cond_task_assign):
+
+            cond_task_assign.wait()
+
+            if not task_queue.is_empty():
+
+                task = task_queue.pop()
+
+                worker_state_table_item.set_state(WorkerState.EXECUTING)
+                worker_state_table_item.set_ost_name(task.name)
+                worker_state_table_item.set_timestamp(int(time.time()))
+
+        if task:
+
+            task.execute()
+
+            with CriticalSection(lock_worker_state_table):
+
+                worker_state_table_item.set_state(WorkerState.READY)
+                worker_state_table_item.set_ost_name('')
+                worker_state_table_item.set_timestamp(int(time.time()))
+
+
 
     logging.debug("Exiting Worker with ID: %s" % multiprocessing.current_process().name)
 
     exit(0)
 
 
-def create_worker_state_table(worker_count):
+def create_worker_ids(worker_count):
+
+    worker_ids = list()
+
+    for i in range(0, worker_count):
+        worker_ids.append("WORKER_" + str(i))
+
+    return worker_ids
+
+
+def create_worker_state_table(worker_ids):
 
     worker_state_table = dict()
 
-    for i in range(0, worker_count):
-        worker_state_table[i] = WorkerStateTableItem()
+    for i in range(0, len(worker_ids)):
+        worker_state_table[worker_ids[i]] = WorkerStateTableItem()
 
-    if len(worker_state_table) != worker_count:
+    if len(worker_state_table) != len(worker_ids):
         raise RuntimeError("Inconsistent worker state table size found: %s - expected: %s"
-                           % (len(worker_state_table), worker_count))
+                           % (len(worker_state_table), len(worker_ids)))
 
     return worker_state_table
 
 
-def create_worker(worker_count, worker_state_table, lock_worker_state_table,
-                  task_queue, result_queue, lock_task_queue, lock_result_queue,
-                  cond_task_queue, cond_result_queue):
+def create_worker(worker_state_table, lock_worker_state_table,
+                  task_queue, lock_task_assign, cond_task_assign):
 
     worker_handle_dict = dict()
 
-    for i in range(0, worker_count):
+    for worker_id in worker_state_table.iterkeys():
 
-        worker_state_table_item = worker_state_table[i]
+        worker_state_table_item = worker_state_table[worker_id]
 
-        worker_handle = multiprocessing.Process(name=str(i),
+        worker_handle = multiprocessing.Process(name=worker_id,
                                                 target=worker_func,
                                                 args=(worker_state_table_item, lock_worker_state_table,
-                                                      task_queue, result_queue, lock_task_queue, lock_result_queue,
-                                                      cond_task_queue, cond_result_queue))
+                                                      task_queue, lock_task_assign, cond_task_assign))
 
-        worker_handle_dict[i] = worker_handle
+        worker_handle_dict[worker_id] = worker_handle
 
     return worker_handle_dict
 
@@ -187,27 +219,25 @@ def start_worker(worker_handle_dict, worker_state_table):
     if len(worker_handle_dict) != len(worker_state_table):
         raise RuntimeError('Different sizes in worker handle dict and worker state table detected!')
 
-    for worker_id in range(0, len(worker_handle_dict)):
+    for worker_id in worker_handle_dict.iterkeys():
         worker_handle_dict[worker_id].start()
 
     max_retry_count = 3
-
-    for retry_count in range(1, max_retry_count+1):
+    for retry_count in range(1, max_retry_count + 1):
 
         worker_ready = True
 
-        for worker_id in range(0, len(worker_handle_dict)):
+        for worker_id in worker_handle_dict.iterkeys():
 
-            if not worker_handle_dict[worker_id].is_alive() \
-                    or worker_state_table[worker_id].get_state != WorkerState.ready():
+            if not (worker_handle_dict[worker_id].is_alive()
+                    and worker_state_table[worker_id].get_state == WorkerState.READY):
                 worker_ready = False
 
         if worker_ready:
             return True
 
         time.sleep(retry_count * len(worker_handle_dict))
-
-        logging.debug("Waiting for worker to be ready - Waiting seconds: %s" % (retry_count * len(worker_handle_dict)))
+        logging.debug("Waiting for worker to be READY - Waiting seconds: %s" % (retry_count * len(worker_handle_dict)))
 
 
 def main():
@@ -226,8 +256,7 @@ def main():
                 ControllerCommHandler(config_file_reader.comm_target,
                                       config_file_reader.comm_port,
                                       config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as task_queue, \
-                SharedQueue() as result_queue:
+                SharedQueue() as task_queue:
 
             if pid_control.lock():
 
@@ -240,43 +269,57 @@ def main():
                 request_retry_wait_duration = config_file_reader.request_retry_wait_duration
 
                 lock_worker_state_table = multiprocessing.Lock()
-                lock_task_queue = multiprocessing.Lock()
-                lock_result_queue = multiprocessing.Lock()
+                lock_task_assign = multiprocessing.Lock()
 
-                cond_task_queue = multiprocessing.Condition(lock_task_queue)
-                cond_result_queue = multiprocessing.Condition(lock_result_queue)
+                cond_task_assign = multiprocessing.Condition(lock_task_assign)
 
                 worker_count = config_file_reader.worker_count
-                worker_state_table = create_worker_state_table(worker_count)
-                worker_handle_dict = create_worker(worker_count, worker_state_table, lock_worker_state_table,
-                                                   task_queue, result_queue, lock_task_queue, lock_result_queue,
-                                                   cond_task_queue, cond_result_queue)
+                worker_ids = create_worker_ids(worker_count)
+                worker_state_table = create_worker_state_table(worker_ids)
+                worker_handle_dict = create_worker(worker_state_table, lock_worker_state_table,
+                                                   task_queue, lock_task_assign, cond_task_assign)
 
                 run_condition = True
 
                 # TODO: Shutdown all worker!
-                # TODO: Detect not_readt worker and ready worker for poisen pill
+                # TODO: Detect not_readt worker and READY worker for poisen pill
                 # TODO -> Shutdown AFTER main loop!
+
+                # TODO: Check all worker are active every x hours
+                # and then cleanup the data structures if not alive anymove.
 
                 if not start_worker(worker_handle_dict, worker_state_table):
 
-                    logging.error("Not all worker are ready!")
+                    logging.error("Not all worker are READY!")
                     run_condition = False
-
-                with AutoReleaseCondition(cond_task_queue):
-
-                    cond_task_queue.notify_all()
-
-                exit(0)
 
                 while run_condition:
 
                     last_exec_timestamp = int(time.time())
 
-                    # TODO: Does just task requests for testing...
-                    task_request = TaskRequest(comm_handler.fqdn)
-                    comm_handler.send(task_request.to_string())
-                    logging.debug('sent task request')
+                    found_ready_worker = False
+
+                    with CriticalSection(cond_task_assign):
+
+                        for worker_id in worker_state_table.iterkeys():
+
+                            if worker_handle_dict[worker_id].is_alive() \
+                                    and worker_state_table[worker_id].get_state == WorkerState.READY:
+
+                                found_ready_worker = True
+                                break
+
+                    if found_ready_worker:
+
+                        task_request = TaskRequest(comm_handler.fqdn)
+                        comm_handler.send(task_request.to_string())
+                        logging.debug('Requesting for task...')
+
+                    else:
+                        #TODO Send heartbeat?
+                        logging.info("Should send heartbeat or something...")
+                        time.sleep(1)
+                        continue
 
                     in_raw_data = comm_handler.recv()
 
@@ -285,11 +328,18 @@ def main():
                         logging.debug("Retrieved Message Raw Data: " + in_raw_data)
                         in_msg = MessageFactory.create(in_raw_data)
 
-                        if in_msg.header == MessageType.TASK_RESPONSE():
-
-                            #TODO: What do to next with the task response...!
+                        if in_msg.header == MessageType.OST_TASK_RESPONSE():
+                            
                             ost_name = in_msg.body
                             logging.debug("Retrieved Task Response with OST name: " + ost_name)
+
+                            with CriticalSection(cond_task_assign):
+
+                                task = OSTTask(ost_name)
+
+                                task_queue.push(task)
+
+                                cond_task_assign.notify()
 
                         elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():
                             logging.debug("Retrieved Task Acknowledge!")

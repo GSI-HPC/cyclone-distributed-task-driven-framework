@@ -17,34 +17,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+import multiprocessing
 
-from base_message import BaseMessage
-from message_type import MessageType
+from task import Task
 
 
-class TaskFinished(BaseMessage):
+class OSTTask(Task):
 
-    def __init__(self, sender, task_name):
+    def __init__(self, ost_name):
 
-        if not sender:
-            raise RuntimeError('No sender is set!')
+        super(OSTTask, self).__init__(ost_name)
 
-        if not task_name:
-            raise RuntimeError('No task name is set!')
+        self.ost_name = ost_name
 
-        body = sender + self.field_separator + task_name
+    def execute(self):
 
-        super(TaskFinished, self).__init__(MessageType.TASK_FINISHED(), body)
+        logging.debug("Executor with ID: %s" % multiprocessing.current_process().name)
 
-    def validate_body(self):
-
-        if not self.body:
-            raise RuntimeError('No body is set!')
-
-    @property
-    def sender(self):
-        return self.body.split(BaseMessage.field_separator)[0]
-
-    @property
-    def task_name(self):
-        return self.body.split(BaseMessage.field_separator)[1]
+        print("*** %s ***" % self.ost_name)
