@@ -121,8 +121,7 @@ class Worker(multiprocessing.Process):
 
         while self.run_flag:
 
-            print self.run_flag
-            task = None
+            ost_task = None
 
             with CriticalSection(self.cond_task_assign):
 
@@ -130,15 +129,15 @@ class Worker(multiprocessing.Process):
 
                 if not self.task_queue.is_empty():
 
-                    task = self.task_queue.pop()
+                    ost_task = self.task_queue.pop()
 
                     self.worker_state_table_item.set_state(WorkerState.EXECUTING)
-                    self.worker_state_table_item.set_ost_name(task.name)
+                    self.worker_state_table_item.set_ost_name(ost_task.name)
                     self.worker_state_table_item.set_timestamp(int(time.time()))
 
-            if task:
+            if ost_task:
 
-                task.execute()
+                ost_task.execute()
 
                 with CriticalSection(self.lock_worker_state_table):
 

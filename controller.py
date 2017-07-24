@@ -228,10 +228,7 @@ def main():
 
                             with CriticalSection(cond_task_assign):
 
-                                task = OSTTask(ost_name)
-
-                                task_queue.push(task)
-
+                                task_queue.push(OSTTask(ost_name))
                                 cond_task_assign.notify()
 
                         elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():

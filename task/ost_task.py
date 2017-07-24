@@ -17,22 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
+
 import multiprocessing
+import logging
 
-from task import Task
 
+class OSTTask:
 
-class OSTTask(Task):
-
-    def __init__(self, ost_name):
-
-        super(OSTTask, self).__init__(ost_name)
-
-        self.ost_name = ost_name
+    def __init__(self, name):
+        self.name = name
 
     def execute(self):
 
         logging.debug("Executor with ID: %s" % multiprocessing.current_process().name)
-
-        print("*** %s ***" % self.ost_name)
+        logging.debug("*** %s ***" % self.name)
