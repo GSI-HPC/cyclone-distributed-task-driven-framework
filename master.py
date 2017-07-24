@@ -309,9 +309,9 @@ def main():
                     break
 
             if ost_list_processor.is_alive():
-                ost_list_processor.terminate()
 
-            ost_list_processor.join()
+                ost_list_processor.terminate()
+                ost_list_processor.join()
 
     except Exception as e:
 

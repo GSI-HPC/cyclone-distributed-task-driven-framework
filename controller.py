@@ -24,9 +24,11 @@ import os
 import sys
 import time
 import multiprocessing
-import ctypes
-import abc
+import signal
 
+from worker import Worker
+from worker import WorkerState
+from worker import WorkerStateTableItem
 from comm.controller_handler import ControllerCommHandler
 from conf.controller_config_file_reader import ControllerConfigFileReader
 from ctrl.pid_control import PIDControl
@@ -38,63 +40,6 @@ from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.ost_task_response import OstTaskResponse
 from task.ost_task import OSTTask
-
-
-class WorkerState:
-
-    __metaclass__ = abc.ABCMeta
-
-    NOT_READY = 0
-    READY = 1
-    EXECUTING = 2
-
-    @classmethod
-    def to_string(cls, state):
-
-        if WorkerState.NOT_READY == state:
-            return "NOT_READY"
-        elif WorkerState.READY == state:
-            return "READY"
-        elif WorkerState.EXECUTING == state:
-            return "EXECUTING"
-        else:
-            raise RuntimeError("Not supported worker state detected: %i" % state)
-
-
-class WorkerStateTableItem:
-
-    def __init__(self):
-
-        # # RETURNS STDOUT: self._state = "TEXT" + str(NUMBER)
-        # # RETURNS BAD VALUE: self._timestamp.value = 1234567890.99
-        # self._state = multiprocessing.RawValue(ctypes.c_char_p)
-        # self._ost_name = multiprocessing.RawValue(ctypes.c_char_p)
-        # self._timestamp = multiprocessing.RawValue(ctypes.c_float)
-
-        self._state = multiprocessing.RawValue(ctypes.c_int, WorkerState.NOT_READY)
-        self._ost_name = multiprocessing.RawArray('c', 64)
-        self._timestamp = multiprocessing.RawValue(ctypes.c_uint, 0)
-
-    @property
-    def get_state(self):
-        return self._state.value
-
-    @property
-    def get_ost_name(self):
-        return self._ost_name.value.decode()
-
-    @property
-    def get_timestamp(self):
-        return self._timestamp.value
-
-    def set_state(self, state):
-        self._state.value = state
-
-    def set_ost_name(self, task_name):
-        self._ost_name.value = task_name.encode()
-
-    def set_timestamp(self, timestamp):
-        self._timestamp.value = timestamp
 
 
 def init_arg_parser():
@@ -123,51 +68,6 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
 
-def worker_func(worker_state_table_item, lock_worker_state_table,
-                task_queue, lock_task_assign, cond_task_assign):
-
-    logging.debug("Started Worker with ID: %s" % multiprocessing.current_process().name)
-
-    with CriticalSection(lock_worker_state_table):
-
-        worker_state_table_item.set_state(WorkerState.READY)
-        worker_state_table_item.set_timestamp(int(time.time()))
-
-    run_condition = True
-
-    while run_condition:
-
-        task = None
-
-        with CriticalSection(cond_task_assign):
-
-            cond_task_assign.wait()
-
-            if not task_queue.is_empty():
-
-                task = task_queue.pop()
-
-                worker_state_table_item.set_state(WorkerState.EXECUTING)
-                worker_state_table_item.set_ost_name(task.name)
-                worker_state_table_item.set_timestamp(int(time.time()))
-
-        if task:
-
-            task.execute()
-
-            with CriticalSection(lock_worker_state_table):
-
-                worker_state_table_item.set_state(WorkerState.READY)
-                worker_state_table_item.set_ost_name('')
-                worker_state_table_item.set_timestamp(int(time.time()))
-
-
-
-    logging.debug("Exiting Worker with ID: %s" % multiprocessing.current_process().name)
-
-    exit(0)
-
-
 def create_worker_ids(worker_count):
 
     worker_ids = list()
@@ -192,8 +92,7 @@ def create_worker_state_table(worker_ids):
     return worker_state_table
 
 
-def create_worker(worker_state_table, lock_worker_state_table,
-                  task_queue, lock_task_assign, cond_task_assign):
+def create_worker(worker_state_table, lock_worker_state_table, task_queue, cond_task_assign):
 
     worker_handle_dict = dict()
 
@@ -201,10 +100,8 @@ def create_worker(worker_state_table, lock_worker_state_table,
 
         worker_state_table_item = worker_state_table[worker_id]
 
-        worker_handle = multiprocessing.Process(name=worker_id,
-                                                target=worker_func,
-                                                args=(worker_state_table_item, lock_worker_state_table,
-                                                      task_queue, lock_task_assign, cond_task_assign))
+        worker_handle = \
+            Worker(worker_id, worker_state_table_item, lock_worker_state_table, task_queue, cond_task_assign)
 
         worker_handle_dict[worker_id] = worker_handle
 
@@ -276,14 +173,10 @@ def main():
                 worker_count = config_file_reader.worker_count
                 worker_ids = create_worker_ids(worker_count)
                 worker_state_table = create_worker_state_table(worker_ids)
-                worker_handle_dict = create_worker(worker_state_table, lock_worker_state_table,
-                                                   task_queue, lock_task_assign, cond_task_assign)
+                worker_handle_dict = \
+                    create_worker(worker_state_table, lock_worker_state_table, task_queue, cond_task_assign)
 
                 run_condition = True
-
-                # TODO: Shutdown all worker!
-                # TODO: Detect not_readt worker and READY worker for poisen pill
-                # TODO -> Shutdown AFTER main loop!
 
                 # TODO: Check all worker are active every x hours
                 # and then cleanup the data structures if not alive anymove.
@@ -352,9 +245,8 @@ def main():
 
                         elif in_msg.header == MessageType.EXIT_RESPONSE():
 
-                            # TODO: add run_flag
-                            logging.info('Finished')
-                            exit(0)
+                            run_condition = False
+                            logging.info('Finishing...')
 
                         # Reset after retrieving a message
                         if request_retry_count > 0:
@@ -373,8 +265,51 @@ def main():
                         comm_handler.reconnect()
                         request_retry_count += 1
 
+                # Shutdown all worker...
+                if not run_condition:
+
+                    try:
+
+                        for i in range(0, 10):
+
+                            found_active_worker = False
+
+                            for worker_id in worker_state_table.iterkeys():
+
+                                if worker_handle_dict[worker_id].is_alive():
+
+                                    os.kill(worker_handle_dict[worker_id].pid, signal.SIGUSR1)
+
+                                    found_active_worker = True
+
+                            if found_active_worker:
+
+                                with CriticalSection(cond_task_assign):
+                                    cond_task_assign.notify_all()
+
+                                time.sleep(1)
+
+                            else:
+                                logging.debug('All worker have been shutdown!')
+                                break
+
+                        for worker_id in worker_state_table.iterkeys():
+
+                            if worker_handle_dict[worker_id].is_alive():
+
+                                logging.debug("Waiting for worker to terminate: %s"
+                                              % worker_handle_dict[worker_id].name)
+
+                                worker_handle_dict[worker_id].terminate()
+                                worker_handle_dict[worker_id].join()
+
+                    except Exception as e:
+
+                        logging.error("Caught exception terminating Worker: " + str(e))
+                        # error_flag = True
+
             else:
-                logging.error("Another instance might be already ru:nning as well!")
+                logging.error("Another instance might be already running as well!")
                 logging.info("PID lock file: " + pid_file)
                 exit(1)
 
