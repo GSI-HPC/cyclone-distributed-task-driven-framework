@@ -39,6 +39,7 @@ from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.ost_task_response import OstTaskResponse
+from msg.heartbeat import Heartbeat
 from task.ost_task import OSTTask
 
 
@@ -149,6 +150,8 @@ def main():
 
         pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
 
+        error_flag = False
+
         with PIDControl(pid_file) as pid_control, \
                 ControllerCommHandler(config_file_reader.comm_target,
                                       config_file_reader.comm_port,
@@ -178,12 +181,10 @@ def main():
 
                 run_condition = True
 
-                # TODO: Check all worker are active every x hours
-                # and then cleanup the data structures if not alive anymove.
-
                 if not start_worker(worker_handle_dict, worker_state_table):
 
-                    logging.error("Not all worker are READY!")
+                    logging.error("Not all worker are ready!")
+                    error_flag = True
                     run_condition = False
 
                 while run_condition:
@@ -209,10 +210,29 @@ def main():
                         logging.debug('Requesting for task...')
 
                     else:
-                        #TODO Send heartbeat?
-                        logging.info("Should send heartbeat or something...")
-                        time.sleep(1)
-                        continue
+
+                        worker_count = len(worker_state_table)
+                        worker_count_not_active = 0
+
+                        for worker_id in worker_state_table.iterkeys():
+
+                            if not worker_handle_dict[worker_id].is_alive():
+                                worker_count_not_active += 1
+
+                        if worker_count == worker_count_not_active:
+
+                            logging.error('No worker are alive!')
+                            run_condition = False
+                            error_flag = True
+                            continue
+
+                        else:
+
+                            heartbeat = Heartbeat(comm_handler.fqdn)
+                            comm_handler.send(heartbeat.to_string())
+
+                            # TODO: How long?
+                            time.sleep(1)
 
                     in_raw_data = comm_handler.recv()
 
@@ -231,7 +251,7 @@ def main():
                                 task_queue.push(OSTTask(ost_name))
                                 cond_task_assign.notify()
 
-                        elif in_msg.header == MessageType.TASK_ACKNOWLEDGE():
+                        elif in_msg.header == MessageType.ACKNOWLEDGE():
                             logging.debug("Retrieved Task Acknowledge!")
 
                         elif in_msg.header == MessageType.WAIT_COMMAND():
@@ -267,6 +287,8 @@ def main():
 
                     try:
 
+                        all_worker_down = False
+
                         for i in range(0, 10):
 
                             found_active_worker = False
@@ -287,23 +309,26 @@ def main():
                                 time.sleep(1)
 
                             else:
-                                logging.debug('All worker have been shutdown!')
+                                logging.debug('All worker are down!')
+                                all_worker_down = True
                                 break
 
-                        for worker_id in worker_state_table.iterkeys():
+                        if not all_worker_down:
 
-                            if worker_handle_dict[worker_id].is_alive():
+                            for worker_id in worker_state_table.iterkeys():
 
-                                logging.debug("Waiting for worker to terminate: %s"
-                                              % worker_handle_dict[worker_id].name)
+                                if worker_handle_dict[worker_id].is_alive():
 
-                                worker_handle_dict[worker_id].terminate()
-                                worker_handle_dict[worker_id].join()
+                                    logging.debug("Waiting for worker to terminate: %s"
+                                                  % worker_handle_dict[worker_id].name)
+
+                                    worker_handle_dict[worker_id].terminate()
+                                    worker_handle_dict[worker_id].join()
 
                     except Exception as e:
 
                         logging.error("Caught exception terminating Worker: " + str(e))
-                        # error_flag = True
+                        error_flag = True
 
             else:
                 logging.error("Another instance might be already running as well!")

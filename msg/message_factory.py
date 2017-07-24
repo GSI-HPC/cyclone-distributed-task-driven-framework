@@ -26,7 +26,8 @@ from task_request import TaskRequest
 from ost_task_response import OstTaskResponse
 from wait_command import WaitCommand
 from task_finished import TaskFinished
-from task_acknowledge import TaskAcknowledge
+from acknowledge import Acknowledge
+from heartbeat import Heartbeat
 from exit_response import ExitResponse
 
 
@@ -66,13 +67,17 @@ class MessageFactory:
                 and len_message_items == 3:
             return TaskFinished(message_items[1], message_items[2])
 
-        if header == MessageType.TASK_ACKNOWLEDGE() \
+        if header == MessageType.ACKNOWLEDGE() \
                 and len_message_items == 1:
-            return TaskAcknowledge()
+            return Acknowledge()
 
         if header == MessageType.WAIT_COMMAND() \
                 and len_message_items == 2:
             return WaitCommand(message_items[1])
+
+        if header == MessageType.HEARTBEAT() \
+                and len_message_items == 2:
+            return Heartbeat(message_items[1])
 
         if header == MessageType.EXIT_RESPONSE() \
                 and len_message_items == 1:

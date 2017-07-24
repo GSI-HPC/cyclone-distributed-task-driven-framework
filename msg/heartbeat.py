@@ -21,11 +21,21 @@
 from base_message import BaseMessage
 from message_type import MessageType
 
-# TODO: Rename... its not a task, just an acknowledgement!
-class TaskAcknowledge(BaseMessage):
 
-    def __init__(self):
-        super(TaskAcknowledge, self).__init__(MessageType.TASK_ACKNOWLEDGE(), '')
+class Heartbeat(BaseMessage):
+
+    def __init__(self, sender):
+
+        if not sender:
+            raise RuntimeError('No sender is set!')
+
+        super(Heartbeat, self).__init__(MessageType.HEARTBEAT(), sender)
 
     def validate_body(self):
-        return None
+
+        if not self.body:
+            raise RuntimeError('No body is set!')
+
+    @property
+    def sender(self):
+        return self.body

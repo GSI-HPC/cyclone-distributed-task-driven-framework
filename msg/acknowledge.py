@@ -18,38 +18,14 @@
 #
 
 
-from abc import ABCMeta
+from base_message import BaseMessage
+from message_type import MessageType
 
 
-class MessageType:
+class Acknowledge(BaseMessage):
 
     def __init__(self):
-        __metaclass__ = ABCMeta
+        super(Acknowledge, self).__init__(MessageType.ACKNOWLEDGE(), '')
 
-    @staticmethod
-    def TASK_REQUEST():
-        return 'TASK_REQ'
-
-    @staticmethod
-    def OST_TASK_RESPONSE():
-        return 'OST_TASK_RES'
-
-    @staticmethod
-    def WAIT_COMMAND():
-        return 'WAIT_CMD'
-
-    @staticmethod
-    def TASK_FINISHED():
-        return 'TASK_FIN'
-
-    @staticmethod
-    def ACKNOWLEDGE():
-        return 'TASK_ACK'
-
-    @staticmethod
-    def HEARTBEAT():
-        return 'HEARTBEAT'
-
-    @staticmethod
-    def EXIT_RESPONSE():
-        return 'EXIT_RES'
+    def validate_body(self):
+        return None

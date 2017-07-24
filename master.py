@@ -38,7 +38,7 @@ from lfs.ost_list_processor import OstListProcessor
 from msg.exit_response import ExitResponse
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
-from msg.task_acknowledge import TaskAcknowledge
+from msg.acknowledge import Acknowledge
 from msg.ost_task_response import OstTaskResponse
 from msg.wait_command import WaitCommand
 
@@ -240,7 +240,13 @@ def main():
                                     else:
                                         raise RuntimeError("Inconsistency detected on task finished!")
 
-                                    send_msg = TaskAcknowledge()
+                                    send_msg = Acknowledge()
+                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    comm_handler.send(send_msg.to_string())
+
+                                elif MessageType.HEARTBEAT() == recv_msg.header:
+
+                                    send_msg = Acknowledge()
                                     logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
