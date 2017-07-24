@@ -93,7 +93,9 @@ def create_worker_state_table(worker_ids):
     return worker_state_table
 
 
-def create_worker(worker_state_table, lock_worker_state_table, task_queue, cond_task_assign):
+def create_worker(worker_state_table, lock_worker_state_table,
+                  task_queue, cond_task_assign,
+                  result_queue, cond_result_queue):
 
     worker_handle_dict = dict()
 
@@ -101,8 +103,10 @@ def create_worker(worker_state_table, lock_worker_state_table, task_queue, cond_
 
         worker_state_table_item = worker_state_table[worker_id]
 
-        worker_handle = \
-            Worker(worker_id, worker_state_table_item, lock_worker_state_table, task_queue, cond_task_assign)
+        worker_handle = Worker(worker_id,
+                               worker_state_table_item, lock_worker_state_table,
+                               task_queue, cond_task_assign,
+                               result_queue, cond_result_queue)
 
         worker_handle_dict[worker_id] = worker_handle
 
@@ -156,6 +160,7 @@ def main():
                 ControllerCommHandler(config_file_reader.comm_target,
                                       config_file_reader.comm_port,
                                       config_file_reader.poll_timeout) as comm_handler, \
+                SharedQueue() as result_queue, \
                 SharedQueue() as task_queue:
 
             if pid_control.lock():
@@ -170,14 +175,17 @@ def main():
 
                 lock_worker_state_table = multiprocessing.Lock()
                 lock_task_assign = multiprocessing.Lock()
+                lock_result_queue = multiprocessing.Lock()
 
                 cond_task_assign = multiprocessing.Condition(lock_task_assign)
+                cond_result_queue = multiprocessing.Condition(lock_result_queue)
 
                 worker_count = config_file_reader.worker_count
                 worker_ids = create_worker_ids(worker_count)
                 worker_state_table = create_worker_state_table(worker_ids)
-                worker_handle_dict = \
-                    create_worker(worker_state_table, lock_worker_state_table, task_queue, cond_task_assign)
+                worker_handle_dict = create_worker(worker_state_table, lock_worker_state_table,
+                                                   task_queue, cond_task_assign,
+                                                   result_queue, cond_result_queue)
 
                 run_condition = True
 
@@ -191,48 +199,81 @@ def main():
 
                     last_exec_timestamp = int(time.time())
 
-                    found_ready_worker = False
+                    send_msg = None
 
-                    with CriticalSection(cond_task_assign):
+                    with CriticalSection(cond_result_queue):
 
-                        for worker_id in worker_state_table.iterkeys():
+                        if not result_queue.is_empty():
 
-                            if worker_handle_dict[worker_id].is_alive() \
-                                    and worker_state_table[worker_id].get_state == WorkerState.READY:
+                            task_result = result_queue.pop()
 
-                                found_ready_worker = True
-                                break
+                            if task_result:
 
-                    if found_ready_worker:
+                                logging.debug("TASK RESULT: %s" % task_result)
+                                send_msg = TaskFinished(comm_handler.fqdn, task_result)
 
-                        task_request = TaskRequest(comm_handler.fqdn)
-                        comm_handler.send(task_request.to_string())
-                        logging.debug('Requesting for task...')
+                    if not send_msg:
 
-                    else:
+                        with CriticalSection(cond_task_assign):
 
-                        worker_count = len(worker_state_table)
-                        worker_count_not_active = 0
+                            found_ready_worker = False
 
-                        for worker_id in worker_state_table.iterkeys():
+                            for worker_id in worker_state_table.iterkeys():
 
-                            if not worker_handle_dict[worker_id].is_alive():
-                                worker_count_not_active += 1
+                                if worker_handle_dict[worker_id].is_alive() \
+                                        and worker_state_table[worker_id].get_state == WorkerState.READY:
 
-                        if worker_count == worker_count_not_active:
+                                    found_ready_worker = True
+                                    break
 
-                            logging.error('No worker are alive!')
-                            run_condition = False
-                            error_flag = True
-                            continue
+                        if found_ready_worker:
+
+                            logging.debug('Requesting for task...')
+                            send_msg = TaskRequest(comm_handler.fqdn)
 
                         else:
 
-                            heartbeat = Heartbeat(comm_handler.fqdn)
-                            comm_handler.send(heartbeat.to_string())
+                            worker_count = len(worker_state_table)
+                            worker_count_not_active = 0
 
-                            # TODO: How long?
-                            time.sleep(1)
+                            for worker_id in worker_state_table.iterkeys():
+
+                                if not worker_handle_dict[worker_id].is_alive():
+                                    worker_count_not_active += 1
+
+                            if worker_count == worker_count_not_active:
+
+                                logging.error('No worker are alive!')
+                                run_condition = False
+                                error_flag = True
+                                continue
+
+                            else:   # Worker are busy
+
+                                timeout = 2 # TODO: timeout how long???
+
+                                with CriticalSection(cond_result_queue):
+
+                                    cond_result_queue.wait(timeout)
+
+                                    if result_queue.is_empty():
+
+                                        logging.debug('Timeout on result queue, since no task is finished yet!')
+                                        send_msg = Heartbeat(comm_handler.fqdn)
+
+                                    else:
+
+                                        task_result = result_queue.pop()
+
+                                        if task_result:
+
+                                            logging.debug("TASK RESULT: %s" % task_result)
+                                            send_msg = TaskFinished(comm_handler.fqdn, task_result)
+
+                    if send_msg:
+
+                        logging.debug("Sending message to master: %s" % send_msg.to_string())
+                        comm_handler.send(send_msg.to_string())
 
                     in_raw_data = comm_handler.recv()
 
@@ -242,7 +283,7 @@ def main():
                         in_msg = MessageFactory.create(in_raw_data)
 
                         if in_msg.header == MessageType.OST_TASK_RESPONSE():
-                            
+
                             ost_name = in_msg.body
                             logging.debug("Retrieved Task Response with OST name: " + ost_name)
 
@@ -275,7 +316,7 @@ def main():
 
                             logging.debug('Exiting, since maximum retry count is reached!')
                             comm_handler.disconnect()
-                            sys.exit(1)
+                            run_condition = False
 
                         time.sleep(request_retry_wait_duration)
                         logging.debug('No response retrieved - Reconnecting...')

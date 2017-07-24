@@ -24,15 +24,15 @@ from message_type import MessageType
 
 class TaskFinished(BaseMessage):
 
-    def __init__(self, sender, task_name):
+    def __init__(self, sender, ost_name):
 
         if not sender:
             raise RuntimeError('No sender is set!')
 
-        if not task_name:
+        if not ost_name:
             raise RuntimeError('No task name is set!')
 
-        body = sender + self.field_separator + task_name
+        body = sender + self.field_separator + ost_name
 
         super(TaskFinished, self).__init__(MessageType.TASK_FINISHED(), body)
 
@@ -46,5 +46,5 @@ class TaskFinished(BaseMessage):
         return self.body.split(BaseMessage.field_separator)[0]
 
     @property
-    def task_name(self):
+    def ost_name(self):
         return self.body.split(BaseMessage.field_separator)[1]
