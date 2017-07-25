@@ -44,7 +44,7 @@ from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
 
 
-DISTRIBUTE_TASKS = True
+TASK_DISTRIBUTION = True
 
 
 def init_arg_parser():
@@ -86,10 +86,10 @@ def signal_handler_shutdown(signal, frame):
 
     logging.info('Shutting down...')
 
-    global DISTRIBUTE_TASKS
+    global TASK_DISTRIBUTION
 
-    if DISTRIBUTE_TASKS:
-        DISTRIBUTE_TASKS = False
+    if TASK_DISTRIBUTION:
+        TASK_DISTRIBUTION = False
 
 
 def check_all_controller_down(count_active_controller):
@@ -153,7 +153,7 @@ def main():
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
                 lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
-                controller_wait_duration = config_file_reader.controller_wait_duration
+                controller_wait_duration = int(config_file_reader.controller_wait_duration)
                 task_resend_timeout = config_file_reader.task_resend_timeout
                 lctl_bin = config_file_reader.lctl_bin
 
@@ -168,6 +168,9 @@ def main():
                                                       ip_reg_ex)
 
                 ost_list_processor.start()
+
+                # TODO: Make a class for the master.
+                global TASK_DISTRIBUTION
 
                 run_flag = True
 
@@ -189,7 +192,7 @@ def main():
 
                             controller_heartbeat_dict[recv_msg.sender] = int(time.time())
 
-                            if DISTRIBUTE_TASKS:
+                            if TASK_DISTRIBUTION:
 
                                 # logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
 
@@ -201,6 +204,13 @@ def main():
 
                                         if not shared_queue.is_empty():
                                             ost_name = shared_queue.pop()
+
+                                        else:
+
+                                            if not ost_list_processor.is_alive():
+
+                                                TASK_DISTRIBUTION = False
+                                                controller_wait_duration = 0
 
                                     if ost_name:
 
@@ -278,7 +288,7 @@ def main():
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
-                            else:   # No more task distribution (DISTRIBUTE_TASKS == FALSE)!
+                            else:   # No more task distribution (TASK_DISTRIBUTION == FALSE)!
 
                                 send_msg = ExitCommand()
                                 # logging.debug("Sending message: " + send_msg.to_string())
@@ -294,7 +304,7 @@ def main():
                             logging.debug('RECV-MSG TIMEOUT')
 
                             # This gives controllers the last chance to quit themselves until a timeout is reached.
-                            if not DISTRIBUTE_TASKS:
+                            if not TASK_DISTRIBUTION:
 
                                 for controller_name in controller_heartbeat_dict.keys():
 
@@ -311,10 +321,8 @@ def main():
 
                         logging.error("Caught exception in main loop: %s" % e)
 
-                        if DISTRIBUTE_TASKS:
-
-                            global DISTRIBUTE_TASKS
-                            DISTRIBUTE_TASKS = False
+                        if TASK_DISTRIBUTION:
+                            TASK_DISTRIBUTION = False
 
                         error_count += 1
 
