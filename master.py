@@ -157,15 +157,14 @@ def main():
 
                         if recv_data:
 
-                            logging.debug("Retrieved Message from Worker: " + recv_data)
+                            logging.debug("Retrieved message: " + recv_data)
                             recv_msg = MessageFactory.create(recv_data)
 
-                            # Save last retrieved heartbeat from a controller
                             controller_heartbeat_dict[recv_msg.sender] = int(time.time())
 
                             if TASK_DISTRIBUTION_FLAG:
 
-                                logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
+                                # logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
 
                                 if MessageType.TASK_REQUEST() == recv_msg.header:
 
@@ -197,15 +196,14 @@ def main():
                                             elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
 
-                                                logging.debug("Waiting for OST-Task to finish: %s" % ost_name)
-
+                                                # logging.debug("Waiting for a task on OST to finish: %s" % ost_name)
+                                                #TODO: Wait duration how long?
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                # TODO: Program should terminate then or send an mail on error!
                                                 raise RuntimeError("Undefined state processing task: ", ost_name)
 
-                                        else:   # Task not in OST Status Lookup Dict:
+                                        else:   # Add new OST name to lookup dict!
 
                                             ost_status_lookup_dict[ost_name] = \
                                                 OstStatusItem(ost_name,
@@ -218,7 +216,7 @@ def main():
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
 
-                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    # logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
                                 elif MessageType.TASK_FINISHED() == recv_msg.header:
@@ -235,29 +233,28 @@ def main():
                                             ost_status_lookup_dict[ost_name].timestamp = int(time.time())
 
                                         else:
-                                            logging.info("Retrieved task finished from different controller!")
+                                            logging.warning("Retrieved task finished from different controller!")
 
                                     else:
                                         raise RuntimeError("Inconsistency detected on task finished!")
 
                                     send_msg = Acknowledge()
-                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    # logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
                                 elif MessageType.HEARTBEAT() == recv_msg.header:
 
                                     send_msg = Acknowledge()
-                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    # logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
-                            else:   # NOT TASK_DISTRIBUTION_FLAG
+                            else:   # No more task distribution (TASK_DISTRIBUTION_FLAG == FALSE)!
 
                                 send_msg = ExitCommand()
-
-                                logging.debug("Sending message: " + send_msg.to_string())
+                                # logging.debug("Sending message: " + send_msg.to_string())
                                 comm_handler.send(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
