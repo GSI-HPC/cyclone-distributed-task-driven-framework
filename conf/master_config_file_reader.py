@@ -47,3 +47,11 @@ class MasterConfigFileReader:
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
 
         self.log_filename = config.get('logging', 'filename')
+
+        self.lctl_bin = config.get('lustre', 'lctl_bin')
+
+        self.host = config.get('db', 'host')
+        self.user = config.get('db', 'user')
+        self.passwd = config.get('db', 'passwd')
+        self.db = config.get('db', 'database')
+        self.table = config.get('db', 'table')

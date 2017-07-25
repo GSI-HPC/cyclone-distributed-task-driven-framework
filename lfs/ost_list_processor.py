@@ -18,33 +18,37 @@
 #
 
 
-import time
+import commands
 import logging
 import signal
+import time
+import os
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
 
 
-class OstListProcessor(Process):
+class OSTListProcessor(Process):
 
-    def __init__(self, active_ost_queue, measure_interval, lock_ost_queue):
+    def __init__(self, active_ost_queue, lock_ost_queue, measure_interval, lctl_bin, ost_reg_ex, ip_reg_ex):
 
-        super(OstListProcessor, self).__init__()
+        super(OSTListProcessor, self).__init__()
 
         self.active_ost_queue = active_ost_queue
-        self.measure_interval = measure_interval
         self.lock_ost_queue = lock_ost_queue
 
-        self.run_flag = False
+        self.measure_interval = measure_interval
+        self.lctl_bin = lctl_bin
+        self.ost_reg_ex = ost_reg_ex
+        self.ip_reg_ex = ip_reg_ex
 
-        self.task_count = 10
+        self.run_flag = False
 
     def start(self):
 
         self.run_flag = True
 
-        super(OstListProcessor, self).start()
+        super(OSTListProcessor, self).start()
 
     def run(self):
 
@@ -77,13 +81,14 @@ class OstListProcessor(Process):
     def signal_handler_shutdown(self, signal, frame):
         self.run_flag = False
 
-    def get_ost_lists(self):
+    @staticmethod
+    def test_get_ost_lists():
 
         active_ost_list = list()
 
         ost_name_prefix = "nyx-OST"
 
-        for i in xrange(0, self.task_count, 1):
+        for i in xrange(0, 10, 1):
 
             ost_name = None
             i_str = str(i)
@@ -110,3 +115,65 @@ class OstListProcessor(Process):
         inactive_ost_list.append('nyx-OST11ff')
 
         return tuple((active_ost_list, inactive_ost_list))
+
+    def get_ost_lists(self):
+
+        ost_ip_dict = self.get_ost_ip_dict()
+
+        # active_ost_list, inactive_ost_list = get_ost_lists(LFS_BIN, OST_RE_PATTERN)
+
+        # Testing only!
+        return OSTListProcessor.test_get_ost_lists()
+
+    def get_ost_ip_dict(self):
+
+        ost_ip_dict = dict()
+
+        if not os.path.isfile(self.lctl_bin):
+            raise RuntimeError("LCTL binary was not found under: %s" % self.lctl_bin)
+
+        cmd = self.lctl_bin + " get_param 'osc.*.ost_conn_uuid'"
+
+        (status, output) = commands.getstatusoutput(cmd)
+
+        if status > 0:
+            raise RuntimeError("Error occurred during read of OST connection UUID information: %s" % output)
+
+        if not output:
+            raise RuntimeError("No OST connection UUID information retrieved!")
+
+        # TODO Solve redundancy getting OST names!
+        ost_list = output.split('\n')
+
+        for ost_info in ost_list:
+
+            idx_ost_name = ost_info.find('OST')
+
+            if idx_ost_name == -1:
+                raise RuntimeError("No OST name found in output line: %s" % ost_info)
+
+            ost_name = ost_info[idx_ost_name: idx_ost_name + 7]
+            re_match = self.ost_reg_ex.match(ost_name)
+
+            if not re_match:
+                raise RuntimeError("No valid OST name found in output line: %s" % ost_info)
+
+            ost_conn_uuid_str = 'ost_conn_uuid='
+
+            idx_ost_conn_uuid = ost_info.find(ost_conn_uuid_str)
+
+            if idx_ost_conn_uuid == -1:
+                raise RuntimeError("Could not find '%s' in line: %s" % (ost_conn_uuid_str, ost_info))
+
+            idx_ost_conn_uuid_term = ost_info.find('@', idx_ost_conn_uuid)
+
+            if idx_ost_conn_uuid_term == -1:
+                raise RuntimeError("Could not find terminating '@' for ost_conn_uuid identification: %s" % ost_info)
+
+            ost_conn_ip = ost_info[idx_ost_conn_uuid + len(ost_conn_uuid_str): idx_ost_conn_uuid_term]
+
+            ost_ip_dict[ost_name] = ost_conn_ip
+
+        return ost_ip_dict
+
+

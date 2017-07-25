@@ -27,6 +27,7 @@ import sys
 import time
 from zmq import ZMQError
 
+from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from comm.master_handler import MasterCommHandler
 from conf.master_config_file_reader import MasterConfigFileReader
 from ctrl.ost_status_item import OstState
@@ -34,7 +35,7 @@ from ctrl.ost_status_item import OstStatusItem
 from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
 from ctrl.critical_section import CriticalSection
-from lfs.ost_list_processor import OstListProcessor
+from lfs.ost_list_processor import OSTListProcessor
 from msg.exit_command import ExitCommand
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
@@ -52,6 +53,9 @@ def init_arg_parser():
 
     parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=True,
                         help='Path to the config file.')
+
+    parser.add_argument('--create-table', dest='create_table', required=False, action='store_true',
+                        help='Creates proper database table for storing OST performance measurements.')
 
     parser.add_argument('-D', '--enable-debug', dest='enable_debug', required=False, action='store_true',
                         help='Enables debug log messages.')
@@ -128,20 +132,38 @@ def main():
                 signal.signal(signal.SIGUSR1, signal_handler_shutdown)
                 signal.siginterrupt(signal.SIGUSR1, True)
 
+                ost_perf_his_table_handler = OSTPerfHistoryTableHandler(config_file_reader.host,
+                                                                        config_file_reader.user,
+                                                                        config_file_reader.passwd,
+                                                                        config_file_reader.db,
+                                                                        config_file_reader.table)
+
+                if args.create_table:
+                    ost_perf_his_table_handler.create_table()
+
                 comm_handler.connect()
 
                 controller_heartbeat_dict = dict()
                 ost_status_lookup_dict = dict()
 
+                ost_reg_ex = config_file_reader.ost_reg_ex
+                ip_reg_ex = config_file_reader.ip_reg_ex
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
                 lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
+                lctl_bin = config_file_reader.lctl_bin
 
                 lock_shared_queue = multiprocessing.Lock()
 
-                ost_list_processor = OstListProcessor(shared_queue, measure_interval, lock_shared_queue)
+                # TODO: Pass config file reader to OSTListProcessor
+                ost_list_processor = OSTListProcessor(shared_queue,
+                                                      lock_shared_queue,
+                                                      measure_interval,
+                                                      lctl_bin,
+                                                      ost_reg_ex,
+                                                      ip_reg_ex)
 
                 ost_list_processor.start()
 
