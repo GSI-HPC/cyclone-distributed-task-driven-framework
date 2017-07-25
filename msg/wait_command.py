@@ -26,7 +26,7 @@ class WaitCommand(BaseMessage):
     """The Master sends this message to a controller to let the controller wait for a certain time in seconds."""
 
     def __init__(self, duration):
-        super(WaitCommand, self).__init__(MessageType.WAIT_COMMAND(), duration)
+        super(WaitCommand, self).__init__(MessageType.WAIT_COMMAND(), str(duration))
 
     def validate_body(self):
 
@@ -34,6 +34,7 @@ class WaitCommand(BaseMessage):
             raise RuntimeError('No body is set!')
 
         # Validate duration as int value...
+        # TODO: 0-...
 
     @property
     def duration(self):
