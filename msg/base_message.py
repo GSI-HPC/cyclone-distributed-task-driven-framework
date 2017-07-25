@@ -22,6 +22,7 @@ import abc
 
 
 class BaseMessage(object):
+    """Base message of all messages send over the message passing interface."""
 
     field_separator = ';'
 

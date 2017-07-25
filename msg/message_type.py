@@ -31,8 +31,8 @@ class MessageType:
         return 'TASK_REQ'
 
     @staticmethod
-    def OST_TASK_RESPONSE():
-        return 'OST_TASK_RES'
+    def TASK_ASSIGN():
+        return 'TASK_ASS'
 
     @staticmethod
     def WAIT_COMMAND():
@@ -44,12 +44,12 @@ class MessageType:
 
     @staticmethod
     def ACKNOWLEDGE():
-        return 'TASK_ACK'
+        return 'ACK'
 
     @staticmethod
     def HEARTBEAT():
         return 'HEARTBEAT'
 
     @staticmethod
-    def EXIT_RESPONSE():
-        return 'EXIT_RES'
+    def EXIT_COMMAND():
+        return 'EXIT_CMD'

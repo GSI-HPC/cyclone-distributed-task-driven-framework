@@ -38,7 +38,7 @@ from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
-from msg.ost_task_response import OstTaskResponse
+from msg.task_assign import TaskAssign
 from msg.heartbeat import Heartbeat
 from task.ost_task import OSTTask
 
@@ -279,13 +279,13 @@ def main():
 
                     if in_raw_data:
 
-                        logging.debug("Retrieved Message Raw Data: " + in_raw_data)
+                        # logging.debug("Retrieved message (raw data): " + in_raw_data)
                         in_msg = MessageFactory.create(in_raw_data)
 
-                        if in_msg.header == MessageType.OST_TASK_RESPONSE():
+                        if in_msg.header == MessageType.TASK_ASSIGN():
 
                             ost_name = in_msg.body
-                            logging.debug("Retrieved Task Response with OST name: " + ost_name)
+                            # logging.debug("Retrieved task response with OST name: " + ost_name)
 
                             with CriticalSection(cond_task_assign):
 
@@ -293,18 +293,19 @@ def main():
                                 cond_task_assign.notify()
 
                         elif in_msg.header == MessageType.ACKNOWLEDGE():
-                            logging.debug("Retrieved Task Acknowledge!")
+                            continue
 
                         elif in_msg.header == MessageType.WAIT_COMMAND():
 
+                            #TODO: Implement it on the master side!
                             wait_duration = in_msg.duration
                             logging.debug("Retrieved Wait Command with duration: " + str(wait_duration))
                             time.sleep(wait_duration)
 
-                        elif in_msg.header == MessageType.EXIT_RESPONSE():
+                        elif in_msg.header == MessageType.EXIT_COMMAND():
 
                             run_condition = False
-                            logging.info('Finishing...')
+                            logging.info('Retrieved exit message from master...')
 
                         # Reset after retrieving a message
                         if request_retry_count > 0:

@@ -23,6 +23,7 @@ from message_type import MessageType
 
 
 class TaskFinished(BaseMessage):
+    """Controller sends this message to the master when a task is finished."""
 
     def __init__(self, sender, ost_name):
 

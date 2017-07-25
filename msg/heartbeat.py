@@ -23,6 +23,10 @@ from message_type import MessageType
 
 
 class Heartbeat(BaseMessage):
+    """
+        Heartbeat message is send from the controller to the master to signalize that it is still alive.
+        This will happen, when the worker of the controller are all busy for a longer time period.
+    """
 
     def __init__(self, sender):
 

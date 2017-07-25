@@ -22,16 +22,11 @@ from base_message import BaseMessage
 from message_type import MessageType
 
 
-class OstTaskResponse(BaseMessage):
+class ExitCommand(BaseMessage):
+    """Master sends this message to the controller when they are requesting a task and it is time to exit."""
 
-    def __init__(self, task_name):
-
-        if not task_name:
-            raise RuntimeError('No OST name is set!')
-
-        super(OstTaskResponse, self).__init__(MessageType.OST_TASK_RESPONSE(), task_name)
+    def __init__(self):
+        super(ExitCommand, self).__init__(MessageType.EXIT_COMMAND(), '')
 
     def validate_body(self):
-
-        if not self.body:
-            raise RuntimeError('No body is set!')
+        return None

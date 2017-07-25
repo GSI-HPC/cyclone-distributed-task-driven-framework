@@ -22,10 +22,19 @@ from base_message import BaseMessage
 from message_type import MessageType
 
 
-class ExitResponse(BaseMessage):
+class TaskAssign(BaseMessage):
+    """The Master sends this message to a controller to assign a task."""
 
-    def __init__(self):
-        super(ExitResponse, self).__init__(MessageType.EXIT_RESPONSE(), '')
+    def __init__(self, ost_name):
+
+        if not ost_name:
+            raise RuntimeError('No OST name is set!')
+
+        super(TaskAssign, self).__init__(MessageType.TASK_ASSIGN(), ost_name)
+
+        self.ost_name = ost_name
 
     def validate_body(self):
-        return None
+
+        if not self.body:
+            raise RuntimeError('No body is set!')

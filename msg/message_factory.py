@@ -23,12 +23,12 @@ from abc import ABCMeta
 from base_message import BaseMessage
 from message_type import MessageType
 from task_request import TaskRequest
-from ost_task_response import OstTaskResponse
+from task_assign import TaskAssign
 from wait_command import WaitCommand
 from task_finished import TaskFinished
 from acknowledge import Acknowledge
 from heartbeat import Heartbeat
-from exit_response import ExitResponse
+from exit_command import ExitCommand
 
 
 class MessageFactory:
@@ -59,9 +59,9 @@ class MessageFactory:
                 and len_message_items == 2:
             return TaskRequest(message_items[1])
 
-        if header == MessageType.OST_TASK_RESPONSE() \
+        if header == MessageType.TASK_ASSIGN() \
                 and len_message_items == 2:
-            return OstTaskResponse(message_items[1])
+            return TaskAssign(message_items[1])
 
         if header == MessageType.TASK_FINISHED() \
                 and len_message_items == 3:
@@ -79,8 +79,8 @@ class MessageFactory:
                 and len_message_items == 2:
             return Heartbeat(message_items[1])
 
-        if header == MessageType.EXIT_RESPONSE() \
+        if header == MessageType.EXIT_COMMAND() \
                 and len_message_items == 1:
-            return ExitResponse()
+            return ExitCommand()
 
         raise RuntimeError("No message could be created from: " + message)

@@ -35,11 +35,11 @@ from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
 from ctrl.critical_section import CriticalSection
 from lfs.ost_list_processor import OstListProcessor
-from msg.exit_response import ExitResponse
+from msg.exit_command import ExitCommand
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
-from msg.ost_task_response import OstTaskResponse
+from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
 
 
@@ -192,7 +192,7 @@ def main():
                                                                   recv_msg.sender,
                                                                   int(time.time()))
 
-                                                send_msg = OstTaskResponse(ost_name)
+                                                send_msg = TaskAssign(ost_name)
 
                                             elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
@@ -213,7 +213,7 @@ def main():
                                                               recv_msg.sender,
                                                               int(time.time()))
 
-                                            send_msg = OstTaskResponse(ost_name)
+                                            send_msg = TaskAssign(ost_name)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
@@ -255,7 +255,7 @@ def main():
 
                             else:   # NOT TASK_DISTRIBUTION_FLAG
 
-                                send_msg = ExitResponse()
+                                send_msg = ExitCommand()
 
                                 logging.debug("Sending message: " + send_msg.to_string())
                                 comm_handler.send(send_msg.to_string())  # Does not block.

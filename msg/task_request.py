@@ -23,6 +23,7 @@ from message_type import MessageType
 
 
 class TaskRequest(BaseMessage):
+    """Controller sends this message to the master for requesting a task."""
 
     def __init__(self, sender):
 

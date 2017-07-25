@@ -23,6 +23,12 @@ from message_type import MessageType
 
 
 class Acknowledge(BaseMessage):
+    """
+        Master sends this message to the controller for acknowledging a previous message from the controller
+        (e.g. a task is finished or heartbeat message),
+
+        This is required for the request and response model to not cause inconsistency in the communication model!
+    """
 
     def __init__(self):
         super(Acknowledge, self).__init__(MessageType.ACKNOWLEDGE(), '')

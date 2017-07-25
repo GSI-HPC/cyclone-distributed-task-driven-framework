@@ -23,6 +23,7 @@ from message_type import MessageType
 
 
 class WaitCommand(BaseMessage):
+    """The Master sends this message to a controller to let the controller wait for a certain time in seconds."""
 
     def __init__(self, duration):
         super(WaitCommand, self).__init__(MessageType.WAIT_COMMAND(), duration)
