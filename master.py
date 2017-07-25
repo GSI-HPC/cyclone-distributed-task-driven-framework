@@ -44,7 +44,7 @@ from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
 
 
-TASK_DISTRIBUTION_FLAG = True
+DISTRIBUTE_TASKS = True
 
 
 def init_arg_parser():
@@ -86,20 +86,20 @@ def signal_handler_shutdown(signal, frame):
 
     logging.info('Shutting down...')
 
-    global TASK_DISTRIBUTION_FLAG
+    global DISTRIBUTE_TASKS
 
-    if TASK_DISTRIBUTION_FLAG:
-        TASK_DISTRIBUTION_FLAG = False
+    if DISTRIBUTE_TASKS:
+        DISTRIBUTE_TASKS = False
 
 
-def wait_for_controllers_shutdown(len_ctrl_map):
+def check_all_controller_down(count_active_controller):
 
-    if not len_ctrl_map:
+    if not count_active_controller:
 
         logging.info('Shutdown of controllers complete!')
         return True
 
-    logging.debug("Waiting for number of controllers to quit: " + str(len_ctrl_map))
+    logging.debug("Waiting for number of controllers to quit: %s" % count_active_controller)
     return False
 
 
@@ -115,7 +115,9 @@ def main():
 
         pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
 
-        error_flag = False
+        error_count = 0
+        max_error_count = 100
+
         ost_list_processor = None
 
         with PIDControl(pid_file) as pid_control, \
@@ -177,6 +179,9 @@ def main():
 
                         recv_data = comm_handler.recv()
 
+                        # TODO: To implement...
+                        send_msg = None
+
                         if recv_data:
 
                             logging.debug("Retrieved message: " + recv_data)
@@ -184,7 +189,7 @@ def main():
 
                             controller_heartbeat_dict[recv_msg.sender] = int(time.time())
 
-                            if TASK_DISTRIBUTION_FLAG:
+                            if DISTRIBUTE_TASKS:
 
                                 # logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
 
@@ -273,7 +278,7 @@ def main():
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
-                            else:   # No more task distribution (TASK_DISTRIBUTION_FLAG == FALSE)!
+                            else:   # No more task distribution (DISTRIBUTE_TASKS == FALSE)!
 
                                 send_msg = ExitCommand()
                                 # logging.debug("Sending message: " + send_msg.to_string())
@@ -281,16 +286,16 @@ def main():
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
 
-                                if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
+                                if check_all_controller_down(len(controller_heartbeat_dict)):
                                     run_flag = False
 
                         else:   # POLL-TIMEOUT
 
                             logging.debug('RECV-MSG TIMEOUT')
 
-                            if not TASK_DISTRIBUTION_FLAG:
+                            # This gives controllers the last chance to quit themselves until a timeout is reached.
+                            if not DISTRIBUTE_TASKS:
 
-                                # Check if a controller reached timeout
                                 for controller_name in controller_heartbeat_dict.keys():
 
                                     controller_threshold = \
@@ -299,15 +304,22 @@ def main():
                                     if last_exec_timestamp >= controller_threshold:
                                         controller_heartbeat_dict.pop(controller_name, None)
 
-                                if wait_for_controllers_shutdown(len(controller_heartbeat_dict)):
+                                if check_all_controller_down(len(controller_heartbeat_dict)):
                                     run_flag = False
 
-                    except ZMQError as e:
+                    except Exception as e:
 
-                        if TASK_DISTRIBUTION_FLAG:
-                            logging.error("Caught ZMQ Exception: " + str(e))
-                        else:
-                            logging.warning("Caught ZMQ Exception: " + str(e))
+                        logging.error("Caught exception in main loop: %s" % e)
+
+                        if DISTRIBUTE_TASKS:
+
+                            global DISTRIBUTE_TASKS
+                            DISTRIBUTE_TASKS = False
+
+                        error_count += 1
+
+                        if error_count == max_error_count:
+                            run_flag = False
 
             else:
 
@@ -318,7 +330,7 @@ def main():
     except Exception as e:
 
         logging.error("Caught exception on main block: " + str(e))
-        error_flag = True
+        error_count += 1
 
     try:
         if ost_list_processor and ost_list_processor.is_alive():
@@ -341,11 +353,11 @@ def main():
     except Exception as e:
 
         logging.error("Caught exception terminating OST Processor: " + str(e))
-        error_flag = True
+        error_count += 1
 
     logging.info("Finished")
 
-    if error_flag:
+    if error_count:
         return exit(1)
 
     exit(0)
