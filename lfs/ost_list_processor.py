@@ -23,6 +23,7 @@ import logging
 import signal
 import time
 import os
+import re
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
@@ -30,19 +31,19 @@ from ctrl.critical_section import CriticalSection
 
 class OSTListProcessor(Process):
 
-    def __init__(self, active_ost_queue, lock_ost_queue, measure_interval, lctl_bin, lfs_bin, fs_target, ost_reg_ex, ip_reg_ex):
+    def __init__(self, active_ost_queue, lock_ost_queue, config_file_reader):
 
         super(OSTListProcessor, self).__init__()
 
         self.active_ost_queue = active_ost_queue
         self.lock_ost_queue = lock_ost_queue
 
-        self.measure_interval = measure_interval
-        self.lctl_bin = lctl_bin
-        self.lfs_bin = lfs_bin
-        self.fs_target = fs_target
-        self.ost_reg_ex = ost_reg_ex
-        self.ip_reg_ex = ip_reg_ex
+        self.measure_interval = config_file_reader.measure_interval
+        self.lctl_bin = config_file_reader.lctl_bin
+        self.lfs_bin = config_file_reader.lfs_bin
+        self.fs_target = config_file_reader.fs_target
+        self.ost_reg_ex = re.compile(config_file_reader.ost_reg_ex)
+        self.ip_reg_ex = re.compile(config_file_reader.ip_reg_ex)
 
         self.run_flag = False
 
