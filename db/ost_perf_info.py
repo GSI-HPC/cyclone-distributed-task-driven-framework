@@ -18,19 +18,25 @@
 #
 
 
-import multiprocessing
-import logging
+class OSTPerfInfo:
 
+    def __init__(self,
+                 read_timestamp,
+                 write_timestamp,
+                 ost,
+                 ip,
+                 size,
+                 read_throughput,
+                 write_throughput,
+                 read_duration,
+                 write_duration):
 
-class OSTTask:
-
-    def __init__(self, name, ip):
-
-        self.name = name
+        self.read_timestamp = read_timestamp
+        self.write_timestamp = write_timestamp
+        self.ost = ost
         self.ip = ip
-
-    def execute(self):
-
-        logging.debug("Executor with ID: %s" % multiprocessing.current_process().name)
-        logging.debug("*** %s ***" % self.name)
-        logging.debug("*** %s ***" % self.ip)
+        self.size = size
+        self.read_throughput = read_throughput
+        self.write_throughput = write_throughput
+        self.read_duration = read_duration
+        self.write_duration = write_duration

@@ -18,19 +18,9 @@
 #
 
 
-import multiprocessing
-import logging
-
-
-class OSTTask:
+class OSTInfo:
 
     def __init__(self, name, ip):
 
         self.name = name
         self.ip = ip
-
-    def execute(self):
-
-        logging.debug("Executor with ID: %s" % multiprocessing.current_process().name)
-        logging.debug("*** %s ***" % self.name)
-        logging.debug("*** %s ***" % self.ip)

@@ -27,6 +27,7 @@ import re
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
+from ctrl.ost_info import OSTInfo
 
 
 class OSTListProcessor(Process):
@@ -63,14 +64,17 @@ class OSTListProcessor(Process):
             try:
                 logging.debug("OST List Processor active!")
 
-                active_list, inactive_list = self.get_ost_lists()
+                active_ost_info_list, inactive_ost_info_list = self._create_ost_info_lists()
 
                 with CriticalSection(self.lock_ost_queue):
 
                     if not self.active_ost_queue.is_empty():
                         self.active_ost_queue.clear()
 
-                    self.active_ost_queue.fill(active_list)
+                    self.active_ost_queue.fill(active_ost_info_list)
+
+                if inactive_ost_info_list:
+                    pass
 
                 time.sleep(self.measure_interval)
 
@@ -85,50 +89,34 @@ class OSTListProcessor(Process):
         self.run_flag = False
 
     @staticmethod
-    def test_get_ost_lists():
+    def _test_create_ost_info_lists():
 
-        active_ost_list = list()
+        active_ost_info_list = list()
+        active_ost_info_list.append(OSTInfo('OST0000', '10.20.0.11'))
+        active_ost_info_list.append(OSTInfo('OST0001', '10.20.0.12'))
+        active_ost_info_list.append(OSTInfo('OST0002', '10.20.0.13'))
+        active_ost_info_list.append(OSTInfo('OST0003', '10.20.0.14'))
 
-        ost_name_prefix = "nyx-OST"
+        inactive_ost_info_list = list()
+        inactive_ost_info_list.append(OSTInfo('nyx-OST11ef', '10.20.0.19'))
+        inactive_ost_info_list.append(OSTInfo('nyx-OST11ff', '10.20.0.25'))
 
-        for i in xrange(0, 10, 1):
+        return tuple((active_ost_info_list, inactive_ost_info_list))
 
-            ost_name = None
-            i_str = str(i)
+    def _create_ost_info_lists(self):
 
-            if len(i_str) == 1:
-                ost_name = ost_name_prefix + "000" + i_str
-
-            elif len(i_str) == 2:
-                ost_name = ost_name_prefix + "00" + i_str
-
-            elif len(i_str) == 3:
-                ost_name = ost_name_prefix + "0" + i_str
-
-            elif len(i_str) == 4:
-                ost_name = ost_name_prefix + i_str
-
-            else:
-                raise RuntimeError('Not supported limit for creating OST test data!')
-
-            active_ost_list.append(ost_name)
-
-        inactive_ost_list = list()
-        inactive_ost_list.append('nyx-OST11ef')
-        inactive_ost_list.append('nyx-OST11ff')
-
-        return tuple((active_ost_list, inactive_ost_list))
-
-    def get_ost_lists(self):
-
-        ost_ip_dict = self.get_ost_ip_dict()
-
-        active_ost_list, inactive_ost_list = self.get_ost_state_lists()
+        # TODO: PRODUCTIVE
+        # ost_ip_dict = self._create_ost_ip_dict()
+        #
+        # active_ost_info_list, inactive_ost_info_list = self._create_ost_state_lists()
+        #
+        # active_ost_ip_dict = self._create_ost_ip_mapping(active_ost_info_list, ost_ip_dict)
+        # inactive_ost_ip_dict = self._create_ost_ip_mapping(inactive_ost_info_list, ost_ip_dict)
 
         # Testing only!
-        return OSTListProcessor.test_get_ost_lists()
+        return OSTListProcessor._test_create_ost_info_lists()
 
-    def get_ost_ip_dict(self):
+    def _create_ost_ip_dict(self):
 
         ost_ip_dict = dict()
 
@@ -184,10 +172,10 @@ class OSTListProcessor(Process):
 
         return ost_ip_dict
 
-    def get_ost_state_lists(self):
+    def _create_ost_state_lists(self):
 
-        active_ost_list = list()
-        inactive_ost_list = list()
+        active_ost_info_list = list()
+        inactive_ost_info_list = list()
 
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: %s" % self.lfs_bin)
@@ -203,6 +191,8 @@ class OSTListProcessor(Process):
             raise RuntimeError("Check OSTs returned an empty result!")
 
         ost_list = output.split('\n')
+
+        # TODO: Check Filesystem in output!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         for ost_info in ost_list:
 
@@ -225,13 +215,29 @@ class OSTListProcessor(Process):
 
             if ' active.' in ost_info:
                 # logging.debug("Found active OST: %s" % ost_name)
-                active_ost_list.append(ost_name)
+                active_ost_info_list.append(ost_name)
 
             else:
                 # logging.debug("Found inactive OST: %s" % ost_name)
-                inactive_ost_list.append(ost_name)
+                inactive_ost_info_list.append(ost_name)
 
-        return (active_ost_list, inactive_ost_list)
+        return tuple((active_ost_info_list, inactive_ost_info_list))
 
+    def _create_ost_ip_mapping(self, ost_list, ost_ip_dict):
 
+        if not ost_list or len(ost_list) == 0:
+            raise RuntimeError("OST list is empty!")
 
+        if not ost_ip_dict or len(ost_ip_dict) == 0:
+            raise RuntimeError("OST IP dict is empty!")
+
+        ost_ip_mapping_dict = dict()
+
+        for ost_name in ost_list:
+
+            if ost_name in ost_ip_dict:
+                ost_ip_mapping_dict[ost_name] = ost_ip_dict[ost_name]
+            else:
+                raise RuntimeError("No IP could be found for the OST: %s" % ost_name)
+
+        return ost_ip_mapping_dict

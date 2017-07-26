@@ -188,12 +188,12 @@ def main():
 
                                 if MessageType.TASK_REQUEST() == recv_msg.header:
 
-                                    ost_name = None
+                                    ost_info = None
 
                                     with CriticalSection(lock_shared_queue, True, lock_shared_queue_timeout):
 
                                         if not shared_queue.is_empty():
-                                            ost_name = shared_queue.pop()
+                                            ost_info = shared_queue.pop()
 
                                         else:
 
@@ -202,43 +202,43 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                    if ost_name:
+                                    if ost_info:
 
-                                        if ost_name in ost_status_lookup_dict:
+                                        if ost_info.name in ost_status_lookup_dict:
 
                                             task_resend_threshold = \
-                                                (ost_status_lookup_dict[ost_name].timestamp + task_resend_timeout)
+                                                (ost_status_lookup_dict[ost_info.name].timestamp + task_resend_timeout)
 
-                                            if (ost_status_lookup_dict[ost_name].state == OstState.FINISHED) or \
+                                            if (ost_status_lookup_dict[ost_info.name].state == OstState.FINISHED) or \
                                                     last_exec_timestamp >= task_resend_threshold:
 
-                                                ost_status_lookup_dict[ost_name] = \
-                                                    OstStatusItem(ost_name,
+                                                ost_status_lookup_dict[ost_info.name] = \
+                                                    OstStatusItem(ost_info.name,
                                                                   OstState.ASSIGNED,
                                                                   recv_msg.sender,
                                                                   int(time.time()))
 
-                                                send_msg = TaskAssign(ost_name)
+                                                send_msg = TaskAssign(ost_info.name, ost_info.ip)
 
-                                            elif ost_status_lookup_dict[ost_name].state == OstState.ASSIGNED and \
+                                            elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
 
-                                                # logging.debug("Waiting for a task on OST to finish: %s" % ost_name)
+                                                # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                                 #TODO: Wait duration how long?
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: ", ost_name)
+                                                raise RuntimeError("Undefined state processing task: ", ost_info.name)
 
                                         else:   # Add new OST name to lookup dict!
 
-                                            ost_status_lookup_dict[ost_name] = \
-                                                OstStatusItem(ost_name,
+                                            ost_status_lookup_dict[ost_info.name] = \
+                                                OstStatusItem(ost_info.name,
                                                               OstState.ASSIGNED,
                                                               recv_msg.sender,
                                                               int(time.time()))
 
-                                            send_msg = TaskAssign(ost_name)
+                                            send_msg = TaskAssign(ost_info.name, ost_info.ip)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)

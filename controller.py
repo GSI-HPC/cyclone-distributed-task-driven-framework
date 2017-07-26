@@ -284,12 +284,14 @@ def main():
 
                         if in_msg.header == MessageType.TASK_ASSIGN():
 
-                            ost_name = in_msg.body
-                            # logging.debug("Retrieved task response with OST name: " + ost_name)
+                            logging.debug("Retrieved task response with OST name: " + in_msg.ost_name)
+
+                            ost_name = in_msg.ost_name
+                            ost_ip = in_msg.ost_ip
 
                             with CriticalSection(cond_task_assign):
 
-                                task_queue.push(OSTTask(ost_name))
+                                task_queue.push(OSTTask(ost_name, ost_ip))
                                 cond_task_assign.notify()
 
                         elif in_msg.header == MessageType.ACKNOWLEDGE():
@@ -379,6 +381,7 @@ def main():
 
     except Exception as e:
 
+        #TODO: Then processes are hanging...!
         logging.error("Caught exception on last instance: " + str(e))
         exit(1)
 

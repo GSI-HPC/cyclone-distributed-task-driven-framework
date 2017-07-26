@@ -25,16 +25,27 @@ from message_type import MessageType
 class TaskAssign(BaseMessage):
     """The Master sends this message to a controller to assign a task."""
 
-    def __init__(self, ost_name):
+    def __init__(self, ost_name, ost_ip):
 
         if not ost_name:
             raise RuntimeError('No OST name is set!')
 
-        super(TaskAssign, self).__init__(MessageType.TASK_ASSIGN(), ost_name)
+        if not ost_ip:
+            raise RuntimeError('No OST IP is set!')
 
-        self.ost_name = ost_name
+        body = ost_name + self.field_separator + ost_ip
+
+        super(TaskAssign, self).__init__(MessageType.TASK_ASSIGN(), body)
 
     def validate_body(self):
 
         if not self.body:
             raise RuntimeError('No body is set!')
+
+    @property
+    def ost_name(self):
+        return self.body.split(BaseMessage.field_separator)[0]
+
+    @property
+    def ost_ip(self):
+        return self.body.split(BaseMessage.field_separator)[1]
