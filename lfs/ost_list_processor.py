@@ -30,7 +30,7 @@ from ctrl.critical_section import CriticalSection
 
 class OSTListProcessor(Process):
 
-    def __init__(self, active_ost_queue, lock_ost_queue, measure_interval, lctl_bin, ost_reg_ex, ip_reg_ex):
+    def __init__(self, active_ost_queue, lock_ost_queue, measure_interval, lctl_bin, lfs_bin, fs_target, ost_reg_ex, ip_reg_ex):
 
         super(OSTListProcessor, self).__init__()
 
@@ -39,6 +39,8 @@ class OSTListProcessor(Process):
 
         self.measure_interval = measure_interval
         self.lctl_bin = lctl_bin
+        self.lfs_bin = lfs_bin
+        self.fs_target = fs_target
         self.ost_reg_ex = ost_reg_ex
         self.ip_reg_ex = ip_reg_ex
 
@@ -58,7 +60,7 @@ class OSTListProcessor(Process):
         while self.run_flag:
 
             try:
-                logging.debug("OST Processor active...")
+                logging.debug("OST List Processor active!")
 
                 active_list, inactive_list = self.get_ost_lists()
 
@@ -72,7 +74,7 @@ class OSTListProcessor(Process):
                 time.sleep(self.measure_interval)
 
             except Exception as e:
-                logging.error("Caught exception in OST List Processor: " + str(e))
+                logging.error("Caught exception in OST List Processor: %s" % e)
                 exit(1)
 
         logging.debug("OST Processor finished!")
@@ -120,7 +122,7 @@ class OSTListProcessor(Process):
 
         ost_ip_dict = self.get_ost_ip_dict()
 
-        # active_ost_list, inactive_ost_list = get_ost_lists(LFS_BIN, OST_RE_PATTERN)
+        active_ost_list, inactive_ost_list = self.get_ost_state_lists()
 
         # Testing only!
         return OSTListProcessor.test_get_ost_lists()
@@ -132,7 +134,7 @@ class OSTListProcessor(Process):
         if not os.path.isfile(self.lctl_bin):
             raise RuntimeError("LCTL binary was not found under: %s" % self.lctl_bin)
 
-        cmd = self.lctl_bin + " get_param 'osc.*.ost_conn_uuid'"
+        cmd = self.lctl_bin + " get_param 'osc." + self.fs_target + "-*.ost_conn_uuid'"
 
         (status, output) = commands.getstatusoutput(cmd)
 
@@ -142,7 +144,6 @@ class OSTListProcessor(Process):
         if not output:
             raise RuntimeError("No OST connection UUID information retrieved!")
 
-        # TODO Solve redundancy getting OST names!
         ost_list = output.split('\n')
 
         for ost_info in ost_list:
@@ -152,7 +153,13 @@ class OSTListProcessor(Process):
             if idx_ost_name == -1:
                 raise RuntimeError("No OST name found in output line: %s" % ost_info)
 
-            ost_name = ost_info[idx_ost_name: idx_ost_name + 7]
+            idx_ost_name_term = ost_info.find('-', idx_ost_name)
+
+            if idx_ost_name_term == -1:
+                raise RuntimeError("Could not find end of OST name identified by '-' in: %s" % ost_info)
+
+            ost_name = ost_info[idx_ost_name:idx_ost_name_term]
+
             re_match = self.ost_reg_ex.match(ost_name)
 
             if not re_match:
@@ -170,10 +177,60 @@ class OSTListProcessor(Process):
             if idx_ost_conn_uuid_term == -1:
                 raise RuntimeError("Could not find terminating '@' for ost_conn_uuid identification: %s" % ost_info)
 
-            ost_conn_ip = ost_info[idx_ost_conn_uuid + len(ost_conn_uuid_str): idx_ost_conn_uuid_term]
+            ost_conn_ip = ost_info[idx_ost_conn_uuid + len(ost_conn_uuid_str):idx_ost_conn_uuid_term]
 
             ost_ip_dict[ost_name] = ost_conn_ip
 
         return ost_ip_dict
+
+    def get_ost_state_lists(self):
+
+        active_ost_list = list()
+        inactive_ost_list = list()
+
+        if not os.path.isfile(self.lfs_bin):
+            raise RuntimeError("LFS binary was not found under: %s" % self.lfs_bin)
+
+        cmd = self.lfs_bin + " check osts"
+
+        (status, output) = commands.getstatusoutput(cmd)
+
+        if status > 0:
+            raise RuntimeError("Error occurred during check on OSTs: %s" % output)
+
+        if not output:
+            raise RuntimeError("Check OSTs returned an empty result!")
+
+        ost_list = output.split('\n')
+
+        for ost_info in ost_list:
+
+            idx_ost_name = ost_info.find('OST')
+
+            if idx_ost_name == -1:
+                raise RuntimeError("No OST name found in output line: %s" % ost_info)
+
+            idx_ost_name_term = ost_info.find('-', idx_ost_name)
+
+            if idx_ost_name_term == -1:
+                raise RuntimeError("Could not find end of OST name identified by '-' in: %s" % ost_info)
+
+            ost_name = ost_info[idx_ost_name:idx_ost_name_term]
+
+            re_match = self.ost_reg_ex.match(ost_name)
+
+            if not re_match:
+                raise RuntimeError("No valid OST name found in line: %s" % ost_info)
+
+            if ' active.' in ost_info:
+                # logging.debug("Found active OST: %s" % ost_name)
+                active_ost_list.append(ost_name)
+
+            else:
+                # logging.debug("Found inactive OST: %s" % ost_name)
+                inactive_ost_list.append(ost_name)
+
+        return (active_ost_list, inactive_ost_list)
+
 
 

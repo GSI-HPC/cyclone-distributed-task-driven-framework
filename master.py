@@ -25,7 +25,7 @@ import os
 import signal
 import sys
 import time
-from zmq import ZMQError
+import re
 
 from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from comm.master_handler import MasterCommHandler
@@ -148,14 +148,16 @@ def main():
                 controller_heartbeat_dict = dict()
                 ost_status_lookup_dict = dict()
 
-                ost_reg_ex = config_file_reader.ost_reg_ex
-                ip_reg_ex = config_file_reader.ip_reg_ex
+                ost_reg_ex = re.compile(config_file_reader.ost_reg_ex)
+                ip_reg_ex = re.compile(config_file_reader.ip_reg_ex)
                 controller_timeout = config_file_reader.controller_timeout
                 measure_interval = config_file_reader.measure_interval
                 lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
                 controller_wait_duration = int(config_file_reader.controller_wait_duration)
                 task_resend_timeout = config_file_reader.task_resend_timeout
                 lctl_bin = config_file_reader.lctl_bin
+                lfs_bin = config_file_reader.lfs_bin
+                fs_target = config_file_reader.fs_target
 
                 lock_shared_queue = multiprocessing.Lock()
 
@@ -164,6 +166,8 @@ def main():
                                                       lock_shared_queue,
                                                       measure_interval,
                                                       lctl_bin,
+                                                      lfs_bin,
+                                                      fs_target,
                                                       ost_reg_ex,
                                                       ip_reg_ex)
 

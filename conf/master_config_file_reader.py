@@ -49,6 +49,8 @@ class MasterConfigFileReader:
         self.log_filename = config.get('logging', 'filename')
 
         self.lctl_bin = config.get('lustre', 'lctl_bin')
+        self.lfs_bin = config.get('lustre', 'lfs_bin')
+        self.fs_target = config.get('lustre', 'fs_target')
 
         self.host = config.get('db', 'host')
         self.user = config.get('db', 'user')
