@@ -64,8 +64,8 @@ class TaskAssign(BaseMessage):
 
     @property
     def block_size_bytes(self):
-        return self.body.split(BaseMessage.field_separator)[2]
+        return int(self.body.split(BaseMessage.field_separator)[2])
 
     @property
     def total_size_bytes(self):
-        return self.body.split(BaseMessage.field_separator)[3]
+        return int(self.body.split(BaseMessage.field_separator)[3])

@@ -20,6 +20,7 @@
 
 import multiprocessing
 import logging
+import time
 
 
 class OSTTask:
@@ -31,9 +32,31 @@ class OSTTask:
         self.block_size_bytes = block_size_bytes
         self.total_size_bytes = total_size_bytes
 
+        self.payload_block = str()
+        self.payload_block_rest = str()
+
     def execute(self):
+
+        self._initialize_payload()
 
         logging.debug("*** %s ***" % self.name)
         logging.debug("*** %s ***" % self.ip)
         logging.debug("*** %s ***" % self.block_size_bytes)
         logging.debug("*** %s ***" % self.total_size_bytes)
+
+    def _initialize_payload(self):
+
+        # No random numbers are used, since no compression is used in Lustre FS directly.
+
+        # start_time = time.time() * 1000.0
+
+        self.payload_block = "".join('A' for i in xrange(self.block_size_bytes))
+
+        block_rest_size_bytes = self.total_size_bytes % self.block_size_bytes
+
+        if block_rest_size_bytes > 0:
+            self.payload_block_rest = "".join('A' for i in xrange(self.block_rest_size_bytes))
+
+        # end_time = time.time() * 1000.0
+        # duration = round((end_time - start_time) / 1000.0, 2)
+        # logging.debug("Creating total payload took: %s seconds." % duration)
