@@ -105,6 +105,11 @@ def check_all_controller_down(count_active_controller):
 
 def main():
 
+    error_count = 0
+    max_error_count = 100
+
+    ost_list_processor = None
+
     try:
 
         args = init_arg_parser()
@@ -114,11 +119,6 @@ def main():
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
         pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
-
-        error_count = 0
-        max_error_count = 100
-
-        ost_list_processor = None
 
         with PIDControl(pid_file) as pid_control, \
                 MasterCommHandler(config_file_reader.comm_target,
@@ -134,13 +134,15 @@ def main():
                 signal.signal(signal.SIGUSR1, signal_handler_shutdown)
                 signal.siginterrupt(signal.SIGUSR1, True)
 
-                ost_perf_his_table_handler = OSTPerfHistoryTableHandler(config_file_reader.host,
-                                                                        config_file_reader.user,
-                                                                        config_file_reader.passwd,
-                                                                        config_file_reader.db,
-                                                                        config_file_reader.table)
-
                 if args.create_table:
+
+                    ost_perf_his_table_handler = \
+                        OSTPerfHistoryTableHandler(config_file_reader.host,
+                                                   config_file_reader.user,
+                                                   config_file_reader.passwd,
+                                                   config_file_reader.db,
+                                                   config_file_reader.table)
+
                     ost_perf_his_table_handler.create_table()
 
                 comm_handler.connect()

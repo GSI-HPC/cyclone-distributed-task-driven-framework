@@ -34,12 +34,11 @@ class OSTPerfHistoryTableHandler:
         self.db = db
         self.table_name = table_name
 
+        self.ost_perf_result_list = list()
+
     def create_table(self):
 
-        with closing(MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd, db=self.db)) as conn:
-            with closing(conn.cursor()) as cur:
-
-                sql = """
+        sql = """
 CREATE TABLE """ + self.table_name + """ (
    id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
    read_timestamp  TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",
@@ -55,7 +54,61 @@ CREATE TABLE """ + self.table_name + """ (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1
 """
 
-                logging.debug("Creating database table:\n" + sql)
+        logging.debug("Creating database table:\n" + sql)
+
+        with closing(MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd, db=self.db)) as conn:
+            with closing(conn.cursor()) as cur:
                 cur.execute(sql)
 
+    def insert_ost_perf_result(self, ost_perf_result):
 
+        if not ost_perf_result:
+            raise RuntimeError('Insert failed with empty OST perf result object!')
+
+        self.ost_perf_result_list.append(ost_perf_result)
+
+    def save_to_database(self):
+
+        if not self.ost_perf_result_list:
+            return
+
+        len_ost_perf_result_list = len(self.ost_perf_result_list)
+
+        sql = "INSERT INTO " \
+            + self.table_name \
+            + "(" \
+            + "read_timestamp, " \
+            + "write_timestamp, " \
+            + "ost, " \
+            + "ip, " \
+            + "size, " \
+            + "read_throughput, " \
+            + "write_throughput, " \
+            + "read_duration, " \
+            + "write_duration" \
+            + ") " \
+            + "VALUES "
+
+        if len_ost_perf_result_list > 0:
+
+            sql += "(" + self.ost_perf_result_list[0].to_string_csv_list() + ")"
+
+            if len_ost_perf_result_list > 1:
+
+                for i in range(1, len_ost_perf_result_list):
+                    sql += ",(" + self.ost_perf_result_list[i].to_string_csv_list() + ")"
+
+        logging.debug("Executing SQL statement:\n" + sql)
+
+        with closing(MySQLdb.connect(host=self.host, user=self.user, passwd=self.passwd, db=self.db)) as conn:
+            with closing(conn.cursor()) as cur:
+
+                cur.execute(sql)
+
+                if cur.rowcount != len_ost_perf_result_list:
+                    raise RuntimeError("Number of rows inserted is not equal to number of input records for table: %s"
+                                       % self.table_name)
+
+        logging.debug("Inserted: %s records into table: %s" % (len_ost_perf_result_list, self.table_name))
+
+        del self.ost_perf_result_list[:]

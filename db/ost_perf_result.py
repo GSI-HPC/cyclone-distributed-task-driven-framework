@@ -18,7 +18,7 @@
 #
 
 
-class OSTPerfTestInfo:
+class OSTPerfResult:
 
     def __init__(self,
                  read_timestamp,
@@ -40,3 +40,15 @@ class OSTPerfTestInfo:
         self.write_throughput = write_throughput
         self.read_duration = read_duration
         self.write_duration = write_duration
+
+    def to_string_csv_list(self):
+
+        return "'" + self.read_timestamp + "'," \
+            + "'" + self.write_timestamp + "'," \
+            + "'" + self.ost + "'," \
+            + "'" + self.ip + "'," \
+            + str(self.size) + "," \
+            + str(int(round(self.read_throughput, 0))) + "," \
+            + str(int(round(self.write_throughput, 0))) + "," \
+            + str(int(round(self.read_duration, 0))) + "," \
+            + str(int(round(self.write_duration, 0)))

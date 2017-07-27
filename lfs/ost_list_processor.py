@@ -23,12 +23,14 @@ import datetime
 import logging
 import signal
 import time
+import sys
 import os
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
 from ctrl.ost_info import OSTInfo
-from db.ost_perf_test_result import OSTPerfTestInfo
+from db.ost_perf_result import OSTPerfResult
+from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 
 
 class OSTListProcessor(Process):
@@ -51,6 +53,13 @@ class OSTListProcessor(Process):
         self.total_bytes = config_file_reader.total_bytes
 
         self.run_flag = False
+
+        self.history_table_handler = \
+            OSTPerfHistoryTableHandler(config_file_reader.host,
+                                       config_file_reader.user,
+                                       config_file_reader.passwd,
+                                       config_file_reader.db,
+                                       config_file_reader.table)
 
     def start(self):
 
@@ -83,16 +92,20 @@ class OSTListProcessor(Process):
 
                     for ost_info in inactive_ost_info_list:
 
-                        ost_perf_test_result = \
-                            OSTPerfTestInfo(timestamp,
-                                            timestamp,
-                                            ost_info.name,
-                                            ost_info.ip,
-                                            self.total_bytes,
-                                            0,
-                                            0,
-                                            0,
-                                            0)
+                        ost_perf_result = \
+                            OSTPerfResult(timestamp,
+                                          timestamp,
+                                          ost_info.name,
+                                          ost_info.ip,
+                                          self.total_bytes,
+                                          0,
+                                          0,
+                                          0,
+                                          0)
+
+                        self.history_table_handler.insert_ost_perf_result(ost_perf_result)
+
+                    self.history_table_handler.save_to_database()
 
                 time.sleep(self.measure_interval)
 
@@ -116,8 +129,9 @@ class OSTListProcessor(Process):
         active_ost_info_list.append(OSTInfo('OST0003', '10.20.0.14'))
 
         inactive_ost_info_list = list()
-        inactive_ost_info_list.append(OSTInfo('nyx-OST11ef', '10.20.0.19'))
-        inactive_ost_info_list.append(OSTInfo('nyx-OST11ff', '10.20.0.25'))
+        inactive_ost_info_list.append(OSTInfo('OST11ef', '10.20.0.19'))
+        inactive_ost_info_list.append(OSTInfo('OST11ff', '10.20.0.25'))
+        inactive_ost_info_list.append(OSTInfo('OST12ff', '10.20.0.35'))
 
         return tuple((active_ost_info_list, inactive_ost_info_list))
 
