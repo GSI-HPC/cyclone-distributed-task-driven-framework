@@ -23,7 +23,6 @@ import datetime
 import logging
 import signal
 import time
-import sys
 import os
 
 from multiprocessing import Process
@@ -50,7 +49,7 @@ class OSTListProcessor(Process):
         self.ost_reg_ex = config_file_reader.ost_reg_ex
         self.ip_reg_ex = config_file_reader.ip_reg_ex
 
-        self.total_bytes = config_file_reader.total_bytes
+        self.total_size_bytes = config_file_reader.total_size_bytes
 
         self.run_flag = False
 
@@ -97,7 +96,7 @@ class OSTListProcessor(Process):
                                           timestamp,
                                           ost_info.name,
                                           ost_info.ip,
-                                          self.total_bytes,
+                                          self.total_size_bytes,
                                           0,
                                           0,
                                           0,
@@ -105,10 +104,11 @@ class OSTListProcessor(Process):
 
                         self.history_table_handler.insert(ost_perf_result)
 
-                    if self.history_table_handler.count():
-
-                        self.history_table_handler.store()
-                        self.history_table_handler.clear()
+                    # TODO: PRODUCTIVE
+                    # if self.history_table_handler.count():
+                    #
+                    #     self.history_table_handler.store()
+                    #     self.history_table_handler.clear()
 
                 time.sleep(self.measure_interval)
 

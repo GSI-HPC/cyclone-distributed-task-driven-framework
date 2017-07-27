@@ -62,4 +62,5 @@ class MasterConfigFileReader:
         self.table = config.get('db', 'table')
 
         self.measure_interval = float(config.get('test', 'measure_interval'))
-        self.total_bytes = int(config.get('test', 'total_bytes'))
+        self.block_size_bytes = int(config.get('test', 'block_size_bytes'))
+        self.total_size_bytes = int(config.get('test', 'total_size_bytes'))

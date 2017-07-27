@@ -155,6 +155,10 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
+                # OSTTask specific test parameter:
+                block_size_bytes = config_file_reader.block_size_bytes
+                total_size_bytes = config_file_reader.total_size_bytes
+
                 lock_shared_queue = multiprocessing.Lock()
 
                 ost_list_processor = OSTListProcessor(shared_queue, lock_shared_queue, config_file_reader)
@@ -219,7 +223,10 @@ def main():
                                                                   recv_msg.sender,
                                                                   int(time.time()))
 
-                                                send_msg = TaskAssign(ost_info.name, ost_info.ip)
+                                                send_msg = TaskAssign(ost_info.name,
+                                                                      ost_info.ip,
+                                                                      block_size_bytes,
+                                                                      total_size_bytes)
 
                                             elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
@@ -239,7 +246,10 @@ def main():
                                                               recv_msg.sender,
                                                               int(time.time()))
 
-                                            send_msg = TaskAssign(ost_info.name, ost_info.ip)
+                                            send_msg = TaskAssign(ost_info.name,
+                                                                  ost_info.ip,
+                                                                  block_size_bytes,
+                                                                  total_size_bytes)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)

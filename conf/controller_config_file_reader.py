@@ -44,8 +44,6 @@ class ControllerConfigFileReader:
 
         self.worker_count = int(config.get('processing', 'worker_count'))
 
-        self.total_bytes = int(config.get('test', 'total_bytes'))
-
         self.validate()
 
     def validate(self):

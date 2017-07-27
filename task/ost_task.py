@@ -24,13 +24,16 @@ import logging
 
 class OSTTask:
 
-    def __init__(self, name, ip):
+    def __init__(self, name, ip, block_size_bytes, total_size_bytes):
 
         self.name = name
         self.ip = ip
+        self.block_size_bytes = block_size_bytes
+        self.total_size_bytes = total_size_bytes
 
     def execute(self):
 
-        logging.debug("Executor with ID: %s" % multiprocessing.current_process().name)
         logging.debug("*** %s ***" % self.name)
         logging.debug("*** %s ***" % self.ip)
+        logging.debug("*** %s ***" % self.block_size_bytes)
+        logging.debug("*** %s ***" % self.total_size_bytes)

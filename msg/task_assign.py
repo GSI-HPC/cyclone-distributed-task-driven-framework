@@ -25,7 +25,7 @@ from message_type import MessageType
 class TaskAssign(BaseMessage):
     """The Master sends this message to a controller to assign a task."""
 
-    def __init__(self, ost_name, ost_ip):
+    def __init__(self, ost_name, ost_ip, block_size_bytes, total_size_bytes):
 
         if not ost_name:
             raise RuntimeError('No OST name is set!')
@@ -33,7 +33,19 @@ class TaskAssign(BaseMessage):
         if not ost_ip:
             raise RuntimeError('No OST IP is set!')
 
-        body = ost_name + self.field_separator + ost_ip
+        if not block_size_bytes:
+            raise RuntimeError('No block size in bytes is set!')
+
+        if not total_size_bytes:
+            raise RuntimeError('No total size in bytes is set!')
+
+        body = ost_name \
+            + self.field_separator \
+            + ost_ip \
+            + self.field_separator \
+            + str(block_size_bytes) \
+            + self.field_separator \
+            + str(total_size_bytes)
 
         super(TaskAssign, self).__init__(MessageType.TASK_ASSIGN(), body)
 
@@ -49,3 +61,11 @@ class TaskAssign(BaseMessage):
     @property
     def ost_ip(self):
         return self.body.split(BaseMessage.field_separator)[1]
+
+    @property
+    def block_size_bytes(self):
+        return self.body.split(BaseMessage.field_separator)[2]
+
+    @property
+    def total_size_bytes(self):
+        return self.body.split(BaseMessage.field_separator)[3]

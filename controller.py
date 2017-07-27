@@ -183,9 +183,13 @@ def main():
                 worker_count = config_file_reader.worker_count
                 worker_ids = create_worker_ids(worker_count)
                 worker_state_table = create_worker_state_table(worker_ids)
-                worker_handle_dict = create_worker(worker_state_table, lock_worker_state_table,
-                                                   task_queue, cond_task_assign,
-                                                   result_queue, cond_result_queue)
+
+                worker_handle_dict = create_worker(worker_state_table,
+                                                   lock_worker_state_table,
+                                                   task_queue,
+                                                   cond_task_assign,
+                                                   result_queue,
+                                                   cond_result_queue)
 
                 run_condition = True
 
@@ -288,10 +292,12 @@ def main():
 
                             ost_name = in_msg.ost_name
                             ost_ip = in_msg.ost_ip
+                            block_size_bytes = in_msg.block_size_bytes
+                            total_size_bytes = in_msg.total_size_bytes
 
                             with CriticalSection(cond_task_assign):
 
-                                task_queue.push(OSTTask(ost_name, ost_ip))
+                                task_queue.push(OSTTask(ost_name, ost_ip, block_size_bytes, total_size_bytes))
                                 cond_task_assign.notify()
 
                         elif in_msg.header == MessageType.ACKNOWLEDGE():
