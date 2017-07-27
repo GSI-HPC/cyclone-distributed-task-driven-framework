@@ -103,9 +103,12 @@ class OSTListProcessor(Process):
                                           0,
                                           0)
 
-                        self.history_table_handler.insert_ost_perf_result(ost_perf_result)
+                        self.history_table_handler.insert(ost_perf_result)
 
-                    self.history_table_handler.save_to_database()
+                    if self.history_table_handler.count():
+
+                        self.history_table_handler.store()
+                        self.history_table_handler.clear()
 
                 time.sleep(self.measure_interval)
 
