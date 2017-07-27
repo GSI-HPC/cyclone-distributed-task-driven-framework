@@ -19,9 +19,11 @@
 
 
 import ConfigParser
+import re
 import os
 
 
+# TODO: Maybe use one specific master process config file and one common config file for both master and controller!
 class MasterConfigFileReader:
 
     def __init__(self, config_file):
@@ -34,19 +36,20 @@ class MasterConfigFileReader:
 
         # TODO: Check parameter values!
         self.pid_file_dir = config.get('control', 'pid_file_dir')
-        self.ost_reg_ex = config.get('control', 'ost_reg_ex')
-        self.ip_reg_ex = config.get('control', 'ip_reg_ex')
+
+        self.ost_reg_ex = re.compile(config.get('control', 'ost_reg_ex'))
+        self.ip_reg_ex = re.compile(config.get('control', 'ip_reg_ex'))
+
         self.controller_timeout = float(config.get('control', 'controller_timeout'))
-        self.measure_interval = float(config.get('control', 'measure_interval'))
         self.lock_shared_queue_timeout = int(config.get('control', 'lock_shared_queue_timeout'))
-        self.controller_wait_duration = config.get('control', 'controller_wait_duration')
+        self.controller_wait_duration = int(config.get('control', 'controller_wait_duration'))
         self.task_resend_timeout = int(config.get('control', 'task_resend_timeout'))
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
 
-        self.log_filename = config.get('logging', 'filename')
+        self.log_filename = config.get('log', 'filename')
 
         self.lctl_bin = config.get('lustre', 'lctl_bin')
         self.lfs_bin = config.get('lustre', 'lfs_bin')
@@ -57,3 +60,6 @@ class MasterConfigFileReader:
         self.passwd = config.get('db', 'passwd')
         self.db = config.get('db', 'database')
         self.table = config.get('db', 'table')
+
+        self.measure_interval = float(config.get('test', 'measure_interval'))
+        self.total_bytes = int(config.get('test', 'total_bytes'))

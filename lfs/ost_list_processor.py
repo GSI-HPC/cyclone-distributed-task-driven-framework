@@ -19,15 +19,16 @@
 
 
 import commands
+import datetime
 import logging
 import signal
 import time
 import os
-import re
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
 from ctrl.ost_info import OSTInfo
+from db.ost_perf_test_result import OSTPerfTestInfo
 
 
 class OSTListProcessor(Process):
@@ -43,8 +44,11 @@ class OSTListProcessor(Process):
         self.lctl_bin = config_file_reader.lctl_bin
         self.lfs_bin = config_file_reader.lfs_bin
         self.fs_target = config_file_reader.fs_target
-        self.ost_reg_ex = re.compile(config_file_reader.ost_reg_ex)
-        self.ip_reg_ex = re.compile(config_file_reader.ip_reg_ex)
+
+        self.ost_reg_ex = config_file_reader.ost_reg_ex
+        self.ip_reg_ex = config_file_reader.ip_reg_ex
+
+        self.total_bytes = config_file_reader.total_bytes
 
         self.run_flag = False
 
@@ -74,7 +78,21 @@ class OSTListProcessor(Process):
                     self.active_ost_queue.fill(active_ost_info_list)
 
                 if inactive_ost_info_list:
-                    pass
+
+                    timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+
+                    for ost_info in inactive_ost_info_list:
+
+                        ost_perf_test_result = \
+                            OSTPerfTestInfo(timestamp,
+                                            timestamp,
+                                            ost_info.name,
+                                            ost_info.ip,
+                                            self.total_bytes,
+                                            0,
+                                            0,
+                                            0,
+                                            0)
 
                 time.sleep(self.measure_interval)
 
@@ -192,9 +210,10 @@ class OSTListProcessor(Process):
 
         ost_list = output.split('\n')
 
-        # TODO: Check Filesystem in output!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
         for ost_info in ost_list:
+
+            if ost_info.find(self.fs_target) == -1:
+                raise RuntimeError("Could not find file system in the OST info output line: %s" % ost_info)
 
             idx_ost_name = ost_info.find('OST')
 

@@ -18,7 +18,7 @@
 #
 
 
-class OSTPerfInfo:
+class OSTPerfTestInfo:
 
     def __init__(self,
                  read_timestamp,

@@ -149,9 +149,8 @@ def main():
                 ost_status_lookup_dict = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
-                measure_interval = config_file_reader.measure_interval
                 lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
-                controller_wait_duration = int(config_file_reader.controller_wait_duration)
+                controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
                 lock_shared_queue = multiprocessing.Lock()
