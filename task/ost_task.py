@@ -20,7 +20,10 @@
 
 import multiprocessing
 import logging
+import datetime
 import time
+
+from db.ost_perf_result import OSTPerfResult
 
 
 class OSTTask:
@@ -40,9 +43,26 @@ class OSTTask:
         self._initialize_payload()
 
         logging.debug("*** %s ***" % self.name)
-        logging.debug("*** %s ***" % self.ip)
-        logging.debug("*** %s ***" % self.block_size_bytes)
-        logging.debug("*** %s ***" % self.total_size_bytes)
+
+        read_throughput = 12000
+        write_throughput = 23450
+        read_duration = 12
+        write_duration = 6
+
+        timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+
+        ost_perf_result = \
+            OSTPerfResult(timestamp,
+                          timestamp,
+                          self.name,
+                          self.ip,
+                          self.total_size_bytes,
+                          read_throughput,
+                          write_throughput,
+                          read_duration,
+                          write_duration)
+
+        return ost_perf_result
 
     def _initialize_payload(self):
 

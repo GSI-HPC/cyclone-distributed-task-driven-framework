@@ -144,11 +144,15 @@ class Worker(multiprocessing.Process):
 
             if ost_task:
 
-                ost_task.execute()
+                # TODO - Task-Generic Solution:
+                # No return value on executing a task.
+                ost_perf_result = ost_task.execute()
 
                 with CriticalSection(self.cond_result_queue):
 
-                    self.result_queue.push(ost_task.name)
+                    # TODO - Task-Generic Solution:
+                    # Just push the name of the finished task.
+                    self.result_queue.push(ost_perf_result)
                     self.cond_result_queue.notify()
 
                 with CriticalSection(self.lock_worker_state_table):

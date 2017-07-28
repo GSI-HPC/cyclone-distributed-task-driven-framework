@@ -25,7 +25,6 @@ import os
 import signal
 import sys
 import time
-import re
 
 from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from comm.master_handler import MasterCommHandler

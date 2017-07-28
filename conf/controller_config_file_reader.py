@@ -44,6 +44,14 @@ class ControllerConfigFileReader:
 
         self.worker_count = int(config.get('processing', 'worker_count'))
 
+        self.host = config.get('db', 'host')
+        self.user = config.get('db', 'user')
+        self.passwd = config.get('db', 'passwd')
+        self.db = config.get('db', 'database')
+        self.table = config.get('db', 'table')
+        self.store_timeout = int(config.get('db', 'store_timeout'))
+        self.store_max_count = int(config.get('db', 'store_max_count'))
+
         self.validate()
 
     def validate(self):
