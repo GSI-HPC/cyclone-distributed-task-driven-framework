@@ -23,7 +23,6 @@ import re
 import os
 
 
-# TODO: Maybe use one specific master process config file and one common config file for both master and controller!
 class MasterConfigFileReader:
 
     def __init__(self, config_file):

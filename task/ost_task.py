@@ -46,7 +46,7 @@ class OSTTask:
     def execute(self):
 
         self._initialize_payload()
-        
+
         with AutoRemoveFile(self.file_path):
 
             self.lfs_utils.set_stripe(self.name, self.file_path)

@@ -122,25 +122,8 @@ class OSTListProcessor(Process):
     def signal_handler_shutdown(self, signal, frame):
         self.run_flag = False
 
-    @staticmethod
-    def _test_create_ost_info_lists():
-
-        active_ost_info_list = list()
-        active_ost_info_list.append(OSTInfo('OST0000', '10.20.0.11'))
-        active_ost_info_list.append(OSTInfo('OST0001', '10.20.0.12'))
-        active_ost_info_list.append(OSTInfo('OST0002', '10.20.0.13'))
-        active_ost_info_list.append(OSTInfo('OST0003', '10.20.0.14'))
-
-        inactive_ost_info_list = list()
-        inactive_ost_info_list.append(OSTInfo('OST11ef', '10.20.0.19'))
-        inactive_ost_info_list.append(OSTInfo('OST11ff', '10.20.0.25'))
-        inactive_ost_info_list.append(OSTInfo('OST12ff', '10.20.0.35'))
-
-        return tuple((active_ost_info_list, inactive_ost_info_list))
-
     def _create_ost_info_lists(self):
 
-        # TODO: PRODUCTIVE
         ost_ip_dict = self._create_ost_ip_dict()
 
         active_ost_list, inactive_ost_list = self._create_ost_state_lists()
@@ -149,9 +132,6 @@ class OSTListProcessor(Process):
         inactive_ost_ip_dict = self._create_ost_info_list(inactive_ost_list, ost_ip_dict)
 
         return active_ost_ip_dict, inactive_ost_ip_dict
-
-        # Testing only!
-        # return OSTListProcessor._test_create_ost_info_lists()
 
     def _create_ost_ip_dict(self):
 
