@@ -18,17 +18,17 @@
 #
 
 
-import multiprocessing
 import logging
 import datetime
 import time
+import os
 
 from db.ost_perf_result import OSTPerfResult
 
 
 class OSTTask:
 
-    def __init__(self, name, ip, block_size_bytes, total_size_bytes):
+    def __init__(self, name, ip, block_size_bytes, total_size_bytes, lfs_target_dir, lfs_utils):
 
         self.name = name
         self.ip = ip
@@ -38,9 +38,19 @@ class OSTTask:
         self.payload_block = str()
         self.payload_block_rest = str()
 
+        # self.target_dir = target_dir
+        self.file_path = lfs_target_dir + os.path.sep + self.name + "_perf_test.tmp"
+
+        self.lfs_utils = lfs_utils
+
     def execute(self):
 
         self._initialize_payload()
+
+        if os.path.exists(self.file_path):
+            os.remove(self.file_path)
+
+        self.lfs_utils.set_stripe(self.name, self.file_path)
 
         logging.debug("*** %s ***" % self.name)
 

@@ -40,6 +40,8 @@ class ControllerConfigFileReader:
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
         self.request_retry_wait_duration = int(config.get('comm', 'request_retry_wait_duration'))
 
+        self.lfs_bin = config.get('lustre', 'lfs_bin')
+
         self.log_filename = config.get('log', 'filename')
 
         self.worker_count = int(config.get('processing', 'worker_count'))

@@ -53,7 +53,7 @@ class MasterConfigFileReader:
 
         self.lctl_bin = config.get('lustre', 'lctl_bin')
         self.lfs_bin = config.get('lustre', 'lfs_bin')
-        self.fs_target = config.get('lustre', 'fs_target')
+        self.lfs_target = config.get('lustre', 'lfs_target')
 
         self.host = config.get('db', 'host')
         self.user = config.get('db', 'user')
@@ -64,3 +64,4 @@ class MasterConfigFileReader:
         self.measure_interval = float(config.get('test', 'measure_interval'))
         self.block_size_bytes = int(config.get('test', 'block_size_bytes'))
         self.total_size_bytes = int(config.get('test', 'total_size_bytes'))
+        self.target_dir = config.get('test', 'target_dir')

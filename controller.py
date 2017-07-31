@@ -35,6 +35,7 @@ from ctrl.pid_control import PIDControl
 from ctrl.critical_section import CriticalSection
 from ctrl.shared_queue import SharedQueue
 from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
+from lfs.lfs_utils import LFSUtils
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
@@ -167,6 +168,8 @@ def main():
 
                 logging.info('Start')
 
+                lfs_utils = LFSUtils(config_file_reader.lfs_bin)
+
                 comm_handler.connect()
 
                 request_retry_count = 0
@@ -268,7 +271,7 @@ def main():
                             error_flag = True
                             continue
 
-                        else:   # Worker are busy
+                        else:   # Worker are busy, try to wait for a task completion...
 
                             timeout = 2 # TODO: timeout how long???
 
@@ -318,7 +321,9 @@ def main():
                                 task_queue.push(OSTTask(in_msg.ost_name,
                                                         in_msg.ost_ip,
                                                         in_msg.block_size_bytes,
-                                                        in_msg.total_size_bytes))
+                                                        in_msg.total_size_bytes,
+                                                        in_msg.target_dir,
+                                                        lfs_utils))
 
                                 cond_task_assign.notify()
 
@@ -359,11 +364,12 @@ def main():
                     if (last_exec_timestamp >= (last_store_timestamp + store_timeout)) or \
                             ost_perf_his_table_handler.count() >= store_max_count:
 
-                        # TODO: PRODUCTIVE
-                        # ost_perf_his_table_handler.store()
-                        # ost_perf_his_table_handler.clear()
+                        if ost_perf_his_table_handler.count():
 
-                        last_store_timestamp = int(time.time())
+                            ost_perf_his_table_handler.store()
+                            ost_perf_his_table_handler.clear()
+
+                            last_store_timestamp = int(time.time())
 
                 # Shutdown all worker...
                 if not run_condition:

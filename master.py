@@ -157,6 +157,7 @@ def main():
                 # OSTTask specific test parameter:
                 block_size_bytes = config_file_reader.block_size_bytes
                 total_size_bytes = config_file_reader.total_size_bytes
+                target_dir = config_file_reader.target_dir
 
                 lock_shared_queue = multiprocessing.Lock()
 
@@ -225,7 +226,8 @@ def main():
                                                 send_msg = TaskAssign(ost_info.name,
                                                                       ost_info.ip,
                                                                       block_size_bytes,
-                                                                      total_size_bytes)
+                                                                      total_size_bytes,
+                                                                      target_dir)
 
                                             elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
@@ -248,7 +250,8 @@ def main():
                                             send_msg = TaskAssign(ost_info.name,
                                                                   ost_info.ip,
                                                                   block_size_bytes,
-                                                                  total_size_bytes)
+                                                                  total_size_bytes,
+                                                                  target_dir)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)

@@ -25,7 +25,7 @@ from message_type import MessageType
 class TaskAssign(BaseMessage):
     """The Master sends this message to a controller to assign a task."""
 
-    def __init__(self, ost_name, ost_ip, block_size_bytes, total_size_bytes):
+    def __init__(self, ost_name, ost_ip, block_size_bytes, total_size_bytes, target_dir):
 
         if not ost_name:
             raise RuntimeError('No OST name is set!')
@@ -39,13 +39,18 @@ class TaskAssign(BaseMessage):
         if not total_size_bytes:
             raise RuntimeError('No total size in bytes is set!')
 
+        if not target_dir:
+            raise RuntimeError('No target directory is set!')
+
         body = ost_name \
             + self.field_separator \
             + ost_ip \
             + self.field_separator \
             + str(block_size_bytes) \
             + self.field_separator \
-            + str(total_size_bytes)
+            + str(total_size_bytes) \
+            + self.field_separator \
+            + target_dir
 
         super(TaskAssign, self).__init__(MessageType.TASK_ASSIGN(), body)
 
@@ -69,3 +74,7 @@ class TaskAssign(BaseMessage):
     @property
     def total_size_bytes(self):
         return int(self.body.split(BaseMessage.field_separator)[3])
+
+    @property
+    def target_dir(self):
+        return self.body.split(BaseMessage.field_separator)[4]

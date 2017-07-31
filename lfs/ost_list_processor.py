@@ -44,7 +44,7 @@ class OSTListProcessor(Process):
         self.measure_interval = config_file_reader.measure_interval
         self.lctl_bin = config_file_reader.lctl_bin
         self.lfs_bin = config_file_reader.lfs_bin
-        self.fs_target = config_file_reader.fs_target
+        self.lfs_target = config_file_reader.lfs_target
 
         self.ost_reg_ex = config_file_reader.ost_reg_ex
         self.ip_reg_ex = config_file_reader.ip_reg_ex
@@ -83,7 +83,8 @@ class OSTListProcessor(Process):
                     if not self.active_ost_queue.is_empty():
                         self.active_ost_queue.clear()
 
-                    self.active_ost_queue.fill(active_ost_info_list)
+                    if active_ost_info_list:
+                        self.active_ost_queue.fill(active_ost_info_list)
 
                 if inactive_ost_info_list:
 
@@ -104,11 +105,10 @@ class OSTListProcessor(Process):
 
                         self.history_table_handler.insert(ost_perf_result)
 
-                    # TODO: PRODUCTIVE
-                    # if self.history_table_handler.count():
-                    #
-                    #     self.history_table_handler.store()
-                    #     self.history_table_handler.clear()
+                    if self.history_table_handler.count():
+
+                        self.history_table_handler.store()
+                        self.history_table_handler.clear()
 
                 time.sleep(self.measure_interval)
 
@@ -141,15 +141,17 @@ class OSTListProcessor(Process):
     def _create_ost_info_lists(self):
 
         # TODO: PRODUCTIVE
-        # ost_ip_dict = self._create_ost_ip_dict()
-        #
-        # active_ost_info_list, inactive_ost_info_list = self._create_ost_state_lists()
-        #
-        # active_ost_ip_dict = self._create_ost_ip_mapping(active_ost_info_list, ost_ip_dict)
-        # inactive_ost_ip_dict = self._create_ost_ip_mapping(inactive_ost_info_list, ost_ip_dict)
+        ost_ip_dict = self._create_ost_ip_dict()
+
+        active_ost_list, inactive_ost_list = self._create_ost_state_lists()
+
+        active_ost_ip_dict = self._create_ost_info_list(active_ost_list, ost_ip_dict)
+        inactive_ost_ip_dict = self._create_ost_info_list(inactive_ost_list, ost_ip_dict)
+
+        return active_ost_ip_dict, inactive_ost_ip_dict
 
         # Testing only!
-        return OSTListProcessor._test_create_ost_info_lists()
+        # return OSTListProcessor._test_create_ost_info_lists()
 
     def _create_ost_ip_dict(self):
 
@@ -158,7 +160,7 @@ class OSTListProcessor(Process):
         if not os.path.isfile(self.lctl_bin):
             raise RuntimeError("LCTL binary was not found under: %s" % self.lctl_bin)
 
-        cmd = self.lctl_bin + " get_param 'osc." + self.fs_target + "-*.ost_conn_uuid'"
+        cmd = self.lctl_bin + " get_param 'osc." + self.lfs_target + "-*.ost_conn_uuid'"
 
         (status, output) = commands.getstatusoutput(cmd)
 
@@ -209,8 +211,8 @@ class OSTListProcessor(Process):
 
     def _create_ost_state_lists(self):
 
-        active_ost_info_list = list()
-        inactive_ost_info_list = list()
+        active_ost_list = list()
+        inactive_ost_list = list()
 
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: %s" % self.lfs_bin)
@@ -229,7 +231,7 @@ class OSTListProcessor(Process):
 
         for ost_info in ost_list:
 
-            if ost_info.find(self.fs_target) == -1:
+            if ost_info.find(self.lfs_target) == -1:
                 raise RuntimeError("Could not find file system in the OST info output line: %s" % ost_info)
 
             idx_ost_name = ost_info.find('OST')
@@ -251,29 +253,29 @@ class OSTListProcessor(Process):
 
             if ' active.' in ost_info:
                 # logging.debug("Found active OST: %s" % ost_name)
-                active_ost_info_list.append(ost_name)
+                active_ost_list.append(ost_name)
 
             else:
                 # logging.debug("Found inactive OST: %s" % ost_name)
-                inactive_ost_info_list.append(ost_name)
+                inactive_ost_list.append(ost_name)
 
-        return tuple((active_ost_info_list, inactive_ost_info_list))
+        return tuple((active_ost_list, inactive_ost_list))
 
-    def _create_ost_ip_mapping(self, ost_list, ost_ip_dict):
+    def _create_ost_info_list(self, ost_list, ost_ip_dict):
 
-        if not ost_list or len(ost_list) == 0:
-            raise RuntimeError("OST list is empty!")
-
-        if not ost_ip_dict or len(ost_ip_dict) == 0:
-            raise RuntimeError("OST IP dict is empty!")
-
-        ost_ip_mapping_dict = dict()
+        ost_info_list = list()
 
         for ost_name in ost_list:
 
             if ost_name in ost_ip_dict:
-                ost_ip_mapping_dict[ost_name] = ost_ip_dict[ost_name]
-            else:
-                raise RuntimeError("No IP could be found for the OST: %s" % ost_name)
 
-        return ost_ip_mapping_dict
+                ost_ip_adr = ost_ip_dict[ost_name]
+
+                if ost_ip_adr:
+                    ost_info_list.append(OSTInfo(ost_name, ost_ip_adr))
+                else:
+                    raise RuntimeError("No IP could be found for the OST: %s" % ost_name)
+            else:
+                raise RuntimeError("No entry could be found in the IP map for the OST: %s" % ost_name)
+
+        return ost_info_list
