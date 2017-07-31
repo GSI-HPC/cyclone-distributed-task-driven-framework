@@ -28,7 +28,7 @@ from db.ost_perf_result import OSTPerfResult
 
 class OSTTask:
 
-    def __init__(self, name, ip, block_size_bytes, total_size_bytes, lfs_target_dir, lfs_utils):
+    def __init__(self, name, ip, block_size_bytes, total_size_bytes, target_dir, lfs_utils):
 
         self.name = name
         self.ip = ip
@@ -36,10 +36,9 @@ class OSTTask:
         self.total_size_bytes = total_size_bytes
 
         self.payload_block = str()
-        self.payload_block_rest = str()
+        self.payload_rest_block = str()
 
-        # self.target_dir = target_dir
-        self.file_path = lfs_target_dir + os.path.sep + self.name + "_perf_test.tmp"
+        self.file_path = target_dir + os.path.sep + self.name + "_perf_test.tmp"
 
         self.lfs_utils = lfs_utils
 
@@ -52,18 +51,15 @@ class OSTTask:
 
         self.lfs_utils.set_stripe(self.name, self.file_path)
 
-        logging.debug("*** %s ***" % self.name)
+        write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        write_duration, write_throughput = self.write_file()
 
-        read_throughput = 12000
-        write_throughput = 23450
-        read_duration = 12
-        write_duration = 6
-
-        timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        read_duration, read_throughput = self.read_file()
 
         ost_perf_result = \
-            OSTPerfResult(timestamp,
-                          timestamp,
+            OSTPerfResult(write_timestamp,
+                          read_timestamp,
                           self.name,
                           self.ip,
                           self.total_size_bytes,
@@ -78,15 +74,90 @@ class OSTTask:
 
         # No random numbers are used, since no compression is used in Lustre FS directly.
 
-        # start_time = time.time() * 1000.0
-
         self.payload_block = "".join('A' for i in xrange(self.block_size_bytes))
 
         block_rest_size_bytes = self.total_size_bytes % self.block_size_bytes
 
         if block_rest_size_bytes > 0:
-            self.payload_block_rest = "".join('A' for i in xrange(self.block_rest_size_bytes))
+            self.payload_rest_block = "".join('A' for i in xrange(self.block_rest_size_bytes))
 
-        # end_time = time.time() * 1000.0
-        # duration = round((end_time - start_time) / 1000.0, 2)
-        # logging.debug("Creating total payload took: %s seconds." % duration)
+    def write_file(self):
+
+        try:
+            iterations = self.total_size_bytes / self.block_size_bytes
+
+            start_time = time.time() * 1000.0
+
+            with open(self.file_path, 'w') as f:
+
+                for i in xrange(int(iterations)):
+                    f.write(self.payload_block)
+
+                if self.payload_rest_block:
+                    f.write(self.payload_rest_block)
+
+            end_time = time.time() * 1000.0
+            duration = (end_time - start_time) / 1000.0
+
+            throughput = 0
+
+            if duration:
+                throughput = self.total_size_bytes / duration
+
+            return tuple((duration, throughput))
+
+        except Exception as e:
+
+            logging.error("Caught exception in OSTTask: %s" % e)
+            return tuple((-1, -1))
+
+    def read_file(self):
+
+        try:
+            if os.path.exists(self.file_path):
+
+                file_size = os.path.getsize(self.file_path)
+
+                if file_size == self.total_size_bytes:
+
+                    logging.debug("Reading output file from: %s" % self.file_path)
+
+                    total_read_bytes = 0
+
+                    start_time = time.time() * 1000.0
+
+                    with open(self.file_path, 'r') as f:
+
+                        read_bytes = f.read(self.block_size_bytes)
+                        total_read_bytes += len(read_bytes)
+
+                        while read_bytes:
+                            read_bytes = f.read(self.block_size_bytes)
+                            total_read_bytes += len(read_bytes)
+
+                    end_time = time.time() * 1000.0
+                    duration = (end_time - start_time) / 1000.0
+
+                    if total_read_bytes != self.total_size_bytes:
+                        raise RuntimeError('Read bytes differ from total size!')
+
+                    throughput = 0
+
+                    if duration:
+                        throughput = self.total_size_bytes / duration
+
+                    return tuple((duration, throughput))
+
+                elif file_size == 0:
+                    raise RuntimeError("File is empty: %s" % self.file_path)
+
+                else:
+                    raise RuntimeError("File is incomplete: %s" % self.file_path)
+
+            else:
+                raise RuntimeError("No file to be read could be found under: %s" % self.file_path)
+
+        except Exception as e:
+
+            logging.error("Caught exception in OSTTask: %s" % e)
+            return tuple((-1, -1))
