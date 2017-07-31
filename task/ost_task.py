@@ -24,6 +24,7 @@ import time
 import os
 
 from db.ost_perf_result import OSTPerfResult
+from util.auto_remove_file import AutoRemoveFile
 
 
 class OSTTask:
@@ -45,30 +46,27 @@ class OSTTask:
     def execute(self):
 
         self._initialize_payload()
+        
+        with AutoRemoveFile(self.file_path):
 
-        if os.path.exists(self.file_path):
-            os.remove(self.file_path)
+            self.lfs_utils.set_stripe(self.name, self.file_path)
 
-        self.lfs_utils.set_stripe(self.name, self.file_path)
+            write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            write_duration, write_throughput = self.write_file()
 
-        write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-        write_duration, write_throughput = self.write_file()
+            read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            read_duration, read_throughput = self.read_file()
 
-        read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-        read_duration, read_throughput = self.read_file()
-
-        ost_perf_result = \
-            OSTPerfResult(write_timestamp,
-                          read_timestamp,
-                          self.name,
-                          self.ip,
-                          self.total_size_bytes,
-                          read_throughput,
-                          write_throughput,
-                          read_duration,
-                          write_duration)
-
-        return ost_perf_result
+            return \
+                OSTPerfResult(write_timestamp,
+                              read_timestamp,
+                              self.name,
+                              self.ip,
+                              self.total_size_bytes,
+                              read_throughput,
+                              write_throughput,
+                              read_duration,
+                              write_duration)
 
     def _initialize_payload(self):
 
