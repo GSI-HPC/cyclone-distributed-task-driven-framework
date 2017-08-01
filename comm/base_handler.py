@@ -40,8 +40,8 @@ class BaseHandler(object):
         if not (port in range(1024, 65535)):
             raise RuntimeError('Communication port must be a number between 1024 and 65535!')
 
-        if not poll_timeout:
-            raise RuntimeError('No poll timeout is set!')
+        if poll_timeout <= 0:
+            raise RuntimeError('No valid poll timeout is set!')
 
         self.target = target
         self.port = port
