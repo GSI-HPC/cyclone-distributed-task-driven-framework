@@ -37,10 +37,12 @@ class LFSUtils:
 
         ost_idx = ost_name[self.ost_prefix_len:]
 
-        logging.debug("Setting stripe for file: %s on OST: %s" % (file_path, ost_name))
+        # logging.debug("Setting stripe for file: %s on OST: %s" % (file_path, ost_name))
 
         # No stripping is used.
         cmd = self.lfs_bin + " setstripe --stripe-index 0x" + ost_idx + " --stripe-count 1 --stripe-size 0 " + file_path
+
+        # logging.debug("lfs setstripe: %s" %cmd)
 
         (status, output) = commands.getstatusoutput(cmd)
 

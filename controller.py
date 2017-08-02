@@ -292,7 +292,7 @@ def main():
 
                                     if ost_perf_result:
 
-                                        logging.debug("Finished task for OST: %s" % ost_perf_result.ost)
+                                        # logging.debug("Finished task for OST: %s" % ost_perf_result.ost)
 
                                         # TODO - Task-Generic Solution:
                                         # This would be done in the worker within the specific executed task itself.
@@ -314,7 +314,7 @@ def main():
 
                         if in_msg.header == MessageType.TASK_ASSIGN():
 
-                            logging.debug("Retrieved task response with OST name: " + in_msg.ost_name)
+                            logging.debug("Retrieved task assign for OST: " + in_msg.ost_name)
 
                             with CriticalSection(cond_task_assign):
 
