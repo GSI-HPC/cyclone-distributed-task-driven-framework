@@ -217,6 +217,7 @@ def main():
 
                     last_exec_timestamp = int(time.time())
 
+                    # TODO: Should immediately retrieve instead of just setting and then retrieving
                     send_msg = None
 
                     with CriticalSection(cond_result_queue):
@@ -235,7 +236,8 @@ def main():
                                 # This would be done in the worker within the specific executed task itself.
                                 ost_perf_his_table_handler.insert(ost_perf_result)
 
-                                send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
+                                if not send_msg:
+                                    send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
 
                     with CriticalSection(cond_task_assign):
 
@@ -252,7 +254,9 @@ def main():
                     if found_ready_worker:
 
                         logging.debug('Requesting for task...')
-                        send_msg = TaskRequest(comm_handler.fqdn)
+
+                        if not send_msg:
+                            send_msg = TaskRequest(comm_handler.fqdn)
 
                     else:
 
@@ -282,7 +286,9 @@ def main():
                                 if result_queue.is_empty():
 
                                     logging.debug('Timeout on result queue, since no task is finished yet!')
-                                    send_msg = Heartbeat(comm_handler.fqdn)
+
+                                    if not send_msg:
+                                        send_msg = Heartbeat(comm_handler.fqdn)
 
                                 else:
 
@@ -298,7 +304,8 @@ def main():
                                         # This would be done in the worker within the specific executed task itself.
                                         ost_perf_his_table_handler.insert(ost_perf_result)
 
-                                        send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
+                                        if not send_msg:
+                                            send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
 
                     if send_msg:
 
