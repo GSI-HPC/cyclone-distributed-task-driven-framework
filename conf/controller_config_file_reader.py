@@ -58,5 +58,5 @@ class ControllerConfigFileReader:
 
     def validate(self):
 
-        if self.worker_count <= 0 or self.worker_count > 20:
+        if self.worker_count <= 0 or self.worker_count > 1000:
             raise RuntimeError("Not supported worker count detected: %s" % self.worker_count)
