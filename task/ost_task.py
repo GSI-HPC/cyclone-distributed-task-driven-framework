@@ -47,29 +47,29 @@ class OSTTask:
 
         self._initialize_payload()
 
-        # with AutoRemoveFile(self.file_path):
+        with AutoRemoveFile(self.file_path):
 
-        if os.path.exists(self.file_path):
-            os.remove(self.file_path)
+            if os.path.exists(self.file_path):
+                os.remove(self.file_path)
 
-        self.lfs_utils.set_stripe(self.name, self.file_path)
+            self.lfs_utils.set_stripe(self.name, self.file_path)
 
-        write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-        write_duration, write_throughput = self.write_file()
+            write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            write_duration, write_throughput = self.write_file()
 
-        read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-        read_duration, read_throughput = self.read_file()
+            read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+            read_duration, read_throughput = self.read_file()
 
-        return \
-            OSTPerfResult(write_timestamp,
-                          read_timestamp,
-                          self.name,
-                          self.ip,
-                          self.total_size_bytes,
-                          read_throughput,
-                          write_throughput,
-                          read_duration,
-                          write_duration)
+            return \
+                OSTPerfResult(write_timestamp,
+                              read_timestamp,
+                              self.name,
+                              self.ip,
+                              self.total_size_bytes,
+                              read_throughput,
+                              write_throughput,
+                              read_duration,
+                              write_duration)
 
     def _initialize_payload(self):
 
