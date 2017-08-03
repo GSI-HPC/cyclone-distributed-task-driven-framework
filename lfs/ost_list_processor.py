@@ -126,6 +126,9 @@ class OSTListProcessor(Process):
 
         ost_ip_dict = self._create_ost_ip_dict()
 
+        # Testing with a small set of OSTs...
+        # active_ost_list, inactive_ost_list = self._create_ost_state_test_lists()
+
         active_ost_list, inactive_ost_list = self._create_ost_state_lists()
 
         active_ost_ip_dict = self._create_ost_info_list(active_ost_list, ost_ip_dict)
@@ -188,6 +191,32 @@ class OSTListProcessor(Process):
             ost_ip_dict[ost_name] = ost_conn_ip
 
         return ost_ip_dict
+
+    def _create_ost_state_test_lists(self):
+
+        active_ost_list = list()
+        inactive_ost_list = list()
+
+        active_ost_list.append('OST0000')
+        active_ost_list.append('OST0001')
+        active_ost_list.append('OST0002')
+        active_ost_list.append('OST0003')
+        active_ost_list.append('OST0004')
+        active_ost_list.append('OST0005')
+        active_ost_list.append('OST0006')
+        active_ost_list.append('OST0007')
+        active_ost_list.append('OST0008')
+        active_ost_list.append('OST0009')
+        active_ost_list.append('OST0010')
+        active_ost_list.append('OST0011')
+        active_ost_list.append('OST0012')
+        active_ost_list.append('OST0013')
+        active_ost_list.append('OST0014')
+        active_ost_list.append('OST0015')
+        active_ost_list.append('OST0016')
+        active_ost_list.append('OST0017')
+
+        return tuple((active_ost_list, inactive_ost_list))
 
     def _create_ost_state_lists(self):
 

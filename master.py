@@ -164,6 +164,10 @@ def main():
                 ost_list_processor = OSTListProcessor(shared_queue, lock_shared_queue, config_file_reader)
                 ost_list_processor.start()
 
+                # TODO: Remove Benchmarking:
+                assigned_task_count = 0
+                finished_task_count = 0
+
                 # TODO: Make a class for the master.
                 global TASK_DISTRIBUTION
 
@@ -198,7 +202,7 @@ def main():
                                     with CriticalSection(lock_shared_queue, True, lock_shared_queue_timeout):
 
                                         if not shared_queue.is_empty():
-                                            ost_info = shared_queue.pop()
+                                            ost_info = shared_queue.pop_nowait()
 
                                         else:
 
@@ -256,6 +260,11 @@ def main():
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
 
+                                    # TODO: Benchmarking...
+                                    if send_msg.header == MessageType.TASK_ASSIGN():
+                                        assigned_task_count += 1
+                                        print ("assigned_task_count: %s" % assigned_task_count)
+
                                     # logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
@@ -277,6 +286,12 @@ def main():
 
                                     else:
                                         raise RuntimeError("Inconsistency detected on task finished!")
+
+                                    # TODO: Benchmarking:
+                                    finished_task_count += 1
+                                    print ("finished_task_count: %s" % finished_task_count)
+                                    if assigned_task_count == finished_task_count:
+                                        print (" >>> GOT IT: %s " % finished_task_count)
 
                                     send_msg = Acknowledge()
                                     # logging.debug("Sending message: " + send_msg.to_string())

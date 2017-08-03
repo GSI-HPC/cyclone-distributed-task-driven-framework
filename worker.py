@@ -119,7 +119,7 @@ class Worker(multiprocessing.Process):
         signal.signal(signal.SIGUSR1, self.signal_handler_shutdown)
         signal.siginterrupt(signal.SIGUSR1, True)
 
-        logging.debug("Started Worker with ID: %s" % multiprocessing.current_process().name)
+        logging.debug("Started Worker: '%s'" % multiprocessing.current_process().name)
 
         with CriticalSection(self.lock_worker_state_table):
 
@@ -134,19 +134,20 @@ class Worker(multiprocessing.Process):
 
                 self.cond_task_assign.wait()
 
-                if not self.task_queue.is_empty():
+                ost_task = self.task_queue.pop()
 
-                    ost_task = self.task_queue.pop()
+            with CriticalSection(self.lock_worker_state_table):
 
-                    self.worker_state_table_item.set_state(WorkerState.EXECUTING)
-                    self.worker_state_table_item.set_ost_name(ost_task.name)
-                    self.worker_state_table_item.set_timestamp(int(time.time()))
+                self.worker_state_table_item.set_state(WorkerState.EXECUTING)
+                self.worker_state_table_item.set_ost_name(ost_task.name)
+                self.worker_state_table_item.set_timestamp(int(time.time()))
 
-            if ost_task:
+            # TODO - Task-Generic Solution:
+            # No return value on executing a task.
+            ost_perf_result = ost_task.execute()
 
-                # TODO - Task-Generic Solution:
-                # No return value on executing a task.
-                ost_perf_result = ost_task.execute()
+            # Just an OSTTask returns a return value. Poisen pill does not.
+            if ost_perf_result:
 
                 with CriticalSection(self.cond_result_queue):
 
@@ -155,13 +156,13 @@ class Worker(multiprocessing.Process):
                     self.result_queue.push(ost_perf_result)
                     self.cond_result_queue.notify()
 
-                with CriticalSection(self.lock_worker_state_table):
+            with CriticalSection(self.lock_worker_state_table):
 
-                    self.worker_state_table_item.set_state(WorkerState.READY)
-                    self.worker_state_table_item.set_ost_name('')
-                    self.worker_state_table_item.set_timestamp(int(time.time()))
+                self.worker_state_table_item.set_state(WorkerState.READY)
+                self.worker_state_table_item.set_ost_name('')
+                self.worker_state_table_item.set_timestamp(int(time.time()))
 
-        logging.debug("Exiting Worker with ID: %s" % multiprocessing.current_process().name)
+        logging.debug("Exiting worker: '%s'" % multiprocessing.current_process().name)
 
         exit(0)
 

@@ -61,12 +61,21 @@ class SharedQueue:
 
         self._queue.put(item)
 
-    def pop(self):
+    def pop_nowait(self):
         """Returns an item from the queue (non-blocking)"""
         try:
             return self._queue.get_nowait()
         except Queue.Empty:
-            print '>>>>>>> pop caught exception <<<<<<<<'
+            print '>>>>>>> pop_nowait caught exception <<<<<<<<'
+
+        return None
+
+    def pop(self):
+        """Returns an item from the queue (blocking)"""
+        try:
+            return self._queue.get()
+        except Queue.Empty:
+            print '>>>>>>> pop_nowait caught exception <<<<<<<<'
 
         return None
 

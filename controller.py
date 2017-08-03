@@ -42,6 +42,7 @@ from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.heartbeat import Heartbeat
 from task.ost_task import OSTTask
+from task.poisen_pill import PoisenPill
 
 
 def init_arg_parser():
@@ -215,156 +216,144 @@ def main():
 
                 while run_condition:
 
-                    last_exec_timestamp = int(time.time())
-
-                    # TODO: Should immediately retrieve instead of just setting and then retrieving
                     send_msg = None
 
-                    with CriticalSection(cond_result_queue):
+                    last_exec_timestamp = int(time.time())
 
-                        if not result_queue.is_empty():
+                    # Since the Python multiprocessing queue is not reliable
+                    # we need to notify as long as the queue is not empty!
+                    with CriticalSection(cond_task_assign):
 
-                            # TODO - Task-Generic Solution:
-                            # Just the task name would be retrieved.
-                            ost_perf_result = result_queue.pop()
+                        if not task_queue.is_empty():
+                            cond_task_assign.notify()
 
-                            if ost_perf_result:
+                    if not send_msg:
 
-                                logging.debug("Finished task for OST: %s" % ost_perf_result.ost)
+                        with CriticalSection(cond_result_queue):
+
+                            if not result_queue.is_empty():
 
                                 # TODO - Task-Generic Solution:
-                                # This would be done in the worker within the specific executed task itself.
-                                ost_perf_his_table_handler.insert(ost_perf_result)
+                                # Just the task name would be retrieved.
+                                ost_perf_result = result_queue.pop_nowait()
 
-                                if not send_msg:
+                                if ost_perf_result:
+
+                                    logging.debug("Finished task for OST: %s" % ost_perf_result.ost)
+
+                                    # TODO - Task-Generic Solution:
+                                    # This would be done in the worker within the specific executed task itself.
+                                    ost_perf_his_table_handler.insert(ost_perf_result)
+
                                     send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
 
-                    with CriticalSection(cond_task_assign):
+                    if not send_msg:
 
                         found_ready_worker = False
 
-                        for worker_id in worker_state_table.iterkeys():
+                        with CriticalSection(cond_task_assign):
 
-                            if worker_handle_dict[worker_id].is_alive() \
-                                    and worker_state_table[worker_id].get_state == WorkerState.READY:
+                            for worker_id in worker_state_table.iterkeys():
 
-                                found_ready_worker = True
-                                break
+                                if worker_handle_dict[worker_id].is_alive() \
+                                        and worker_state_table[worker_id].get_state == WorkerState.READY:
 
-                    if found_ready_worker:
+                                    found_ready_worker = True
+                                    break
 
-                        logging.debug('Requesting for task...')
+                        if found_ready_worker:
 
-                        if not send_msg:
+                            logging.debug('Requesting for task...')
+
                             send_msg = TaskRequest(comm_handler.fqdn)
 
-                    else:
+                        else:
 
-                        worker_count = len(worker_state_table)
-                        worker_count_not_active = 0
+                            worker_count = len(worker_state_table)
+                            worker_count_not_active = 0
 
-                        for worker_id in worker_state_table.iterkeys():
+                            for worker_id in worker_state_table.iterkeys():
 
-                            if not worker_handle_dict[worker_id].is_alive():
-                                worker_count_not_active += 1
+                                if not worker_handle_dict[worker_id].is_alive():
+                                    worker_count_not_active += 1
 
-                        if worker_count == worker_count_not_active:
+                            if worker_count == worker_count_not_active:
 
-                            logging.error('No worker are alive!')
-                            run_condition = False
-                            error_flag = True
-                            continue
+                                logging.error('No worker are alive!')
+                                run_condition = False
+                                error_flag = True
+                                continue
 
-                        else:   # Worker are busy, try to wait for a task completion...
+                            else:   # Available worker are busy
 
-                            timeout = 2 # TODO: timeout how long???
+                                with CriticalSection(cond_result_queue):
 
-                            with CriticalSection(cond_result_queue):
+                                    # TODO: How should the wait time be set?
+                                    wait_timeout_result_queue = 1
 
-                                cond_result_queue.wait(timeout)
+                                    cond_result_queue.wait(wait_timeout_result_queue)
 
-                                if result_queue.is_empty():
-
-                                    logging.debug('Timeout on result queue, since no task is finished yet!')
-
-                                    if not send_msg:
+                                    if result_queue.is_empty():
                                         send_msg = Heartbeat(comm_handler.fqdn)
-
-                                else:
-
-                                    # TODO - Task-Generic Solution:
-                                    # Just the task name would be retrieved.
-                                    ost_perf_result = result_queue.pop()
-
-                                    if ost_perf_result:
-
-                                        # logging.debug("Finished task for OST: %s" % ost_perf_result.ost)
-
-                                        # TODO - Task-Generic Solution:
-                                        # This would be done in the worker within the specific executed task itself.
-                                        ost_perf_his_table_handler.insert(ost_perf_result)
-
-                                        if not send_msg:
-                                            send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
 
                     if send_msg:
 
                         logging.debug("Sending message to master: %s" % send_msg.to_string())
                         comm_handler.send(send_msg.to_string())
 
-                    in_raw_data = comm_handler.recv()
+                        in_raw_data = comm_handler.recv()
 
-                    if in_raw_data:
+                        if in_raw_data:
 
-                        # logging.debug("Retrieved message (raw data): " + in_raw_data)
-                        in_msg = MessageFactory.create(in_raw_data)
+                            # logging.debug("Retrieved message (raw data): " + in_raw_data)
+                            in_msg = MessageFactory.create(in_raw_data)
 
-                        if in_msg.header == MessageType.TASK_ASSIGN():
+                            if in_msg.header == MessageType.TASK_ASSIGN():
 
-                            logging.debug("Retrieved task assign for OST: " + in_msg.ost_name)
+                                logging.debug("Retrieved task assign for OST: " + in_msg.ost_name)
 
-                            with CriticalSection(cond_task_assign):
+                                with CriticalSection(cond_task_assign):
 
-                                task_queue.push(OSTTask(in_msg.ost_name,
-                                                        in_msg.ost_ip,
-                                                        in_msg.block_size_bytes,
-                                                        in_msg.total_size_bytes,
-                                                        in_msg.target_dir,
-                                                        lfs_utils))
+                                    task_queue.push(OSTTask(in_msg.ost_name,
+                                                            in_msg.ost_ip,
+                                                            in_msg.block_size_bytes,
+                                                            in_msg.total_size_bytes,
+                                                            in_msg.target_dir,
+                                                            lfs_utils))
 
-                                cond_task_assign.notify()
+                                    cond_task_assign.notify()
 
-                        elif in_msg.header == MessageType.ACKNOWLEDGE():
-                            continue
+                            elif in_msg.header == MessageType.ACKNOWLEDGE():
+                                continue
 
-                        elif in_msg.header == MessageType.WAIT_COMMAND():
+                            elif in_msg.header == MessageType.WAIT_COMMAND():
 
-                            #TODO: Implement it on the master side!
-                            wait_duration = in_msg.duration
-                            logging.debug("Retrieved Wait Command with duration: " + str(wait_duration))
-                            time.sleep(wait_duration)
+                                #TODO: Implement it on the master side!
+                                wait_duration = in_msg.duration
+                                logging.debug("Retrieved Wait Command with duration: " + str(wait_duration))
+                                time.sleep(wait_duration)
 
-                        elif in_msg.header == MessageType.EXIT_COMMAND():
+                            elif in_msg.header == MessageType.EXIT_COMMAND():
 
-                            run_condition = False
-                            logging.info('Retrieved exit message from master...')
+                                run_condition = False
+                                logging.info('Retrieved exit message from master...')
 
-                        # Reset after retrieving a message
-                        if request_retry_count > 0:
-                            request_retry_count = 0
+                            # Reset after retrieving a message
+                            if request_retry_count > 0:
+                                request_retry_count = 0
 
-                    else:
+                        else:
 
-                        if request_retry_count == max_num_request_retries:
+                            if request_retry_count == max_num_request_retries:
 
-                            logging.debug('Exiting, since maximum retry count is reached!')
-                            comm_handler.disconnect()
-                            run_condition = False
+                                logging.debug('Exiting, since maximum retry count is reached!')
+                                comm_handler.disconnect()
+                                run_condition = False
 
-                        time.sleep(request_retry_wait_duration)
-                        logging.debug('No response retrieved - Reconnecting...')
-                        comm_handler.reconnect()
-                        request_retry_count += 1
+                            time.sleep(request_retry_wait_duration)
+                            logging.debug('No response retrieved - Reconnecting...')
+                            comm_handler.reconnect()
+                            request_retry_count += 1
 
                     # TODO - Task-Generic Solution:
                     # Should be completely removed and integrated a separate process for handling database inserts.
@@ -385,7 +374,7 @@ def main():
 
                         all_worker_down = False
 
-                        for i in range(0, 10):
+                        while not all_worker_down:
 
                             found_active_worker = False
 
@@ -395,31 +384,28 @@ def main():
 
                                     os.kill(worker_handle_dict[worker_id].pid, signal.SIGUSR1)
 
+                                    with CriticalSection(cond_task_assign):
+
+                                        task_queue.push(PoisenPill())
+                                        cond_task_assign.notify()
+
                                     found_active_worker = True
 
-                            if found_active_worker:
-
-                                with CriticalSection(cond_task_assign):
-                                    cond_task_assign.notify_all()
-
-                                time.sleep(1)
+                            if not found_active_worker:
+                                all_worker_down = True
 
                             else:
-                                logging.debug('All worker are down!')
-                                all_worker_down = True
-                                break
+                                time.sleep(1)
 
-                        if not all_worker_down:
+                        for worker_id in worker_state_table.iterkeys():
 
-                            for worker_id in worker_state_table.iterkeys():
+                            if worker_handle_dict[worker_id].is_alive():
 
-                                if worker_handle_dict[worker_id].is_alive():
+                                logging.debug("Waiting for worker to terminate: %s"
+                                              % worker_handle_dict[worker_id].name)
 
-                                    logging.debug("Waiting for worker to terminate: %s"
-                                                  % worker_handle_dict[worker_id].name)
-
-                                    worker_handle_dict[worker_id].terminate()
-                                    worker_handle_dict[worker_id].join()
+                                worker_handle_dict[worker_id].terminate()
+                                worker_handle_dict[worker_id].join()
 
                     except Exception as e:
 
