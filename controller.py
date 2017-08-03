@@ -395,17 +395,8 @@ def main():
                                 all_worker_down = True
 
                             else:
+                                logging.debug('Waiting for worker to shutdown...')
                                 time.sleep(1)
-
-                        for worker_id in worker_state_table.iterkeys():
-
-                            if worker_handle_dict[worker_id].is_alive():
-
-                                logging.debug("Waiting for worker to terminate: %s"
-                                              % worker_handle_dict[worker_id].name)
-
-                                worker_handle_dict[worker_id].terminate()
-                                worker_handle_dict[worker_id].join()
 
                     except Exception as e:
 
