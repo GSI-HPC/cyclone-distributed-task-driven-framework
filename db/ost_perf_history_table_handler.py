@@ -95,7 +95,7 @@ CREATE TABLE """ + self._table_name + """ (
                 for i in range(1, len_ost_perf_result_list):
                     sql += ",(" + self._ost_perf_result_list[i].to_string_csv_list() + ")"
 
-        # logging.debug("Executing SQL statement:\n" + sql)
+        logging.debug("Executing SQL statement:\n" + sql)
 
         with closing(MySQLdb.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
             with closing(conn.cursor()) as cur:
