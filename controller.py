@@ -96,7 +96,7 @@ def create_worker_state_table(worker_ids):
 
 
 def create_worker(worker_state_table, lock_worker_state_table,
-                  task_queue, cond_task_assign,
+                  task_queue,
                   result_queue, cond_result_queue):
 
     worker_handle_dict = dict()
@@ -107,7 +107,7 @@ def create_worker(worker_state_table, lock_worker_state_table,
 
         worker_handle = Worker(worker_id,
                                worker_state_table_item, lock_worker_state_table,
-                               task_queue, cond_task_assign,
+                               task_queue,
                                result_queue, cond_result_queue)
 
         worker_handle_dict[worker_id] = worker_handle
@@ -140,8 +140,8 @@ def start_worker(worker_handle_dict, worker_state_table):
         if worker_ready:
             return True
 
-        time.sleep(retry_count * len(worker_handle_dict))
-        logging.debug("Waiting for worker to be READY - Waiting seconds: %s" % (retry_count * len(worker_handle_dict)))
+        time.sleep(retry_count * retry_count)
+        logging.debug("Waiting for worker to be READY - Waiting seconds: %s" % (retry_count * retry_count))
 
 
 def main():
@@ -181,7 +181,6 @@ def main():
                 lock_task_assign = multiprocessing.Lock()
                 lock_result_queue = multiprocessing.Lock()
 
-                cond_task_assign = multiprocessing.Condition(lock_task_assign)
                 cond_result_queue = multiprocessing.Condition(lock_result_queue)
 
                 worker_count = config_file_reader.worker_count
@@ -191,7 +190,6 @@ def main():
                 worker_handle_dict = create_worker(worker_state_table,
                                                    lock_worker_state_table,
                                                    task_queue,
-                                                   cond_task_assign,
                                                    result_queue,
                                                    cond_result_queue)
 
@@ -220,13 +218,6 @@ def main():
 
                     last_exec_timestamp = int(time.time())
 
-                    # Since the Python multiprocessing queue is not reliable
-                    # we need to notify as long as the queue is not empty!
-                    with CriticalSection(cond_task_assign):
-
-                        if not task_queue.is_empty():
-                            cond_task_assign.notify()
-
                     if not send_msg:
 
                         with CriticalSection(cond_result_queue):
@@ -251,7 +242,7 @@ def main():
 
                         found_ready_worker = False
 
-                        with CriticalSection(cond_task_assign):
+                        with CriticalSection(lock_worker_state_table):
 
                             for worker_id in worker_state_table.iterkeys():
 
@@ -263,7 +254,7 @@ def main():
 
                         if found_ready_worker:
 
-                            logging.debug('Requesting for task...')
+                            logging.debug('Requesting a task...')
 
                             send_msg = TaskRequest(comm_handler.fqdn)
 
@@ -286,6 +277,7 @@ def main():
 
                             else:   # Available worker are busy
 
+                                # TODO: Check over!!!
                                 with CriticalSection(cond_result_queue):
 
                                     # TODO: How should the wait time be set?
@@ -312,16 +304,14 @@ def main():
 
                                 logging.debug("Retrieved task assign for OST: " + in_msg.ost_name)
 
-                                with CriticalSection(cond_task_assign):
+                                task_queue.push(OSTTask(in_msg.ost_name,
+                                                        in_msg.ost_ip,
+                                                        in_msg.block_size_bytes,
+                                                        in_msg.total_size_bytes,
+                                                        in_msg.target_dir,
+                                                        lfs_utils))
 
-                                    task_queue.push(OSTTask(in_msg.ost_name,
-                                                            in_msg.ost_ip,
-                                                            in_msg.block_size_bytes,
-                                                            in_msg.total_size_bytes,
-                                                            in_msg.target_dir,
-                                                            lfs_utils))
-
-                                    cond_task_assign.notify()
+                                logging.debug("Pushed task to task queue: %s" % in_msg.ost_name)
 
                             elif in_msg.header == MessageType.ACKNOWLEDGE():
                                 continue
@@ -362,6 +352,8 @@ def main():
 
                         if ost_perf_his_table_handler.count():
 
+                            logging.debug("Storing results into database...")
+
                             ost_perf_his_table_handler.store()
                             ost_perf_his_table_handler.clear()
 
@@ -384,10 +376,7 @@ def main():
 
                                     os.kill(worker_handle_dict[worker_id].pid, signal.SIGUSR1)
 
-                                    with CriticalSection(cond_task_assign):
-
-                                        task_queue.push(PoisenPill())
-                                        cond_task_assign.notify()
+                                    task_queue.push(PoisenPill())
 
                                     found_active_worker = True
 

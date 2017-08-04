@@ -90,7 +90,7 @@ class Worker(multiprocessing.Process):
 
     def __init__(self, name,
                  worker_state_table_item, lock_worker_state_table,
-                 task_queue, cond_task_assign,
+                 task_queue,
                  result_queue, cond_result_queue):
 
         super(Worker, self).__init__()
@@ -101,7 +101,6 @@ class Worker(multiprocessing.Process):
         self.lock_worker_state_table = lock_worker_state_table
 
         self.task_queue = task_queue
-        self.cond_task_assign = cond_task_assign
 
         self.result_queue = result_queue
         self.cond_result_queue = cond_result_queue
@@ -128,13 +127,7 @@ class Worker(multiprocessing.Process):
 
         while self.run_flag:
 
-            ost_task = None
-
-            with CriticalSection(self.cond_task_assign):
-
-                self.cond_task_assign.wait()
-
-                ost_task = self.task_queue.pop()
+            ost_task = self.task_queue.pop()
 
             with CriticalSection(self.lock_worker_state_table):
 
