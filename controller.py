@@ -277,7 +277,6 @@ def main():
 
                             else:   # Available worker are busy
 
-                                # TODO: Check over!!!
                                 with CriticalSection(cond_result_queue):
 
                                     # TODO: How should the wait time be set?
@@ -391,6 +390,13 @@ def main():
 
                         logging.error("Caught exception terminating Worker: " + str(e))
                         error_flag = True
+
+                if ost_perf_his_table_handler.count():
+
+                    logging.debug("Storing results into database...")
+
+                    ost_perf_his_table_handler.store()
+                    ost_perf_his_table_handler.clear()
 
             else:
                 logging.error("Another instance might be already running as well!")
