@@ -226,7 +226,7 @@ class OSTListProcessor(Process):
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: %s" % self.lfs_bin)
 
-        cmd = self.lfs_bin + " check osts"
+        cmd = self.lctl_bin + " get_param 'osc." + self.lfs_target + "-*.active'"
 
         (status, output) = commands.getstatusoutput(cmd)
 
@@ -260,7 +260,7 @@ class OSTListProcessor(Process):
             if not re_match:
                 raise RuntimeError("No valid OST name found in line: %s" % ost_info)
 
-            if ' active.' in ost_info:
+            if 'active=1' in ost_info:
                 # logging.debug("Found active OST: %s" % ost_name)
                 active_ost_list.append(ost_name)
 
