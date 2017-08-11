@@ -53,9 +53,6 @@ def init_arg_parser():
     parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=True,
                         help='Path to the config file.')
 
-    parser.add_argument('--create-table', dest='create_table', required=False, action='store_true',
-                        help='Creates proper database table for storing OST performance measurements.')
-
     parser.add_argument('-D', '--enable-debug', dest='enable_debug', required=False, action='store_true',
                         help='Enables debug log messages.')
 
@@ -133,17 +130,6 @@ def main():
                 signal.signal(signal.SIGUSR1, signal_handler_shutdown)
                 signal.siginterrupt(signal.SIGUSR1, True)
 
-                if args.create_table:
-
-                    ost_perf_his_table_handler = \
-                        OSTPerfHistoryTableHandler(config_file_reader.host,
-                                                   config_file_reader.user,
-                                                   config_file_reader.passwd,
-                                                   config_file_reader.db,
-                                                   config_file_reader.table)
-
-                    ost_perf_his_table_handler.create_table()
-
                 comm_handler.connect()
 
                 controller_heartbeat_dict = dict()
@@ -154,10 +140,12 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                # OSTTask specific test parameter:
+                # OSTTask specific parameter:
                 block_size_bytes = config_file_reader.block_size_bytes
                 total_size_bytes = config_file_reader.total_size_bytes
                 target_dir = config_file_reader.target_dir
+                db_proxy_target =  config_file_reader.db_proxy_target
+                db_proxy_port = config_file_reader.db_proxy_port
 
                 lock_shared_queue = multiprocessing.Lock()
 
@@ -231,7 +219,9 @@ def main():
                                                                       ost_info.ip,
                                                                       block_size_bytes,
                                                                       total_size_bytes,
-                                                                      target_dir)
+                                                                      target_dir,
+                                                                      db_proxy_target,
+                                                                      db_proxy_port)
 
                                             elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
@@ -255,7 +245,9 @@ def main():
                                                                   ost_info.ip,
                                                                   block_size_bytes,
                                                                   total_size_bytes,
-                                                                  target_dir)
+                                                                  target_dir,
+                                                                  db_proxy_target,
+                                                                  db_proxy_port)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
@@ -350,12 +342,12 @@ def main():
             else:
 
                 logging.error("Another instance might be already running as well!")
-                logging.info("PID lock file: " + pid_file)
+                logging.info("PID lock file: %s" % pid_file)
                 exit(1)
 
     except Exception as e:
 
-        logging.error("Caught exception on main block: " + str(e))
+        logging.error("Caught exception on main block: %s" % e)
         error_count += 1
 
     try:

@@ -135,19 +135,12 @@ class Worker(multiprocessing.Process):
                 self.worker_state_table_item.set_ost_name(ost_task.name)
                 self.worker_state_table_item.set_timestamp(int(time.time()))
 
-            # TODO - Task-Generic Solution:
-            # No return value on executing a task.
-            ost_perf_result = ost_task.execute()
+            ost_task.execute()
 
-            # Just an OSTTask returns a return value. Poisen pill does not.
-            if ost_perf_result:
+            with CriticalSection(self.cond_result_queue):
 
-                with CriticalSection(self.cond_result_queue):
-
-                    # TODO - Task-Generic Solution:
-                    # Just push the name of the finished task.
-                    self.result_queue.push(ost_perf_result)
-                    self.cond_result_queue.notify()
+                self.result_queue.push(ost_task.name)
+                self.cond_result_queue.notify()
 
             with CriticalSection(self.lock_worker_state_table):
 

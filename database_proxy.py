@@ -1,0 +1,170 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+
+import argparse
+import logging
+import signal
+import time
+import sys
+import os
+
+from ctrl.pid_control import PIDControl
+from comm.database_proxy_handler import DatabaseProxyCommHandler
+from conf.database_proxy_config_file_reader import DatabaseProxyConfigFileReader
+from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
+
+
+RUN_FLAG = True
+
+
+def init_arg_parser():
+
+    parser = argparse.ArgumentParser(description='MySQL Database Proxy.')
+
+    parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=True,
+                        help='Path to the config file.')
+
+    parser.add_argument('--create-table', dest='create_table', required=False, action='store_true',
+                        help='Creates proper database table for storing OST performance measurements.')
+
+    parser.add_argument('-D', '--enable-debug', dest='enable_debug', required=False, action='store_true',
+                        help='Enables debug log messages.')
+
+    return parser.parse_args()
+
+
+def init_logging(log_filename, enable_debug):
+
+    if enable_debug:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+
+    if log_filename:
+        logging.basicConfig(filename=log_filename, level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
+    else:
+        logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
+
+
+def signal_handler_terminate(signal, frame):
+
+    logging.info('Terminate')
+    sys.exit(0)
+
+
+def signal_handler_shutdown(signal, frame):
+
+    logging.info('Shutting down...')
+
+    global RUN_FLAG
+
+    if RUN_FLAG:
+        RUN_FLAG = False
+
+
+def main():
+
+    try:
+
+        args = init_arg_parser()
+
+        config_file_reader = DatabaseProxyConfigFileReader(args.config_file)
+
+        init_logging(config_file_reader.log_filename, args.enable_debug)
+
+        pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
+
+        with PIDControl(pid_file) as pid_control, \
+                DatabaseProxyCommHandler(config_file_reader.comm_target,
+                                         config_file_reader.comm_port,
+                                         config_file_reader.poll_timeout) as comm_handler, \
+                OSTPerfHistoryTableHandler(config_file_reader.host,
+                                           config_file_reader.user,
+                                           config_file_reader.passwd,
+                                           config_file_reader.db,
+                                           config_file_reader.table) as table_handler:
+
+            if pid_control.lock():
+
+                logging.info('Start')
+
+                signal.signal(signal.SIGINT, signal_handler_terminate)
+                signal.signal(signal.SIGUSR1, signal_handler_shutdown)
+                signal.siginterrupt(signal.SIGUSR1, True)
+
+                last_store_timestamp = int(time.time())
+                store_timeout = config_file_reader.store_timeout
+                store_max_count = config_file_reader.store_max_count
+
+                if args.create_table:
+                    table_handler.create_table()
+
+                comm_handler.connect()
+
+                while RUN_FLAG:
+
+                    last_exec_timestamp = int(time.time())
+
+                    # TODO: Building an object and validate data...
+                    recv_data = comm_handler.recv()
+
+                    if recv_data:
+
+                        logging.debug("Retrieved data: %s" % recv_data)
+
+                        table_handler.insert(recv_data)
+
+                    else:
+                        logging.debug('Timeout...')
+
+                    if (last_exec_timestamp >= (last_store_timestamp + store_timeout)) or \
+                            table_handler.count() >= store_max_count:
+
+                        if table_handler.count():
+                            logging.debug("Storing results into database...")
+
+                            table_handler.store()
+                            table_handler.clear()
+
+                            last_store_timestamp = int(time.time())
+
+            else:
+
+                logging.error("Another instance might be already running as well!")
+                logging.info("PID lock file: %s" % pid_file)
+                exit(1)
+
+    except Exception as e:
+
+        logging.error("Caught exception on main block: %s" % e)
+        exit(1)
+
+    if table_handler and table_handler.count():
+
+        logging.debug("Storing results into database...")
+
+        table_handler.store()
+        table_handler.clear()
+
+    logging.info("Finished")
+    exit(0)
+
+if __name__ == '__main__':
+    main()

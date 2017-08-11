@@ -61,6 +61,9 @@ class MasterConfigFileReader:
         self.table = config.get('db', 'table')
 
         self.measure_interval = float(config.get('test', 'measure_interval'))
-        self.block_size_bytes = int(config.get('test', 'block_size_bytes'))
-        self.total_size_bytes = int(config.get('test', 'total_size_bytes'))
-        self.target_dir = config.get('test', 'target_dir')
+
+        self.block_size_bytes = int(config.get('task', 'block_size_bytes'))
+        self.total_size_bytes = int(config.get('task', 'total_size_bytes'))
+        self.target_dir = config.get('task', 'target_dir')
+        self.db_proxy_target = config.get('task', 'db_proxy_target')
+        self.db_proxy_port = config.get('task', 'db_proxy_port')

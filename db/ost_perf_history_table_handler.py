@@ -36,6 +36,12 @@ class OSTPerfHistoryTableHandler:
 
         self._ost_perf_result_list = list()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return self
+
     def create_table(self):
 
         sql = """
@@ -88,12 +94,12 @@ CREATE TABLE """ + self._table_name + """ (
 
         if len_ost_perf_result_list > 0:
 
-            sql += "(" + self._ost_perf_result_list[0].to_string_csv_list() + ")"
+            sql += "(" + self._ost_perf_result_list[0] + ")"
 
             if len_ost_perf_result_list > 1:
 
                 for i in range(1, len_ost_perf_result_list):
-                    sql += ",(" + self._ost_perf_result_list[i].to_string_csv_list() + ")"
+                    sql += ",(" + self._ost_perf_result_list[i] + ")"
 
         logging.debug("Executing SQL statement:\n" + sql)
 
@@ -106,7 +112,7 @@ CREATE TABLE """ + self._table_name + """ (
                     raise RuntimeError("Number of rows inserted is not equal to number of input records for table: %s"
                                        % self._table_name)
 
-        # logging.debug("Inserted: %s records into table: %s" % (len_ost_perf_result_list, self._table_name))
+        logging.debug("Inserted: %s records into table: %s" % (len_ost_perf_result_list, self._table_name))
 
     def count(self):
         return len(self._ost_perf_result_list)

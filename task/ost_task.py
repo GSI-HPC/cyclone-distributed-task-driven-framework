@@ -22,6 +22,7 @@ import logging
 import datetime
 import time
 import os
+import zmq
 
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
@@ -29,7 +30,15 @@ from util.auto_remove_file import AutoRemoveFile
 
 class OSTTask:
 
-    def __init__(self, name, ip, block_size_bytes, total_size_bytes, target_dir, lfs_utils):
+    def __init__(self,
+                 name,
+                 ip,
+                 block_size_bytes,
+                 total_size_bytes,
+                 target_dir,
+                 lfs_utils,
+                 db_proxy_target,
+                 db_proxy_port):
 
         self.name = name
         self.ip = ip
@@ -43,7 +52,14 @@ class OSTTask:
 
         self.lfs_utils = lfs_utils
 
+        self.db_proxy_target = db_proxy_target
+        self.db_proxy_port = db_proxy_port
+        self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
+
+
     def execute(self):
+
+        ost_perf_result = None
 
         self._initialize_payload()
 
@@ -60,7 +76,7 @@ class OSTTask:
             read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             read_duration, read_throughput = self.read_file()
 
-            return \
+            ost_perf_result = \
                 OSTPerfResult(write_timestamp,
                               read_timestamp,
                               self.name,
@@ -70,6 +86,26 @@ class OSTTask:
                               write_throughput,
                               read_duration,
                               write_duration)
+
+            try:
+
+                if ost_perf_result:
+
+                    timeout = 1000
+
+                    context = zmq.Context()
+
+                    sock = context.socket(zmq.PUSH)
+
+                    sock.setsockopt(zmq.LINGER, timeout)
+                    sock.SNDTIMEO = timeout
+
+                    sock.connect(self.db_proxy_endpoint)
+
+                    sock.send(ost_perf_result.to_string_csv_list())
+
+            except Exception as e:
+                print "Exception: %s" % e
 
     def _initialize_payload(self):
 

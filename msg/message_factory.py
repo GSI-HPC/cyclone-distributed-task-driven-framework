@@ -60,8 +60,14 @@ class MessageFactory:
             return TaskRequest(message_items[1])
 
         if header == MessageType.TASK_ASSIGN() \
-                and len_message_items == 6:
-            return TaskAssign(message_items[1], message_items[2], message_items[3], message_items[4], message_items[5])
+                and len_message_items == 8:
+            return TaskAssign(message_items[1],
+                              message_items[2],
+                              message_items[3],
+                              message_items[4],
+                              message_items[5],
+                              message_items[6],
+                              message_items[7])
 
         if header == MessageType.TASK_FINISHED() \
                 and len_message_items == 3:

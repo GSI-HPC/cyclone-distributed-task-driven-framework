@@ -34,7 +34,6 @@ from conf.controller_config_file_reader import ControllerConfigFileReader
 from ctrl.pid_control import PIDControl
 from ctrl.critical_section import CriticalSection
 from ctrl.shared_queue import SharedQueue
-from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from lfs.lfs_utils import LFSUtils
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
@@ -193,17 +192,6 @@ def main():
                                                    result_queue,
                                                    cond_result_queue)
 
-                ost_perf_his_table_handler = \
-                    OSTPerfHistoryTableHandler(config_file_reader.host,
-                                               config_file_reader.user,
-                                               config_file_reader.passwd,
-                                               config_file_reader.db,
-                                               config_file_reader.table)
-
-                last_store_timestamp = int(time.time())
-                store_timeout = config_file_reader.store_timeout
-                store_max_count = config_file_reader.store_max_count
-
                 run_condition = True
 
                 if not start_worker(worker_handle_dict, worker_state_table):
@@ -224,19 +212,12 @@ def main():
 
                             if not result_queue.is_empty():
 
-                                # TODO - Task-Generic Solution:
-                                # Just the task name would be retrieved.
-                                ost_perf_result = result_queue.pop_nowait()
+                                ost_name = result_queue.pop_nowait()
 
-                                if ost_perf_result:
+                                if ost_name:
 
-                                    logging.debug("Finished task for OST: %s" % ost_perf_result.ost)
-
-                                    # TODO - Task-Generic Solution:
-                                    # This would be done in the worker within the specific executed task itself.
-                                    ost_perf_his_table_handler.insert(ost_perf_result)
-
-                                    send_msg = TaskFinished(comm_handler.fqdn, ost_perf_result.ost)
+                                    logging.debug("Finished task for OST: %s" % ost_name)
+                                    send_msg = TaskFinished(comm_handler.fqdn, ost_name)
 
                     if not send_msg:
 
@@ -308,7 +289,9 @@ def main():
                                                         in_msg.block_size_bytes,
                                                         in_msg.total_size_bytes,
                                                         in_msg.target_dir,
-                                                        lfs_utils))
+                                                        lfs_utils,
+                                                        in_msg.db_proxy_target,
+                                                        in_msg.db_proxy_port))
 
                                 logging.debug("Pushed task to task queue: %s" % in_msg.ost_name)
 
@@ -344,20 +327,6 @@ def main():
                             comm_handler.reconnect()
                             request_retry_count += 1
 
-                    # TODO - Task-Generic Solution:
-                    # Should be completely removed and integrated a separate process for handling database inserts.
-                    if (last_exec_timestamp >= (last_store_timestamp + store_timeout)) or \
-                            ost_perf_his_table_handler.count() >= store_max_count:
-
-                        if ost_perf_his_table_handler.count():
-
-                            logging.debug("Storing results into database...")
-
-                            ost_perf_his_table_handler.store()
-                            ost_perf_his_table_handler.clear()
-
-                            last_store_timestamp = int(time.time())
-
                 # Shutdown all worker...
                 if not run_condition:
 
@@ -390,13 +359,6 @@ def main():
 
                         logging.error("Caught exception terminating Worker: " + str(e))
                         error_flag = True
-
-                if ost_perf_his_table_handler.count():
-
-                    logging.debug("Storing results into database...")
-
-                    ost_perf_his_table_handler.store()
-                    ost_perf_his_table_handler.clear()
 
             else:
                 logging.error("Another instance might be already running as well!")

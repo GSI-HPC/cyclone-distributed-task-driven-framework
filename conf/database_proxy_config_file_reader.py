@@ -22,7 +22,7 @@ import ConfigParser
 import os
 
 
-class ControllerConfigFileReader:
+class DatabaseProxyConfigFileReader:
 
     def __init__(self, config_file):
 
@@ -38,17 +38,18 @@ class ControllerConfigFileReader:
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))
         self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
-        self.request_retry_wait_duration = int(config.get('comm', 'request_retry_wait_duration'))
-
-        self.lfs_bin = config.get('lustre', 'lfs_bin')
 
         self.log_filename = config.get('log', 'filename')
 
-        self.worker_count = int(config.get('processing', 'worker_count'))
+        self.host = config.get('db', 'host')
+        self.user = config.get('db', 'user')
+        self.passwd = config.get('db', 'passwd')
+        self.db = config.get('db', 'database')
+        self.table = config.get('db', 'table')
+        self.store_timeout = int(config.get('db', 'store_timeout'))
+        self.store_max_count = int(config.get('db', 'store_max_count'))
 
         self.validate()
 
     def validate(self):
-
-        if self.worker_count <= 0 or self.worker_count > 1000:
-            raise RuntimeError("Not supported worker count detected: %s" % self.worker_count)
+        pass
