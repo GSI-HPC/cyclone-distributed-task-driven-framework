@@ -34,7 +34,6 @@ from conf.controller_config_file_reader import ControllerConfigFileReader
 from ctrl.pid_control import PIDControl
 from ctrl.critical_section import CriticalSection
 from ctrl.shared_queue import SharedQueue
-from lfs.lfs_utils import LFSUtils
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
@@ -168,8 +167,6 @@ def main():
 
                 logging.info('Start')
 
-                lfs_utils = LFSUtils(config_file_reader.lfs_bin)
-
                 comm_handler.connect()
 
                 request_retry_count = 0
@@ -289,7 +286,7 @@ def main():
                                                         in_msg.block_size_bytes,
                                                         in_msg.total_size_bytes,
                                                         in_msg.target_dir,
-                                                        lfs_utils,
+                                                        in_msg.lfs_bin,
                                                         in_msg.db_proxy_target,
                                                         in_msg.db_proxy_port))
 

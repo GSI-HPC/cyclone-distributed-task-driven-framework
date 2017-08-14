@@ -26,6 +26,7 @@ import zmq
 
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
+from lfs.lfs_utils import LFSUtils
 
 
 class OSTTask:
@@ -36,7 +37,7 @@ class OSTTask:
                  block_size_bytes,
                  total_size_bytes,
                  target_dir,
-                 lfs_utils,
+                 lfs_bin,
                  db_proxy_target,
                  db_proxy_port):
 
@@ -50,7 +51,7 @@ class OSTTask:
 
         self.file_path = target_dir + os.path.sep + self.name + "_perf_test.tmp"
 
-        self.lfs_utils = lfs_utils
+        self.lfs_utils = LFSUtils(lfs_bin)
 
         self.db_proxy_target = db_proxy_target
         self.db_proxy_port = db_proxy_port

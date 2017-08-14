@@ -144,7 +144,8 @@ def main():
                 block_size_bytes = config_file_reader.block_size_bytes
                 total_size_bytes = config_file_reader.total_size_bytes
                 target_dir = config_file_reader.target_dir
-                db_proxy_target =  config_file_reader.db_proxy_target
+                lfs_bin = config_file_reader.lfs_bin
+                db_proxy_target = config_file_reader.db_proxy_target
                 db_proxy_port = config_file_reader.db_proxy_port
 
                 lock_shared_queue = multiprocessing.Lock()
@@ -199,6 +200,9 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
+                                    # TODO:
+                                    # 1) Remove redundancy with TaskAssign task -> Just one send!
+                                    # 2) ???
                                     if ost_info:
 
                                         if ost_info.name in ost_status_lookup_dict:
@@ -220,6 +224,7 @@ def main():
                                                                       block_size_bytes,
                                                                       total_size_bytes,
                                                                       target_dir,
+                                                                      lfs_bin,
                                                                       db_proxy_target,
                                                                       db_proxy_port)
 
@@ -246,6 +251,7 @@ def main():
                                                                   block_size_bytes,
                                                                   total_size_bytes,
                                                                   target_dir,
+                                                                  lfs_bin,
                                                                   db_proxy_target,
                                                                   db_proxy_port)
 

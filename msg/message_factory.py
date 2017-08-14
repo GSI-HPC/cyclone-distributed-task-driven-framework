@@ -55,38 +55,32 @@ class MessageFactory:
             header = message_items[0]
             len_message_items = len(message_items)
 
-        if header == MessageType.TASK_REQUEST() \
-                and len_message_items == 2:
+        if header == MessageType.TASK_REQUEST() and len_message_items == 2:
             return TaskRequest(message_items[1])
 
-        if header == MessageType.TASK_ASSIGN() \
-                and len_message_items == 8:
+        if header == MessageType.TASK_ASSIGN() and len_message_items == 9:
             return TaskAssign(message_items[1],
                               message_items[2],
                               message_items[3],
                               message_items[4],
                               message_items[5],
                               message_items[6],
-                              message_items[7])
+                              message_items[7],
+                              message_items[8])
 
-        if header == MessageType.TASK_FINISHED() \
-                and len_message_items == 3:
+        if header == MessageType.TASK_FINISHED() and len_message_items == 3:
             return TaskFinished(message_items[1], message_items[2])
 
-        if header == MessageType.ACKNOWLEDGE() \
-                and len_message_items == 1:
+        if header == MessageType.ACKNOWLEDGE() and len_message_items == 1:
             return Acknowledge()
 
-        if header == MessageType.WAIT_COMMAND() \
-                and len_message_items == 2:
+        if header == MessageType.WAIT_COMMAND() and len_message_items == 2:
             return WaitCommand(message_items[1])
 
-        if header == MessageType.HEARTBEAT() \
-                and len_message_items == 2:
+        if header == MessageType.HEARTBEAT() and len_message_items == 2:
             return Heartbeat(message_items[1])
 
-        if header == MessageType.EXIT_COMMAND() \
-                and len_message_items == 1:
+        if header == MessageType.EXIT_COMMAND() and len_message_items == 1:
             return ExitCommand()
 
         raise RuntimeError("No message could be created from: " + message)

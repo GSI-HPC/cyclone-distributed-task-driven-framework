@@ -25,7 +25,15 @@ from message_type import MessageType
 class TaskAssign(BaseMessage):
     """The Master sends this message to a controller to assign a task."""
 
-    def __init__(self, ost_name, ost_ip, block_size_bytes, total_size_bytes, target_dir, db_proxy_target, db_proxy_port):
+    def __init__(self,
+                 ost_name,
+                 ost_ip,
+                 block_size_bytes,
+                 total_size_bytes,
+                 target_dir,
+                 lfs_bin,
+                 db_proxy_target,
+                 db_proxy_port):
 
         if not ost_name:
             raise RuntimeError('No OST name is set!')
@@ -42,6 +50,9 @@ class TaskAssign(BaseMessage):
         if not target_dir:
             raise RuntimeError('No target directory is set!')
 
+        if not lfs_bin:
+            raise RuntimeError('No lfs_bin is set!')
+
         if not db_proxy_target:
             raise RuntimeError('No db_proxy_target is set!')
 
@@ -57,6 +68,8 @@ class TaskAssign(BaseMessage):
             + str(total_size_bytes) \
             + self.field_separator \
             + target_dir \
+            + self.field_separator \
+            + lfs_bin \
             + self.field_separator \
             + db_proxy_target \
             + self.field_separator \
@@ -90,9 +103,13 @@ class TaskAssign(BaseMessage):
         return self.body.split(BaseMessage.field_separator)[4]
 
     @property
-    def db_proxy_target(self):
+    def lfs_bin(self):
         return self.body.split(BaseMessage.field_separator)[5]
 
     @property
-    def db_proxy_port(self):
+    def db_proxy_target(self):
         return self.body.split(BaseMessage.field_separator)[6]
+
+    @property
+    def db_proxy_port(self):
+        return self.body.split(BaseMessage.field_separator)[7]
