@@ -133,12 +133,10 @@ def main():
                 comm_handler.connect()
 
                 controller_heartbeat_dict = dict()
-                ost_status_lookup_dict = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
                 lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
-                task_resend_timeout = config_file_reader.task_resend_timeout
 
                 # OSTTask specific parameter:
                 block_size_bytes = config_file_reader.block_size_bytes
@@ -200,60 +198,16 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                    # TODO:
-                                    # 1) Remove redundancy with TaskAssign task -> Just one send!
-                                    # 2) ???
                                     if ost_info:
 
-                                        if ost_info.name in ost_status_lookup_dict:
-
-                                            task_resend_threshold = \
-                                                (ost_status_lookup_dict[ost_info.name].timestamp + task_resend_timeout)
-
-                                            if (ost_status_lookup_dict[ost_info.name].state == OstState.FINISHED) or \
-                                                    last_exec_timestamp >= task_resend_threshold:
-
-                                                ost_status_lookup_dict[ost_info.name] = \
-                                                    OstStatusItem(ost_info.name,
-                                                                  OstState.ASSIGNED,
-                                                                  recv_msg.sender,
-                                                                  int(time.time()))
-
-                                                send_msg = TaskAssign(ost_info.name,
-                                                                      ost_info.ip,
-                                                                      block_size_bytes,
-                                                                      total_size_bytes,
-                                                                      target_dir,
-                                                                      lfs_bin,
-                                                                      db_proxy_target,
-                                                                      db_proxy_port)
-
-                                            elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
-                                                    last_exec_timestamp < task_resend_threshold:
-
-                                                # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
-                                                #TODO: Wait duration how long?
-                                                send_msg = WaitCommand(controller_wait_duration)
-
-                                            else:
-                                                raise RuntimeError("Undefined state processing task: ", ost_info.name)
-
-                                        else:   # Add new OST name to lookup dict!
-
-                                            ost_status_lookup_dict[ost_info.name] = \
-                                                OstStatusItem(ost_info.name,
-                                                              OstState.ASSIGNED,
-                                                              recv_msg.sender,
-                                                              int(time.time()))
-
-                                            send_msg = TaskAssign(ost_info.name,
-                                                                  ost_info.ip,
-                                                                  block_size_bytes,
-                                                                  total_size_bytes,
-                                                                  target_dir,
-                                                                  lfs_bin,
-                                                                  db_proxy_target,
-                                                                  db_proxy_port)
+                                        send_msg = TaskAssign(ost_info.name,
+                                                              ost_info.ip,
+                                                              block_size_bytes,
+                                                              total_size_bytes,
+                                                              target_dir,
+                                                              lfs_bin,
+                                                              db_proxy_target,
+                                                              db_proxy_port)
 
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
@@ -269,21 +223,6 @@ def main():
                                 elif MessageType.TASK_FINISHED() == recv_msg.header:
 
                                     ost_name = recv_msg.ost_name
-
-                                    if ost_name in ost_status_lookup_dict:
-
-                                        if recv_msg.sender == ost_status_lookup_dict[ost_name].controller:
-
-                                            logging.debug("Retrieved finished OST message: " + ost_name)
-
-                                            ost_status_lookup_dict[ost_name].state = OstState.FINISHED
-                                            ost_status_lookup_dict[ost_name].timestamp = int(time.time())
-
-                                        else:
-                                            logging.warning("Retrieved task finished from different controller!")
-
-                                    else:
-                                        raise RuntimeError("Inconsistency detected on task finished!")
 
                                     # TODO: Benchmarking:
                                     finished_task_count += 1
