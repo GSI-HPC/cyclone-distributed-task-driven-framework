@@ -42,6 +42,7 @@ class MasterConfigFileReader:
         self.controller_timeout = float(config.get('control', 'controller_timeout'))
         self.lock_shared_queue_timeout = int(config.get('control', 'lock_shared_queue_timeout'))
         self.controller_wait_duration = int(config.get('control', 'controller_wait_duration'))
+        self.task_resend_timeout = int(config.get('control', 'task_resend_timeout'))
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))
