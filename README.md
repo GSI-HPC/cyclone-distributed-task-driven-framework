@@ -1,5 +1,4 @@
-# lustre_ost_monitoring
-Lustre OST Monitoring
+# Lustre Monitoring
 
 ## Requisites
 * Python interface to MySQL (MySQLdb)
