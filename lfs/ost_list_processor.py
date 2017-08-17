@@ -24,12 +24,12 @@ import logging
 import signal
 import time
 import os
+import zmq
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
 from ctrl.ost_info import OSTInfo
 from db.ost_perf_result import OSTPerfResult
-from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 
 
 class OSTListProcessor(Process):
@@ -51,14 +51,11 @@ class OSTListProcessor(Process):
 
         self.total_size_bytes = config_file_reader.total_size_bytes
 
-        self.run_flag = False
+        self.db_proxy_target = config_file_reader.db_proxy_target
+        self.db_proxy_port = config_file_reader.db_proxy_port
+        self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
 
-        self.history_table_handler = \
-            OSTPerfHistoryTableHandler(config_file_reader.host,
-                                       config_file_reader.user,
-                                       config_file_reader.passwd,
-                                       config_file_reader.db,
-                                       config_file_reader.table)
+        self.run_flag = False
 
     def start(self):
 
@@ -92,23 +89,36 @@ class OSTListProcessor(Process):
 
                     for ost_info in inactive_ost_info_list:
 
-                        ost_perf_result = \
-                            OSTPerfResult(timestamp,
-                                          timestamp,
-                                          ost_info.name,
-                                          ost_info.ip,
-                                          self.total_size_bytes,
-                                          0,
-                                          0,
-                                          0,
-                                          0)
+                        try:
 
-                        self.history_table_handler.insert(ost_perf_result)
+                            ost_perf_result = \
+                                OSTPerfResult(timestamp,
+                                              timestamp,
+                                              ost_info.name,
+                                              ost_info.ip,
+                                              self.total_size_bytes,
+                                              0,
+                                              0,
+                                              0,
+                                              0)
 
-                    if self.history_table_handler.count():
+                            if ost_perf_result:
 
-                        self.history_table_handler.store()
-                        self.history_table_handler.clear()
+                                timeout = 1000
+
+                                context = zmq.Context()
+
+                                sock = context.socket(zmq.PUSH)
+
+                                sock.setsockopt(zmq.LINGER, timeout)
+                                sock.SNDTIMEO = timeout
+
+                                sock.connect(self.db_proxy_endpoint)
+
+                                sock.send(ost_perf_result.to_string_csv_list())
+
+                        except Exception as e:
+                            logging.error("Exception: %s" % e)
 
                 time.sleep(self.measure_interval)
 
@@ -126,9 +136,10 @@ class OSTListProcessor(Process):
 
         ost_ip_dict = self._create_ost_ip_dict()
 
-        # Testing with a small set of OSTs...
+        # Testing with a small set of OST's
         # active_ost_list, inactive_ost_list = self._create_ost_state_test_lists()
 
+        # Productive for all OST's
         active_ost_list, inactive_ost_list = self._create_ost_state_lists()
 
         active_ost_ip_dict = self._create_ost_info_list(active_ost_list, ost_ip_dict)
@@ -207,14 +218,10 @@ class OSTListProcessor(Process):
         active_ost_list.append('OST0007')
         active_ost_list.append('OST0008')
         active_ost_list.append('OST0009')
-        active_ost_list.append('OST0010')
-        active_ost_list.append('OST0011')
-        active_ost_list.append('OST0012')
-        active_ost_list.append('OST0013')
-        active_ost_list.append('OST0014')
-        active_ost_list.append('OST0015')
-        active_ost_list.append('OST0016')
-        active_ost_list.append('OST0017')
+        active_ost_list.append('OST000a')
+        active_ost_list.append('OST000b')
+        active_ost_list.append('OST000c')
+        active_ost_list.append('OST000d')
 
         return tuple((active_ost_list, inactive_ost_list))
 

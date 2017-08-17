@@ -106,7 +106,7 @@ class OSTTask:
                     sock.send(ost_perf_result.to_string_csv_list())
 
             except Exception as e:
-                print "Exception: %s" % e
+                logging.error("Exception: %s" % e)
 
     def _initialize_payload(self):
 

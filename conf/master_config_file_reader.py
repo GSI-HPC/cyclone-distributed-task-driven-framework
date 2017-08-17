@@ -53,16 +53,11 @@ class MasterConfigFileReader:
         self.lfs_bin = config.get('lustre', 'lfs_bin')
         self.lfs_target = config.get('lustre', 'lfs_target')
 
-        self.host = config.get('db', 'host')
-        self.user = config.get('db', 'user')
-        self.passwd = config.get('db', 'passwd')
-        self.db = config.get('db', 'database')
-        self.table = config.get('db', 'table')
-
         self.measure_interval = float(config.get('test', 'measure_interval'))
 
         self.block_size_bytes = int(config.get('task', 'block_size_bytes'))
         self.total_size_bytes = int(config.get('task', 'total_size_bytes'))
         self.target_dir = config.get('task', 'target_dir')
-        self.db_proxy_target = config.get('task', 'db_proxy_target')
-        self.db_proxy_port = config.get('task', 'db_proxy_port')
+
+        self.db_proxy_target = config.get('db_proxy', 'target')
+        self.db_proxy_port = config.get('db_proxy', 'port')
