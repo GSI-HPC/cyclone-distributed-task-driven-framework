@@ -1,4 +1,4 @@
-# Lustre Monitoring
+# Lustre Task Driven Monitoring Framework
 
 ## Requisites
 * Python interface to MySQL (MySQLdb)
