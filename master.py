@@ -200,10 +200,9 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                    # TODO:
-                                    # 1) Remove redundancy with TaskAssign task -> Just one send!
-                                    # 2) ???
                                     if ost_info:
+
+                                        do_task_assign = False  # TODO: Could be a method call instead.
 
                                         if ost_info.name in ost_status_lookup_dict:
 
@@ -212,33 +211,21 @@ def main():
 
                                             if (ost_status_lookup_dict[ost_info.name].state == OstState.FINISHED) or \
                                                     last_exec_timestamp >= task_resend_threshold:
-
-                                                ost_status_lookup_dict[ost_info.name] = \
-                                                    OstStatusItem(ost_info.name,
-                                                                  OstState.ASSIGNED,
-                                                                  recv_msg.sender,
-                                                                  int(time.time()))
-
-                                                send_msg = TaskAssign(ost_info.name,
-                                                                      ost_info.ip,
-                                                                      block_size_bytes,
-                                                                      total_size_bytes,
-                                                                      target_dir,
-                                                                      lfs_bin,
-                                                                      db_proxy_target,
-                                                                      db_proxy_port)
+                                                do_task_assign = True
 
                                             elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
                                                     last_exec_timestamp < task_resend_threshold:
 
                                                 # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
-                                                #TODO: Wait duration how long?
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
                                                 raise RuntimeError("Undefined state processing task: ", ost_info.name)
 
                                         else:   # Add new OST name to lookup dict!
+                                            do_task_assign = True
+
+                                        if do_task_assign:
 
                                             ost_status_lookup_dict[ost_info.name] = \
                                                 OstStatusItem(ost_info.name,
@@ -256,6 +243,7 @@ def main():
                                                                   db_proxy_port)
 
                                     else:
+                                        # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                         send_msg = WaitCommand(controller_wait_duration)
 
                                     # TODO: Benchmarking...
