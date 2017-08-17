@@ -1,5 +1,5 @@
 # lustre_ost_performance_testing
-Distributed Lustre OST Performance Testing Tool
+Lustre OST Monitoring
 
 ## Requisites
 * Python interface to MySQL (MySQLdb)
