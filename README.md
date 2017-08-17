@@ -1,4 +1,4 @@
-# lustre_ost_performance_testing
+# lustre_ost_monitoring
 Lustre OST Monitoring
 
 ## Requisites
