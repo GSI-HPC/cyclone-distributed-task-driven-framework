@@ -33,7 +33,7 @@ class DatabaseProxyConfigFileReader:
         config.read(config_file)
 
         # TODO: Check parameter values!
-        self.pid_file_dir = config.get('control', 'pid_file_dir')
+        self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))

@@ -34,7 +34,7 @@ class MasterConfigFileReader:
         config.read(config_file)
 
         # TODO: Check parameter values!
-        self.pid_file_dir = config.get('control', 'pid_file_dir')
+        self.pid_file = config.get('control', 'pid_file')
 
         self.ost_reg_ex = re.compile(config.get('control', 'ost_reg_ex'))
         self.ip_reg_ex = re.compile(config.get('control', 'ip_reg_ex'))

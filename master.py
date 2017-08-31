@@ -114,9 +114,7 @@ def main():
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
-        pid_file = config_file_reader.pid_file_dir + os.path.sep + os.path.basename(sys.argv[0]) + ".pid"
-
-        with PIDControl(pid_file) as pid_control, \
+        with PIDControl(config_file_reader.pid_file) as pid_control, \
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
@@ -124,7 +122,7 @@ def main():
 
             if pid_control.lock():
 
-                logging.info('Start')
+                logging.info("Started (PID: %s)", pid_control.pid())
 
                 signal.signal(signal.SIGINT, signal_handler_terminate)
                 signal.signal(signal.SIGUSR1, signal_handler_shutdown)
@@ -336,7 +334,7 @@ def main():
             else:
 
                 logging.error("Another instance might be already running as well!")
-                logging.info("PID lock file: %s" % pid_file)
+                logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
                 exit(1)
 
     except Exception as e:
