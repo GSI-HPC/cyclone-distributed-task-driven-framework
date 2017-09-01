@@ -52,10 +52,10 @@ CREATE TABLE """ + self._table_name + """ (
    ost CHAR(7) NOT NULL,
    ip CHAR(15) NOT NULL,
    size BIGINT(20) UNSIGNED NOT NULL,
-   read_throughput BIGINT(20) UNSIGNED NOT NULL,
-   write_throughput BIGINT(20) UNSIGNED NOT NULL,
-   read_duration INT(10) UNSIGNED NOT NULL,
-   write_duration INT(10) UNSIGNED NOT NULL,
+   read_throughput BIGINT(20) SIGNED NOT NULL,
+   write_throughput BIGINT(20) SIGNED NOT NULL,
+   read_duration INT(10) SIGNED NOT NULL,
+   write_duration INT(10) SIGNED NOT NULL,
    PRIMARY KEY (id)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1
 """
