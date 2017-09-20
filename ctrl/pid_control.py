@@ -75,10 +75,7 @@ class PIDControl:
             if content == '':
                 raise RuntimeError("PID file is empty: %s" % self._pid_file)
 
-            content_lines = content.split(';')
-            pid_from_file = int(content_lines[0])
-
-            return pid_from_file
+            return content.split(';')[0]
 
         return -1
 
