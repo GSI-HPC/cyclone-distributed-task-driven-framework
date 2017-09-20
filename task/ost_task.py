@@ -24,12 +24,13 @@ import time
 import os
 import zmq
 
+from base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
 from lfs.lfs_utils import LFSUtils
 
 
-class OSTTask:
+class OSTTask(BaseTask):
 
     def __init__(self,
                  name,
@@ -56,7 +57,6 @@ class OSTTask:
         self.db_proxy_target = db_proxy_target
         self.db_proxy_port = db_proxy_port
         self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
-
 
     def execute(self):
 
