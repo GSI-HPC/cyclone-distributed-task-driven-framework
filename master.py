@@ -118,7 +118,7 @@ def main():
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as shared_queue:
+                SharedQueue() as ost_info_queue:
 
             if pid_control.lock():
 
@@ -134,7 +134,7 @@ def main():
                 ost_status_lookup_dict = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
-                lock_shared_queue_timeout = config_file_reader.lock_shared_queue_timeout
+                lock_ost_info_queue_timeout = config_file_reader.lock_shared_queue_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
@@ -146,9 +146,9 @@ def main():
                 db_proxy_target = config_file_reader.db_proxy_target
                 db_proxy_port = config_file_reader.db_proxy_port
 
-                lock_shared_queue = multiprocessing.Lock()
+                lock_ost_info_queue = multiprocessing.Lock()
 
-                ost_list_processor = OSTListProcessor(shared_queue, lock_shared_queue, config_file_reader)
+                ost_list_processor = OSTListProcessor(ost_info_queue, lock_ost_info_queue, config_file_reader)
                 ost_list_processor.start()
 
                 # TODO: Remove Benchmarking:
@@ -186,10 +186,10 @@ def main():
 
                                     ost_info = None
 
-                                    with CriticalSection(lock_shared_queue, True, lock_shared_queue_timeout):
+                                    with CriticalSection(lock_ost_info_queue, True, lock_ost_info_queue_timeout):
 
-                                        if not shared_queue.is_empty():
-                                            ost_info = shared_queue.pop_nowait()
+                                        if not ost_info_queue.is_empty():
+                                            ost_info = ost_info_queue.pop_nowait()
 
                                         else:
 
