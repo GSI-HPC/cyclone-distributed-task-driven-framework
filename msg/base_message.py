@@ -49,7 +49,6 @@ class BaseMessage(object):
 
         return message
 
-    #TODO: Raise EXCEPTION?
     @abc.abstractmethod
     def validate_body(self):
-        return None
+        raise NotImplementedError('This method has to be implemented by a subclass!')
