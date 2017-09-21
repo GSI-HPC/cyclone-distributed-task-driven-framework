@@ -285,6 +285,7 @@ def main():
                                                         in_msg.total_size_bytes,
                                                         in_msg.target_dir,
                                                         in_msg.lfs_bin,
+                                                        in_msg.lfs_target,
                                                         in_msg.db_proxy_target,
                                                         in_msg.db_proxy_port))
 

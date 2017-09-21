@@ -39,6 +39,7 @@ class OSTTask(BaseTask):
                  total_size_bytes,
                  target_dir,
                  lfs_bin,
+                 lfs_target,
                  db_proxy_target,
                  db_proxy_port):
 
@@ -53,6 +54,7 @@ class OSTTask(BaseTask):
         self.file_path = target_dir + os.path.sep + self.name + "_perf_test.tmp"
 
         self.lfs_utils = LFSUtils(lfs_bin)
+        self.lfs_target = lfs_target
 
         self.db_proxy_target = db_proxy_target
         self.db_proxy_port = db_proxy_port
@@ -60,53 +62,59 @@ class OSTTask(BaseTask):
 
     def execute(self):
 
-        ost_perf_result = None
+        try:
 
-        self._initialize_payload()
+            if self.lfs_utils.is_ost_available(self.name, self.lfs_target):
 
-        with AutoRemoveFile(self.file_path):
+                self._initialize_payload()
 
-            if os.path.exists(self.file_path):
-                os.remove(self.file_path)
+                with AutoRemoveFile(self.file_path):
 
-            self.lfs_utils.set_stripe(self.name, self.file_path)
+                    if os.path.exists(self.file_path):
+                        os.remove(self.file_path)
 
-            write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-            write_duration, write_throughput = self.write_file()
+                    self.lfs_utils.set_stripe(self.name, self.file_path)
 
-            read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-            read_duration, read_throughput = self.read_file()
+                    write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    write_duration, write_throughput = self.write_file()
 
-            ost_perf_result = \
-                OSTPerfResult(write_timestamp,
-                              read_timestamp,
-                              self.name,
-                              self.ip,
-                              self.total_size_bytes,
-                              read_throughput,
-                              write_throughput,
-                              read_duration,
-                              write_duration)
+                    read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    read_duration, read_throughput = self.read_file()
 
-            try:
+                    ost_perf_result = \
+                        OSTPerfResult(write_timestamp,
+                                      read_timestamp,
+                                      self.name,
+                                      self.ip,
+                                      self.total_size_bytes,
+                                      read_throughput,
+                                      write_throughput,
+                                      read_duration,
+                                      write_duration)
+            else:
 
-                if ost_perf_result:
+                timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
-                    timeout = 1000
+                ost_perf_result = \
+                    OSTPerfResult(timestamp, timestamp, self.name, self.ip, self.total_size_bytes, 0, 0, 0, 0)
 
-                    context = zmq.Context()
+            if ost_perf_result:
 
-                    sock = context.socket(zmq.PUSH)
+                timeout = 1000
 
-                    sock.setsockopt(zmq.LINGER, timeout)
-                    sock.SNDTIMEO = timeout
+                context = zmq.Context()
 
-                    sock.connect(self.db_proxy_endpoint)
+                sock = context.socket(zmq.PUSH)
 
-                    sock.send(ost_perf_result.to_string_csv_list())
+                sock.setsockopt(zmq.LINGER, timeout)
+                sock.SNDTIMEO = timeout
 
-            except Exception as e:
-                logging.error("Exception: %s" % e)
+                sock.connect(self.db_proxy_endpoint)
+
+                sock.send(ost_perf_result.to_string_csv_list())
+
+        except Exception as e:
+            logging.error("Task-Exception: %s" % e)
 
     def _initialize_payload(self):
 

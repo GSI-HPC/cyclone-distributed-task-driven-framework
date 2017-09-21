@@ -32,6 +32,7 @@ class TaskAssign(BaseMessage):
                  total_size_bytes,
                  target_dir,
                  lfs_bin,
+                 lfs_target,
                  db_proxy_target,
                  db_proxy_port):
 
@@ -53,6 +54,9 @@ class TaskAssign(BaseMessage):
         if not lfs_bin:
             raise RuntimeError('No lfs_bin is set!')
 
+        if not lfs_target:
+            raise RuntimeError('No lfs_target is set!')
+
         if not db_proxy_target:
             raise RuntimeError('No db_proxy_target is set!')
 
@@ -70,6 +74,8 @@ class TaskAssign(BaseMessage):
             + target_dir \
             + self.field_separator \
             + lfs_bin \
+            + self.field_separator \
+            + lfs_target \
             + self.field_separator \
             + db_proxy_target \
             + self.field_separator \
@@ -107,9 +113,13 @@ class TaskAssign(BaseMessage):
         return self.body.split(BaseMessage.field_separator)[5]
 
     @property
-    def db_proxy_target(self):
+    def lfs_target(self):
         return self.body.split(BaseMessage.field_separator)[6]
 
     @property
-    def db_proxy_port(self):
+    def db_proxy_target(self):
         return self.body.split(BaseMessage.field_separator)[7]
+
+    @property
+    def db_proxy_port(self):
+        return self.body.split(BaseMessage.field_separator)[8]

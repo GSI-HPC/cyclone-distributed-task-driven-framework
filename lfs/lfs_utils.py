@@ -20,7 +20,6 @@
 
 import os
 import commands
-import logging
 
 
 class LFSUtils:
@@ -29,11 +28,32 @@ class LFSUtils:
 
         self.lfs_bin = lfs_bin
         self.ost_prefix_len = len('OST')
-
-    def set_stripe(self, ost_name, file_path):
+        self.ost_active_output = 'active.'
 
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: %s" % self.lfs_bin)
+
+    def is_ost_available(self, ost_name, lfs_target):
+
+        cmd = self.lfs_bin + " check osts | grep " + lfs_target + "-" + ost_name
+
+        (status, output) = commands.getstatusoutput(cmd)
+
+        if not output:
+            raise RuntimeError("'lfs check osts' returned an empty result!")
+
+        if (status == 0) and (self.ost_active_output == output[-len(self.ost_active_output):]):
+            return True
+
+        else:
+
+            if ost_name in output:
+                return False
+
+            if status > 0:
+                raise RuntimeError("Error occurred during 'lfs check osts': %s" % output)
+
+    def set_stripe(self, ost_name, file_path):
 
         ost_idx = ost_name[self.ost_prefix_len:]
 

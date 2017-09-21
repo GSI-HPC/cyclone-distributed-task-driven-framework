@@ -58,7 +58,8 @@ class MessageFactory:
         if header == MessageType.TASK_REQUEST() and len_message_items == 2:
             return TaskRequest(message_items[1])
 
-        if header == MessageType.TASK_ASSIGN() and len_message_items == 9:
+        # TODO: Improve this! No static size and no static assignment of fields!
+        if header == MessageType.TASK_ASSIGN() and len_message_items == 10:
             return TaskAssign(message_items[1],
                               message_items[2],
                               message_items[3],
@@ -66,7 +67,8 @@ class MessageFactory:
                               message_items[5],
                               message_items[6],
                               message_items[7],
-                              message_items[8])
+                              message_items[8],
+                              message_items[9])
 
         if header == MessageType.TASK_FINISHED() and len_message_items == 3:
             return TaskFinished(message_items[1], message_items[2])

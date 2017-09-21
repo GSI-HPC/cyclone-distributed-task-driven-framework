@@ -143,6 +143,7 @@ def main():
                 total_size_bytes = config_file_reader.total_size_bytes
                 target_dir = config_file_reader.target_dir
                 lfs_bin = config_file_reader.lfs_bin
+                lfs_target = config_file_reader.lfs_target
                 db_proxy_target = config_file_reader.db_proxy_target
                 db_proxy_port = config_file_reader.db_proxy_port
 
@@ -237,6 +238,7 @@ def main():
                                                                   total_size_bytes,
                                                                   target_dir,
                                                                   lfs_bin,
+                                                                  lfs_target,
                                                                   db_proxy_target,
                                                                   db_proxy_port)
 
