@@ -26,7 +26,6 @@ import signal
 import sys
 import time
 
-from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from comm.master_handler import MasterCommHandler
 from conf.master_config_file_reader import MasterConfigFileReader
 from ctrl.ost_status_item import OstState
