@@ -43,6 +43,9 @@ from task.ost_task import OSTTask
 from task.poisen_pill import PoisenPill
 
 
+RUN_CONDITION = True
+
+
 def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='Lustre OST Performance Testing Controller Process.')
@@ -142,6 +145,22 @@ def start_worker(worker_handle_dict, worker_state_table):
         logging.debug("Waiting for worker to be READY - Waiting seconds: %s" % (retry_count * retry_count))
 
 
+def signal_handler_terminate(signal, frame):
+
+    logging.info('Terminate')
+    sys.exit(0)
+
+
+def signal_handler_shutdown(signal, frame):
+
+    logging.info('Shutting down...')
+
+    global RUN_CONDITION
+
+    if RUN_CONDITION:
+        RUN_CONDITION = False
+
+
 def main():
 
     error_flag = False
@@ -165,6 +184,12 @@ def main():
 
                 logging.info("Started (PID: %s)", pid_control.pid())
 
+                signal.signal(signal.SIGINT, signal_handler_terminate)
+                signal.signal(signal.SIGUSR1, signal_handler_shutdown)
+                signal.siginterrupt(signal.SIGUSR1, True)
+
+                global RUN_CONDITION
+
                 comm_handler.connect()
 
                 request_retry_count = 0
@@ -172,7 +197,6 @@ def main():
                 request_retry_wait_duration = config_file_reader.request_retry_wait_duration
 
                 lock_worker_state_table = multiprocessing.Lock()
-                lock_task_assign = multiprocessing.Lock()
                 lock_result_queue = multiprocessing.Lock()
 
                 cond_result_queue = multiprocessing.Condition(lock_result_queue)
@@ -187,19 +211,15 @@ def main():
                                                    result_queue,
                                                    cond_result_queue)
 
-                run_condition = True
-
                 if not start_worker(worker_handle_dict, worker_state_table):
 
                     logging.error("Not all worker are ready!")
                     error_flag = True
-                    run_condition = False
+                    RUN_CONDITION = False
 
-                while run_condition:
+                while RUN_CONDITION:
 
                     send_msg = None
-
-                    last_exec_timestamp = int(time.time())
 
                     if not send_msg:
 
@@ -247,7 +267,7 @@ def main():
                             if worker_count == worker_count_not_active:
 
                                 logging.error('No worker are alive!')
-                                run_condition = False
+                                RUN_CONDITION = False
                                 error_flag = True
                                 continue
 
@@ -303,7 +323,7 @@ def main():
 
                             elif in_msg.header == MessageType.EXIT_COMMAND():
 
-                                run_condition = False
+                                RUN_CONDITION = False
                                 logging.info('Retrieved exit message from master...')
 
                             # Reset after retrieving a message
@@ -316,7 +336,7 @@ def main():
 
                                 logging.debug('Exiting, since maximum retry count is reached!')
                                 comm_handler.disconnect()
-                                run_condition = False
+                                RUN_CONDITION = False
 
                             time.sleep(request_retry_wait_duration)
                             logging.debug('No response retrieved - Reconnecting...')
@@ -324,7 +344,7 @@ def main():
                             request_retry_count += 1
 
                 # Shutdown all worker...
-                if not run_condition:
+                if not RUN_CONDITION:
 
                     try:
 
@@ -363,7 +383,6 @@ def main():
 
     except Exception as e:
 
-        #TODO: Then processes are hanging...!
         logging.error("Caught exception on last instance: " + str(e))
         exit(1)
 
