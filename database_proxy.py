@@ -89,6 +89,7 @@ def main():
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
+        # TODO: Check this...no PID file specified and it gives no error!
         with PIDControl(config_file_reader.pid_file) as pid_control, \
                 DatabaseProxyCommHandler(config_file_reader.comm_target,
                                          config_file_reader.comm_port,

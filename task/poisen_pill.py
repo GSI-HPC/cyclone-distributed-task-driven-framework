@@ -21,8 +21,10 @@
 import logging
 import multiprocessing
 
+from base_task import BaseTask
 
-class PoisenPill:
+
+class PoisenPill(BaseTask):
 
     def __init__(self):
         self.name = 'PoisenPill'

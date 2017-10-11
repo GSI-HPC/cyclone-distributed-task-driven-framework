@@ -19,6 +19,7 @@
 
 
 import os
+import logging
 import commands
 
 
@@ -51,7 +52,8 @@ class LFSUtils:
                 return False
 
             if status > 0:
-                raise RuntimeError("Error occurred during 'lfs check osts': %s" % output)
+                raise RuntimeError("Error occurred during 'lfs check osts'!\nStatus: '%s'\nOutput: '%s'"
+                                   % (status, output))
 
     def set_stripe(self, ost_name, file_path):
 
