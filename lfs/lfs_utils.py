@@ -52,8 +52,9 @@ class LFSUtils:
                 return False
 
             if status > 0:
-                raise RuntimeError("Error occurred during 'lfs check osts'!\nStatus: '%s'\nOutput: '%s'"
-                                   % (status, output))
+                raise RuntimeError("Error occurred during 'lfs check osts'!\n"
+                                   "Status: '%s'\nFS: '%s' - OST: '%s'\nOutput: '%s'"
+                                   % (status, lfs_target, ost_name, output))
 
     def set_stripe(self, ost_name, file_path):
 
