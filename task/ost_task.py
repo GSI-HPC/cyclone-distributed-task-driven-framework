@@ -18,11 +18,12 @@
 #
 
 
-import logging
-import datetime
-import time
 import os
 import zmq
+import time
+import logging
+import datetime
+import subprocess
 
 from base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
@@ -101,7 +102,7 @@ class OSTTask(BaseTask):
             if ost_perf_result:
 
                 timeout = 1000
-                
+
                 context = zmq.Context()
 
                 sock = context.socket(zmq.PUSH)
@@ -113,8 +114,11 @@ class OSTTask(BaseTask):
 
                 sock.send(ost_perf_result.to_string_csv_list())
 
+        except subprocess.CalledProcessError as e:
+            logging.error("Task-Exception: %s\nOutput: %s" % (e, e.output))
+
         except Exception as e:
-            logging.error("Task-Exception: %s" % e)
+            logging.error("Default Task-Exception: %s" % e)
 
     def _initialize_payload(self):
 

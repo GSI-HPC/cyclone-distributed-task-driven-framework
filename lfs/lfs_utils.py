@@ -35,14 +35,11 @@ class LFSUtils:
             raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
 
     def is_ost_available(self, ost_name, lfs_target):
-        """Throws exception on error in subprocess"""
+        """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
         complete_target = lfs_target + "-" + ost_name
 
         output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
-
-        if not output:
-            raise RuntimeError("'lfs check osts' returned an empty result!")
 
         for line in output.split('\n'):
 
@@ -56,14 +53,12 @@ class LFSUtils:
                     return False
 
     def set_stripe(self, ost_name, file_path):
-        """Throws exception on error in subprocess"""
+        """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
         stripe_index = "0x" + ost_name[self.ost_prefix_len:]
 
         logging.debug("Setting stripe for file: %s on OST: %s" % (file_path, ost_name))
 
+        # Writes stderr to stdout to read the error message from subprocess.CalledProcessError.output on exception.
         subprocess.check_output([self.lfs_bin, "setstripe", "--stripe-index", stripe_index,
-                                 "--stripe-count", "1", "--stripe-size", "0", file_path])
-
-        if not os.path.isfile(file_path):
-            raise RuntimeError("Failed to create file via 'lfs setstripe' under: %s" % file_path)
+                                 "--stripe-count", "1", "--stripe-size", "0", file_path], stderr=subprocess.STDOUT)
