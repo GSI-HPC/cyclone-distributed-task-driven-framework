@@ -34,6 +34,7 @@ class ControllerConfigFileReader:
 
         # TODO: Check parameter values!
         self.pid_file = config.get('control', 'pid_file')
+        self.version = config.get('control', 'version')
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = int(config.get('comm', 'port'))
