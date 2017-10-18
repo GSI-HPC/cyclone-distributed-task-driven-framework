@@ -20,7 +20,7 @@
 
 import os
 import logging
-import commands
+import subprocess
 
 
 class LFSUtils:
@@ -32,45 +32,38 @@ class LFSUtils:
         self.ost_active_output = 'active.'
 
         if not os.path.isfile(self.lfs_bin):
-            raise RuntimeError("LFS binary was not found under: %s" % self.lfs_bin)
+            raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
 
     def is_ost_available(self, ost_name, lfs_target):
+        """Throws exception on error in subprocess"""
 
-        cmd = self.lfs_bin + " check osts | grep " + lfs_target + "-" + ost_name
+        complete_target = lfs_target + "-" + ost_name
 
-        (status, output) = commands.getstatusoutput(cmd)
+        output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
 
         if not output:
             raise RuntimeError("'lfs check osts' returned an empty result!")
 
-        if (status == 0) and (self.ost_active_output == output[-len(self.ost_active_output):]):
-            return True
+        for line in output.split('\n'):
 
-        else:
+            if complete_target in line:
 
-            if ost_name in output:
-                return False
-
-            if status > 0:
-                raise RuntimeError("Error occurred during 'lfs check osts'!\n"
-                                   "Status: '%s'\nFS: '%s' - OST: '%s'\nOutput: '%s'"
-                                   % (status, lfs_target, ost_name, output))
+                if self.ost_active_output == line[-len(self.ost_active_output):]:
+                    logging.debug("Found active: '%s'" % complete_target)
+                    return True
+                else:
+                    logging.debug("Found inactive: '%s'" % complete_target)
+                    return False
 
     def set_stripe(self, ost_name, file_path):
+        """Throws exception on error in subprocess"""
 
-        ost_idx = ost_name[self.ost_prefix_len:]
+        stripe_index = "0x" + ost_name[self.ost_prefix_len:]
 
-        # logging.debug("Setting stripe for file: %s on OST: %s" % (file_path, ost_name))
+        logging.debug("Setting stripe for file: %s on OST: %s" % (file_path, ost_name))
 
-        # No stripping is used.
-        cmd = self.lfs_bin + " setstripe --stripe-index 0x" + ost_idx + " --stripe-count 1 --stripe-size 0 " + file_path
-
-        # logging.debug("lfs setstripe: %s" %cmd)
-
-        (status, output) = commands.getstatusoutput(cmd)
-
-        if status > 0:
-            raise RuntimeError("Failed to set stripe for file: %s\n%s" % (file_path, output))
+        subprocess.check_output([self.lfs_bin, "setstripe", "--stripe-index", stripe_index,
+                                 "--stripe-count", "1", "--stripe-size", "0", file_path])
 
         if not os.path.isfile(file_path):
-            raise RuntimeError("Failed to create file via setstripe under: %s" % file_path)
+            raise RuntimeError("Failed to create file via 'lfs setstripe' under: %s" % file_path)

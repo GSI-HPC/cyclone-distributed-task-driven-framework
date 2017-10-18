@@ -101,7 +101,7 @@ class OSTTask(BaseTask):
             if ost_perf_result:
 
                 timeout = 1000
-
+                
                 context = zmq.Context()
 
                 sock = context.socket(zmq.PUSH)
