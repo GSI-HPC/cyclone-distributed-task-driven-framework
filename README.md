@@ -1,4 +1,4 @@
-# Lustre Task Driven Monitoring Framework
+# A Generic Task Driven Framework for Lustre Monitoring
 
 ## Requisites
 ### Required
