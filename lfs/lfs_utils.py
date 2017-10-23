@@ -35,22 +35,39 @@ class LFSUtils:
             raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
 
     def is_ost_available(self, ost_name, lfs_target):
-        """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
+        """
+            May rethrow subprocess.CalledProcessError as RuntimeError on error in subprocess.check_output
+            if the return code of the caught CalledProcessError is not handled here.
+        """
 
         complete_target = lfs_target + "-" + ost_name
 
-        output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
+        try:
+            output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
 
-        for line in output.split('\n'):
+            for line in output.split('\n'):
 
-            if complete_target in line:
+                if complete_target in line:
 
-                if self.ost_active_output == line[-len(self.ost_active_output):]:
-                    logging.debug("Found active: '%s'" % complete_target)
-                    return True
-                else:
-                    logging.debug("Found inactive: '%s'" % complete_target)
-                    return False
+                    if self.ost_active_output == line[-len(self.ost_active_output):]:
+
+                        logging.debug("Found active: '%s'" % complete_target)
+                        return True
+
+                    else:
+
+                        logging.debug("Found inactive: '%s'" % complete_target)
+                        return False
+
+        except subprocess.CalledProcessError as e:
+
+            logging.error(e.output)
+
+            # Cannot send after transport endpoint shutdown (108)
+            if e.returncode == 108:
+                return False
+
+            raise RuntimeError(e.output)
 
     def set_stripe(self, ost_name, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""

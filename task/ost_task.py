@@ -114,11 +114,8 @@ class OSTTask(BaseTask):
 
                 sock.send(ost_perf_result.to_string_csv_list())
 
-        except subprocess.CalledProcessError as e:
-            logging.error("Task-Exception: %s\nOutput: %s" % (e, e.output))
-
         except Exception as e:
-            logging.error("Default Task-Exception: %s" % e)
+            logging.error("Task-Exception: %s" % e)
 
     def _initialize_payload(self):
 
