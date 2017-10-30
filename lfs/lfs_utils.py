@@ -29,7 +29,7 @@ class LFSUtils:
 
         self.lfs_bin = lfs_bin
         self.ost_prefix_len = len('OST')
-        self.ost_active_output = 'active.'
+        self.ost_active_output = ' active.'
 
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)

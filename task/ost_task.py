@@ -23,7 +23,6 @@ import zmq
 import time
 import logging
 import datetime
-import subprocess
 
 from base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
