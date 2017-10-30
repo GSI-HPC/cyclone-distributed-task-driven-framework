@@ -100,6 +100,8 @@ class OSTTask(BaseTask):
 
             if ost_perf_result:
 
+                logging.debug(ost_perf_result.to_string_csv_list())
+
                 timeout = 1000
 
                 context = zmq.Context()
@@ -141,6 +143,9 @@ class OSTTask(BaseTask):
 
                 if self.payload_rest_block:
                     f.write(self.payload_rest_block)
+
+                f.flush()
+                os.fsync(f.fileno())
 
             end_time = time.time() * 1000.0
             duration = (end_time - start_time) / 1000.0
