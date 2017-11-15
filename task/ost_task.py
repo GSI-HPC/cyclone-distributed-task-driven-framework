@@ -82,8 +82,8 @@ class OSTTask(BaseTask):
                     read_duration, read_throughput = self.read_file()
 
                     ost_perf_result = \
-                        OSTPerfResult(write_timestamp,
-                                      read_timestamp,
+                        OSTPerfResult(read_timestamp,
+                                      write_timestamp,
                                       self.name,
                                       self.ip,
                                       self.total_size_bytes,
