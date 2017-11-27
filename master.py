@@ -40,6 +40,8 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
+from task.xml.task_factory import TaskFactory
+from task.xml.task_xml_reader import TaskXmlReader
 
 
 TASK_DISTRIBUTION = True
@@ -138,14 +140,13 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                # OSTTask specific parameter:
-                block_size_bytes = config_file_reader.block_size_bytes
-                total_size_bytes = config_file_reader.total_size_bytes
-                target_dir = config_file_reader.target_dir
-                lfs_bin = config_file_reader.lfs_bin
-                lfs_target = config_file_reader.lfs_target
-                db_proxy_target = config_file_reader.db_proxy_target
-                db_proxy_port = config_file_reader.db_proxy_port
+                task_xml_info = \
+                    TaskXmlReader.read_task_definition(
+                        "/home/gia/workspace/lustre/lustre_task_driven_monitoring_framework/Configuration/tasks.xml")
+
+                # Just one task is supported to be executed by the framework.
+                task = TaskFactory().create(
+                    task_xml_info.class_module, task_xml_info.class_name, task_xml_info.class_properties)
 
                 lock_ost_info_queue = multiprocessing.Lock()
 
@@ -232,15 +233,16 @@ def main():
                                                               recv_msg.sender,
                                                               int(time.time()))
 
+                                            # TODO: Serialization of the task...
                                             send_msg = TaskAssign(ost_info.name,
                                                                   ost_info.ip,
-                                                                  block_size_bytes,
-                                                                  total_size_bytes,
-                                                                  target_dir,
-                                                                  lfs_bin,
-                                                                  lfs_target,
-                                                                  db_proxy_target,
-                                                                  db_proxy_port)
+                                                                  task.block_size_bytes,
+                                                                  task.total_size_bytes,
+                                                                  task.target_dir,
+                                                                  task.lfs_bin,
+                                                                  task.lfs_target,
+                                                                  task.db_proxy_target,
+                                                                  task.db_proxy_port)
 
                                     else:
                                         # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)

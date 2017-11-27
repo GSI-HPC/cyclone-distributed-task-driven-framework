@@ -25,6 +25,7 @@ import sys
 import time
 import multiprocessing
 import signal
+import importlib
 
 from worker import Worker
 from worker import WorkerState
@@ -300,15 +301,20 @@ def main():
 
                                 logging.debug("Retrieved task assign for OST: " + in_msg.ost_name)
 
-                                task_queue.push(OSTTask(in_msg.ost_name,
-                                                        in_msg.ost_ip,
-                                                        in_msg.block_size_bytes,
-                                                        in_msg.total_size_bytes,
-                                                        in_msg.target_dir,
-                                                        in_msg.lfs_bin,
-                                                        in_msg.lfs_target,
-                                                        in_msg.db_proxy_target,
-                                                        in_msg.db_proxy_port))
+                                module = importlib.import_module('task.ost_task')
+                                dynamic_class = getattr(module, 'OSTTask')
+
+                                task = dynamic_class(in_msg.ost_name,
+                                                     in_msg.ost_ip,
+                                                     in_msg.block_size_bytes,
+                                                     in_msg.total_size_bytes,
+                                                     in_msg.target_dir,
+                                                     in_msg.lfs_bin,
+                                                     in_msg.lfs_target,
+                                                     in_msg.db_proxy_target,
+                                                     in_msg.db_proxy_port)
+
+                                task_queue.push(task)
 
                                 logging.debug("Pushed task to task queue: %s" % in_msg.ost_name)
 

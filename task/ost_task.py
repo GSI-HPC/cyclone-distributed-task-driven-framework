@@ -43,8 +43,14 @@ class OSTTask(BaseTask):
                  db_proxy_target,
                  db_proxy_port):
 
-        self.name = name
-        self.ip = ip
+        if not name:
+            name = str("DUMMY")
+
+        if not ip:
+            ip = str("DUMMY")
+
+        super(OSTTask, self).__init__(name, ip)
+
         self.block_size_bytes = block_size_bytes
         self.total_size_bytes = total_size_bytes
 

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<tasks>
+
+   <task name="OSTTask">
+
+      <class module="task.ost_task" name="OSTTask"/>
+
+      <property>
+
+         <name></name>
+         <ip></ip>
+         <block_size_bytes>1000000</block_size_bytes>
+         <total_size_bytes>1000000</total_size_bytes>
+         <target_dir>/lustre/nyx/PATH</target_dir>
+         <lfs_bin>/usr/sbin/lctl</lfs_bin>
+         <lfs_target>nyx</lfs_target>
+         <db_proxy_target>localhost</db_proxy_target>
+         <db_proxy_port>5777</db_proxy_port>
+
+      </property>
+
+   </task>
+
+</tasks>
