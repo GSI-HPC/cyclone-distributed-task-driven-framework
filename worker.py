@@ -88,8 +88,10 @@ class WorkerStateTableItem:
 
 class Worker(multiprocessing.Process):
 
-    def __init__(self, name,
-                 worker_state_table_item, lock_worker_state_table,
+    def __init__(self,
+                 name,
+                 worker_state_table_item,
+                 lock_worker_state_table,
                  task_queue,
                  result_queue, cond_result_queue):
 
@@ -125,21 +127,23 @@ class Worker(multiprocessing.Process):
             self.worker_state_table_item.set_state(WorkerState.READY)
             self.worker_state_table_item.set_timestamp(int(time.time()))
 
+        # TODO: Cut -> self.worker_state_table_item.set_ost_name(task.ost_name)
+        # TODO: Refactor task.ost_name to task.name
         while self.run_flag:
 
-            ost_task = self.task_queue.pop()
+            task = self.task_queue.pop()
 
             with CriticalSection(self.lock_worker_state_table):
 
                 self.worker_state_table_item.set_state(WorkerState.EXECUTING)
-                self.worker_state_table_item.set_ost_name(ost_task.name)
+                self.worker_state_table_item.set_ost_name(task.ost_name)
                 self.worker_state_table_item.set_timestamp(int(time.time()))
 
-            ost_task.execute()
+            task.execute()
 
             with CriticalSection(self.cond_result_queue):
 
-                self.result_queue.push(ost_task.name)
+                self.result_queue.push(task.ost_name)
                 self.cond_result_queue.notify()
 
             with CriticalSection(self.lock_worker_state_table):

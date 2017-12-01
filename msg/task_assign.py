@@ -27,7 +27,7 @@ class TaskAssign(BaseMessage):
 
     def __init__(self,
                  ost_name,
-                 ost_ip,
+                 oss_ip,
                  block_size_bytes,
                  total_size_bytes,
                  target_dir,
@@ -39,7 +39,7 @@ class TaskAssign(BaseMessage):
         if not ost_name:
             raise RuntimeError('No OST name is set!')
 
-        if not ost_ip:
+        if not oss_ip:
             raise RuntimeError('No OST IP is set!')
 
         if not block_size_bytes:
@@ -65,7 +65,7 @@ class TaskAssign(BaseMessage):
 
         body = ost_name \
             + self.field_separator \
-            + ost_ip \
+            + oss_ip \
             + self.field_separator \
             + str(block_size_bytes) \
             + self.field_separator \
@@ -93,7 +93,7 @@ class TaskAssign(BaseMessage):
         return self.body.split(BaseMessage.field_separator)[0]
 
     @property
-    def ost_ip(self):
+    def oss_ip(self):
         return self.body.split(BaseMessage.field_separator)[1]
 
     @property

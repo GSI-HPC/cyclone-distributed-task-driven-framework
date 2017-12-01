@@ -140,11 +140,10 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                task_xml_info = \
-                    TaskXmlReader.read_task_definition(
-                        "/home/gia/workspace/lustre/lustre_task_driven_monitoring_framework/Configuration/tasks.xml")
+                task_xml_info = TaskXmlReader.read_task_definition("../config/tasks.xml")
+                logging.debug("Loaded Task Template: '%s.%s'" % (task_xml_info.class_module, task_xml_info.class_name))
 
-                # Just one task is supported to be executed by the framework.
+                # Just one task is supported to be executed by the framework yet.
                 task = TaskFactory().create(
                     task_xml_info.class_module, task_xml_info.class_name, task_xml_info.class_properties)
 
@@ -233,9 +232,13 @@ def main():
                                                               recv_msg.sender,
                                                               int(time.time()))
 
+                                            # Assign Lustre specific information to the task before task assignment.
+                                            task.ost_name = ost_info.name
+                                            task.oss_ip = ost_info.ip
+
                                             # TODO: Serialization of the task...
-                                            send_msg = TaskAssign(ost_info.name,
-                                                                  ost_info.ip,
+                                            send_msg = TaskAssign(task.ost_name,
+                                                                  task.oss_ip,
                                                                   task.block_size_bytes,
                                                                   task.total_size_bytes,
                                                                   task.target_dir,

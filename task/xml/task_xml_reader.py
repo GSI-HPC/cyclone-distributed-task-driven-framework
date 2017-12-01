@@ -38,6 +38,7 @@ class TaskXmlReader:
     def __init__(self):
         pass
 
+    # TODO: Surround function with try/catch construct and rethrow exception with XML-tag!
     @staticmethod
     def read_task_definition(file_path):
 

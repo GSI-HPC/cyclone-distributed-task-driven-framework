@@ -22,29 +22,17 @@ import abc
 
 
 class BaseTask(object):
-    """
-        Base task class to be implemented so a task can be executed by a worker.
+    """Base task class to be implemented so a task can be executed by a worker."""
 
-        Required fields for Lustre monitoring:
-
-            * name: Name of an given Object Store Target (OST)
-            * ip: IP address of the proper Object Store Server (OSS).
-    """
-
-    def __init__(self, name, ip):
+    def __init__(self):
 
         __metaclass__ = abc.ABCMeta
 
         super(BaseTask, self).__init__()
 
-        if not name:
-            raise RuntimeError("Setting name property is required!")
-
-        if not ip:
-            raise RuntimeError("Setting ip property is required!")
-
-        self.name = name
-        self.ip = ip
+        # For Lustre specific monitoring store the OST name and OSS IP address for each Task.
+        self.ost_name = str("")
+        self.oss_ip = str("")
 
     @abc.abstractmethod
     def execute(self):

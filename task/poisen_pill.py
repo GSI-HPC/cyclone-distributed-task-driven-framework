@@ -27,7 +27,12 @@ from base_task import BaseTask
 class PoisenPill(BaseTask):
 
     def __init__(self):
-        self.name = 'PoisenPill'
+
+        super(PoisenPill, self).__init__()
+
+        # Required field, since a task is always connected to a OST.
+        # No task name is used instead yet, since the ost_name is used e.g. for the result_queue.
+        self.ost_name = "POISEN_PILL_" + multiprocessing.current_process().name
 
     def execute(self):
         logging.debug("Worker retrieved poisen pill: '%s'" % multiprocessing.current_process().name)

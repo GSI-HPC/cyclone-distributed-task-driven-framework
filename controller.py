@@ -40,7 +40,6 @@ from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.heartbeat import Heartbeat
-from task.ost_task import OSTTask
 from task.poisen_pill import PoisenPill
 
 
@@ -107,10 +106,13 @@ def create_worker(worker_state_table, lock_worker_state_table,
 
         worker_state_table_item = worker_state_table[worker_id]
 
-        worker_handle = Worker(worker_id,
-                               worker_state_table_item, lock_worker_state_table,
-                               task_queue,
-                               result_queue, cond_result_queue)
+        worker_handle = \
+            Worker(worker_id,
+                   worker_state_table_item,
+                   lock_worker_state_table,
+                   task_queue,
+                   result_queue,
+                   cond_result_queue)
 
         worker_handle_dict[worker_id] = worker_handle
 
@@ -207,11 +209,12 @@ def main():
                 worker_ids = create_worker_ids(worker_count)
                 worker_state_table = create_worker_state_table(worker_ids)
 
-                worker_handle_dict = create_worker(worker_state_table,
-                                                   lock_worker_state_table,
-                                                   task_queue,
-                                                   result_queue,
-                                                   cond_result_queue)
+                worker_handle_dict = \
+                    create_worker(worker_state_table,
+                                  lock_worker_state_table,
+                                  task_queue,
+                                  result_queue,
+                                  cond_result_queue)
 
                 if not start_worker(worker_handle_dict, worker_state_table):
 
@@ -304,15 +307,16 @@ def main():
                                 module = importlib.import_module('task.ost_task')
                                 dynamic_class = getattr(module, 'OSTTask')
 
-                                task = dynamic_class(in_msg.ost_name,
-                                                     in_msg.ost_ip,
-                                                     in_msg.block_size_bytes,
+                                task = dynamic_class(in_msg.block_size_bytes,
                                                      in_msg.total_size_bytes,
                                                      in_msg.target_dir,
                                                      in_msg.lfs_bin,
                                                      in_msg.lfs_target,
                                                      in_msg.db_proxy_target,
                                                      in_msg.db_proxy_port)
+
+                                task.ost_name = in_msg.ost_name
+                                task.oss_ip = in_msg.oss_ip
 
                                 task_queue.push(task)
 

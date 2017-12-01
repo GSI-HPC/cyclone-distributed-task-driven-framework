@@ -33,8 +33,6 @@ from lfs.lfs_utils import LFSUtils
 class OSTTask(BaseTask):
 
     def __init__(self,
-                 name,
-                 ip,
                  block_size_bytes,
                  total_size_bytes,
                  target_dir,
@@ -43,13 +41,7 @@ class OSTTask(BaseTask):
                  db_proxy_target,
                  db_proxy_port):
 
-        if not name:
-            name = str("DUMMY")
-
-        if not ip:
-            ip = str("DUMMY")
-
-        super(OSTTask, self).__init__(name, ip)
+        super(OSTTask, self).__init__()
 
         self.block_size_bytes = block_size_bytes
         self.total_size_bytes = total_size_bytes
@@ -57,8 +49,9 @@ class OSTTask(BaseTask):
         self.payload_block = str()
         self.payload_rest_block = str()
 
-        self.file_path = target_dir + os.path.sep + self.name + "_perf_test.tmp"
+        self.target_dir = target_dir
 
+        self.lfs_bin = lfs_bin
         self.lfs_utils = LFSUtils(lfs_bin)
         self.lfs_target = lfs_target
 
@@ -70,28 +63,30 @@ class OSTTask(BaseTask):
 
         try:
 
-            if self.lfs_utils.is_ost_available(self.name, self.lfs_target):
+            if self.lfs_utils.is_ost_available(self.ost_name, self.lfs_target):
 
                 self._initialize_payload()
 
-                with AutoRemoveFile(self.file_path):
+                file_path = self.target_dir + os.path.sep + self.ost_name + "_perf_test.tmp"
 
-                    if os.path.exists(self.file_path):
-                        os.remove(self.file_path)
+                with AutoRemoveFile(file_path):
 
-                    self.lfs_utils.set_stripe(self.name, self.file_path)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+
+                    self.lfs_utils.set_stripe(self.ost_name, file_path)
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                    write_duration, write_throughput = self.write_file()
+                    write_duration, write_throughput = self.write_file(file_path)
 
                     read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                    read_duration, read_throughput = self.read_file()
+                    read_duration, read_throughput = self.read_file(file_path)
 
                     ost_perf_result = \
                         OSTPerfResult(read_timestamp,
                                       write_timestamp,
-                                      self.name,
-                                      self.ip,
+                                      self.ost_name,
+                                      self.oss_ip,
                                       self.total_size_bytes,
                                       read_throughput,
                                       write_throughput,
@@ -102,7 +97,7 @@ class OSTTask(BaseTask):
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
                 ost_perf_result = \
-                    OSTPerfResult(timestamp, timestamp, self.name, self.ip, self.total_size_bytes, 0, 0, 0, 0)
+                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.oss_ip, self.total_size_bytes, 0, 0, 0, 0)
 
             if ost_perf_result:
 
@@ -135,14 +130,14 @@ class OSTTask(BaseTask):
         if block_rest_size_bytes > 0:
             self.payload_rest_block = "".join('A' for i in xrange(self.block_rest_size_bytes))
 
-    def write_file(self):
+    def write_file(self, file_path):
 
         try:
             iterations = self.total_size_bytes / self.block_size_bytes
 
             start_time = time.time() * 1000.0
 
-            with open(self.file_path, 'w') as f:
+            with open(file_path, 'w') as f:
 
                 for i in xrange(int(iterations)):
                     f.write(self.payload_block)
@@ -168,22 +163,22 @@ class OSTTask(BaseTask):
             logging.error("Caught exception in OSTTask: %s" % e)
             return tuple((-1, -1))
 
-    def read_file(self):
+    def read_file(self, file_path):
 
         try:
-            if os.path.exists(self.file_path):
+            if os.path.exists(file_path):
 
-                file_size = os.path.getsize(self.file_path)
+                file_size = os.path.getsize(file_path)
 
                 if file_size == self.total_size_bytes:
 
-                    logging.debug("Reading output file from: %s" % self.file_path)
+                    logging.debug("Reading output file from: %s" % file_path)
 
                     total_read_bytes = 0
 
                     start_time = time.time() * 1000.0
 
-                    with open(self.file_path, 'r') as f:
+                    with open(file_path, 'r') as f:
 
                         read_bytes = f.read(self.block_size_bytes)
                         total_read_bytes += len(read_bytes)
@@ -206,13 +201,13 @@ class OSTTask(BaseTask):
                     return tuple((duration, throughput))
 
                 elif file_size == 0:
-                    raise RuntimeError("File is empty: %s" % self.file_path)
+                    raise RuntimeError("File is empty: %s" % file_path)
 
                 else:
-                    raise RuntimeError("File is incomplete: %s" % self.file_path)
+                    raise RuntimeError("File is incomplete: %s" % file_path)
 
             else:
-                raise RuntimeError("No file to be read could be found under: %s" % self.file_path)
+                raise RuntimeError("No file to be read could be found under: %s" % file_path)
 
         except Exception as e:
 
