@@ -30,8 +30,10 @@ class PoisenPill(BaseTask):
 
         super(PoisenPill, self).__init__()
 
-        # Required field, since a task is always connected to a OST.
-        # No task name is used instead yet, since the ost_name is used e.g. for the result_queue.
+        # Since the monitoring is Lustre specific and a task is bound to an OST,
+        # an ost_name has to be set even for a pseudo task like this one.
+        # In more detail: The ost_name is pushed after executing a task into the result queue.
+        # TODO: Check if the Poisen Pill might just be quit the worker anyway without accessing the result queue.
         self.ost_name = "POISEN_PILL_" + multiprocessing.current_process().name
 
     def execute(self):

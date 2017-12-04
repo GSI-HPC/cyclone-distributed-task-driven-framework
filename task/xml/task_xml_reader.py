@@ -24,6 +24,12 @@ from collections import OrderedDict
 import os
 
 
+class TaskXmlReaderError(Exception):
+
+    def __init__(self, message):
+        super(TaskXmlReaderError, self).__init__("[XML]: %s" % message)
+
+
 class TaskXmlInfo:
 
     def __init__(self, class_module, class_name, class_properties):
@@ -38,58 +44,61 @@ class TaskXmlReader:
     def __init__(self):
         pass
 
-    # TODO: Surround function with try/catch construct and rethrow exception with XML-tag!
     @staticmethod
     def read_task_definition(file_path):
 
         if not os.path.isfile(file_path):
             raise IOError("The XML task definition file does not exist or is not a file: %s" % file_path)
 
-        class_module = None
-        class_name = None
-        class_properties = OrderedDict()
+        try:
 
-        tree = ElementTree.parse(file_path)
-        root = tree.getroot()
+            class_module = None
+            class_name = None
+            class_properties = OrderedDict()
 
-        if root.tag != 'tasks':
-            raise RuntimeError("[XML] Wrong root tag detected: '%s'", root.tag)
+            tree = ElementTree.parse(file_path)
+            root = tree.getroot()
 
-        if len(root) != 1:
-            raise RuntimeError("[XML] Just one task definition is supported currently!")
+            if root.tag != 'tasks':
+                raise RuntimeError("Wrong root tag detected: '%s'", root.tag)
 
-        for child in root:
+            if len(root) != 1:
+                raise RuntimeError("Just one task definition is supported currently!")
 
-            if child.tag != 'task':
-                raise RuntimeError("[XML] Wrong child tag detected: '%s'", child.tag)
+            for child in root:
 
-            class_def = child.find('class')
+                if child.tag != 'task':
+                    raise RuntimeError("Wrong child tag detected: '%s'", child.tag)
 
-            if class_def is None:
-                raise RuntimeError("[XML] No class definition found!")
+                class_def = child.find('class')
 
-            class_module = class_def.get('module')
+                if class_def is None:
+                    raise RuntimeError("No class definition found!")
 
-            if class_module is None:
-                raise RuntimeError("[XML] No module definition for class found!")
+                class_module = class_def.get('module')
 
-            class_name = class_def.get('name')
+                if class_module is None:
+                    raise RuntimeError("No module definition for class found!")
 
-            if class_name is None:
-                raise RuntimeError("[XML] No name definition for class found!")
+                class_name = class_def.get('name')
 
-            property_def = child.find('property')
+                if class_name is None:
+                    raise RuntimeError("No name definition for class found!")
 
-            if property_def is None:
-                raise RuntimeError("[XML] No property definition in class found!")
+                property_def = child.find('property')
 
-            for property_item in property_def:
+                if property_def is None:
+                    raise RuntimeError("No property definition in class found!")
 
-                if not property_item.text:
-                    property_item.text = str("")
+                for property_item in property_def:
 
-                class_properties[property_item.tag] = property_item.text
+                    if not property_item.text:
+                        property_item.text = str("")
 
-        return TaskXmlInfo(class_module, class_name, class_properties)
+                    class_properties[property_item.tag] = property_item.text
 
+            return TaskXmlInfo(class_module, class_name, class_properties)
+
+        except Exception as e:
+            raise TaskXmlReaderError("%s" % e)
 
