@@ -96,9 +96,11 @@ def create_worker_state_table(worker_ids):
     return worker_state_table
 
 
-def create_worker(worker_state_table, lock_worker_state_table,
+def create_worker(worker_state_table,
+                  lock_worker_state_table,
                   task_queue,
-                  result_queue, cond_result_queue):
+                  result_queue,
+                  cond_result_queue):
 
     worker_handle_dict = dict()
 

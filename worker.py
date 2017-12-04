@@ -34,7 +34,7 @@ class WorkerState:
     __metaclass__ = abc.ABCMeta
 
     NOT_READY = 0
-    READY = 1
+    READY     = 1
     EXECUTING = 2
 
     @classmethod
@@ -127,8 +127,6 @@ class Worker(multiprocessing.Process):
             self.worker_state_table_item.set_state(WorkerState.READY)
             self.worker_state_table_item.set_timestamp(int(time.time()))
 
-        # TODO: Cut -> self.worker_state_table_item.set_ost_name(task.ost_name)
-        # TODO: Refactor task.ost_name to task.name
         while self.run_flag:
 
             task = self.task_queue.pop()
