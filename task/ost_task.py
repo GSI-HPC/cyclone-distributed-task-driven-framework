@@ -52,8 +52,7 @@ class OSTTask(BaseTask):
         self.target_dir = target_dir
 
         self.lfs_bin = lfs_bin
-        self.lfs_utils = 'LFSUtils(lfs_bin)'
-        # self.lfs_utils = LFSUtils(lfs_bin)
+        self.lfs_utils = LFSUtils(lfs_bin)
         self.lfs_target = lfs_target
 
         self.db_proxy_target = db_proxy_target
