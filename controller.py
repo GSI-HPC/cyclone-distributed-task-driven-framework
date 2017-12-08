@@ -25,7 +25,6 @@ import sys
 import time
 import multiprocessing
 import signal
-import importlib
 
 from worker import Worker
 from worker import WorkerState
@@ -299,42 +298,32 @@ def main():
 
                         if in_raw_data:
 
-                            # logging.debug("Retrieved message (raw data): " + in_raw_data)
+                            logging.debug("Retrieved message (raw data): " + in_raw_data)
+
                             in_msg = MessageFactory.create(in_raw_data)
+                            in_msg_type = in_msg.type()
 
-                            if in_msg.header == MessageType.TASK_ASSIGN():
+                            if MessageType.TASK_ASSIGN() == in_msg_type:
 
-                                logging.debug("Retrieved task assign for OST: " + in_msg.ost_name)
+                                task = in_msg.to_task()
 
-                                module = importlib.import_module('task.ost_task')
-                                dynamic_class = getattr(module, 'OSTTask')
-
-                                task = dynamic_class(in_msg.block_size_bytes,
-                                                     in_msg.total_size_bytes,
-                                                     in_msg.target_dir,
-                                                     in_msg.lfs_bin,
-                                                     in_msg.lfs_target,
-                                                     in_msg.db_proxy_target,
-                                                     in_msg.db_proxy_port)
-
-                                task.ost_name = in_msg.ost_name
-                                task.oss_ip = in_msg.oss_ip
+                                logging.debug("Retrieved task assign for OST: " + task.ost_name)
 
                                 task_queue.push(task)
 
-                                logging.debug("Pushed task to task queue: %s" % in_msg.ost_name)
+                                logging.debug("Pushed task to task queue: %s" % task.ost_name)
 
-                            elif in_msg.header == MessageType.ACKNOWLEDGE():
+                            elif MessageType.ACKNOWLEDGE() == in_msg_type:
                                 continue
 
-                            elif in_msg.header == MessageType.WAIT_COMMAND():
+                            elif MessageType.WAIT_COMMAND() == in_msg_type:
 
                                 #TODO: Implement it on the master side!
                                 wait_duration = in_msg.duration
                                 logging.debug("Retrieved Wait Command with duration: " + str(wait_duration))
                                 time.sleep(wait_duration)
 
-                            elif in_msg.header == MessageType.EXIT_COMMAND():
+                            elif MessageType.EXIT_COMMAND() == in_msg_type:
 
                                 RUN_CONDITION = False
                                 logging.info('Retrieved exit message from master...')
@@ -396,7 +385,11 @@ def main():
 
     except Exception as e:
 
-        logging.error("Caught exception on last instance: " + str(e))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+        logging.error("Caught exception on last instance: %s - "
+                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
         exit(1)
 
     logging.info('Finished')

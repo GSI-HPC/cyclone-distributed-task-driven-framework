@@ -42,47 +42,36 @@ class MessageFactory:
         if not message:
             raise RuntimeError('Message is not set!')
 
-        message_items = None
+        message_items = message.split(BaseMessage.field_separator)
 
-        if message.find(BaseMessage.field_separator) >= 1:
-            message_items = filter(None, message.split(BaseMessage.field_separator))
-
-        header = None
+        # TODO: len_message_items necessary?
         len_message_items = 0
 
         if message_items:
 
-            header = message_items[0]
+            msg_type = message_items[0]
+
             len_message_items = len(message_items)
 
-        if header == MessageType.TASK_REQUEST() and len_message_items == 2:
+        if msg_type == MessageType.TASK_REQUEST() and len_message_items == 2:
             return TaskRequest(message_items[1])
 
-        # TODO: Improve this! No static size and no static assignment of fields!
-        if header == MessageType.TASK_ASSIGN() and len_message_items == 10:
-            return TaskAssign(message_items[1],
-                              message_items[2],
-                              message_items[3],
-                              message_items[4],
-                              message_items[5],
-                              message_items[6],
-                              message_items[7],
-                              message_items[8],
-                              message_items[9])
-
-        if header == MessageType.TASK_FINISHED() and len_message_items == 3:
+        if msg_type == MessageType.TASK_FINISHED() and len_message_items == 3:
             return TaskFinished(message_items[1], message_items[2])
 
-        if header == MessageType.ACKNOWLEDGE() and len_message_items == 1:
+        if msg_type == MessageType.ACKNOWLEDGE() and len_message_items == 1:
             return Acknowledge()
 
-        if header == MessageType.WAIT_COMMAND() and len_message_items == 2:
+        if msg_type == MessageType.WAIT_COMMAND() and len_message_items == 2:
             return WaitCommand(message_items[1])
 
-        if header == MessageType.HEARTBEAT() and len_message_items == 2:
+        if msg_type == MessageType.HEARTBEAT() and len_message_items == 2:
             return Heartbeat(message_items[1])
 
-        if header == MessageType.EXIT_COMMAND() and len_message_items == 1:
+        if msg_type == MessageType.EXIT_COMMAND() and len_message_items == 1:
             return ExitCommand()
+
+        if msg_type == MessageType.TASK_ASSIGN():
+            return TaskAssign(message)
 
         raise RuntimeError("No message could be created from: " + message)

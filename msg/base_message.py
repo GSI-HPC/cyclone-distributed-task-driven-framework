@@ -36,19 +36,25 @@ class BaseMessage(object):
         self.body = body
 
         if not self.header:
-            raise RuntimeError('No message type is set!')
+            raise RuntimeError('No header is set!')
 
-        self.validate_body()
+        self._validate()
+
+    # Optional.
+    def _validate(self):
+        pass
+
+    def type(self):
+
+        if self.header.find(BaseMessage.field_separator):
+            return filter(None, self.header.split(BaseMessage.field_separator))[0]
+        else:
+            return self.header
 
     def to_string(self):
 
-        message = self.header + BaseMessage.field_separator
-
         if self.body:
-            message += self.body
+            return self.header + BaseMessage.field_separator + self.body
+        else:
+            return self.header
 
-        return message
-
-    @abc.abstractmethod
-    def validate_body(self):
-        raise NotImplementedError('This method has to be implemented by a subclass!')

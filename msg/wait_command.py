@@ -28,7 +28,7 @@ class WaitCommand(BaseMessage):
     def __init__(self, duration):
         super(WaitCommand, self).__init__(MessageType.WAIT_COMMAND(), str(duration))
 
-    def validate_body(self):
+    def _validate(self):
 
         if not self.body:
             raise RuntimeError('No body is set!')
@@ -39,3 +39,4 @@ class WaitCommand(BaseMessage):
     @property
     def duration(self):
         return int(self.body)
+

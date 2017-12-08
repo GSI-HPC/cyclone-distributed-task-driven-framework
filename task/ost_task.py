@@ -43,8 +43,8 @@ class OSTTask(BaseTask):
 
         super(OSTTask, self).__init__()
 
-        self.block_size_bytes = block_size_bytes
-        self.total_size_bytes = total_size_bytes
+        self.block_size_bytes = int(block_size_bytes)
+        self.total_size_bytes = int(total_size_bytes)
 
         self.payload_block = str()
         self.payload_rest_block = str()
@@ -52,7 +52,8 @@ class OSTTask(BaseTask):
         self.target_dir = target_dir
 
         self.lfs_bin = lfs_bin
-        self.lfs_utils = LFSUtils(lfs_bin)
+        self.lfs_utils = 'LFSUtils(lfs_bin)'
+        # self.lfs_utils = LFSUtils(lfs_bin)
         self.lfs_target = lfs_target
 
         self.db_proxy_target = db_proxy_target

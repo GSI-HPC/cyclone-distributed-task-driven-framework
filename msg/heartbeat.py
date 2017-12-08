@@ -35,7 +35,7 @@ class Heartbeat(BaseMessage):
 
         super(Heartbeat, self).__init__(MessageType.HEARTBEAT(), sender)
 
-    def validate_body(self):
+    def _validate(self):
 
         if not self.body:
             raise RuntimeError('No body is set!')
@@ -43,3 +43,4 @@ class Heartbeat(BaseMessage):
     @property
     def sender(self):
         return self.body
+

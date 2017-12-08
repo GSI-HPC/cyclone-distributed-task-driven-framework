@@ -32,7 +32,7 @@ class TaskRequest(BaseMessage):
 
         super(TaskRequest, self).__init__(MessageType.TASK_REQUEST(), sender)
 
-    def validate_body(self):
+    def _validate(self):
 
         if not self.body:
             raise RuntimeError('No body is set!')
@@ -40,3 +40,4 @@ class TaskRequest(BaseMessage):
     @property
     def sender(self):
         return self.body
+

@@ -37,7 +37,7 @@ class TaskFinished(BaseMessage):
 
         super(TaskFinished, self).__init__(MessageType.TASK_FINISHED(), body)
 
-    def validate_body(self):
+    def _validate(self):
 
         if not self.body:
             raise RuntimeError('No body is set!')
@@ -49,3 +49,4 @@ class TaskFinished(BaseMessage):
     @property
     def ost_name(self):
         return self.body.split(BaseMessage.field_separator)[1]
+

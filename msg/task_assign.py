@@ -18,108 +18,115 @@
 #
 
 
+import inspect
+
 from base_message import BaseMessage
 from message_type import MessageType
+from task.base_task import BaseTask
+from task.task_factory import TaskFactory
 
 
 class TaskAssign(BaseMessage):
     """The Master sends this message to a controller to assign a task."""
 
-    def __init__(self,
-                 ost_name,
-                 oss_ip,
-                 block_size_bytes,
-                 total_size_bytes,
-                 target_dir,
-                 lfs_bin,
-                 lfs_target,
-                 db_proxy_target,
-                 db_proxy_port):
+    """
+        The __init__ method can take two different types of arguments:
+        
+        1. A task object - if the master sends this message to a controller.
+        2. A string object - if the controller retrieves this message from the master.
+    """
+    def __init__(self, value):
 
-        if not ost_name:
-            raise RuntimeError('No OST name is set!')
+        header = None
+        body = None
 
-        if not oss_ip:
-            raise RuntimeError('No OST IP is set!')
+        if not value:
+            raise RuntimeError("No value has been passed!")
 
-        if not block_size_bytes:
-            raise RuntimeError('No block size in bytes is set!')
+        if type(value) == str:
 
-        if not total_size_bytes:
-            raise RuntimeError('No total size in bytes is set!')
+            message_items = value.split(BaseMessage.field_separator)
+            count_message_items = len(message_items)
+            len_message = len(value)
 
-        if not target_dir:
-            raise RuntimeError('No target directory is set!')
+            if count_message_items < 5:
+                raise RuntimeError("Invalid header size found in message: '%s'" % value)
 
-        if not lfs_bin:
-            raise RuntimeError('No lfs_bin is set!')
+            header = message_items[0] \
+                + BaseMessage.field_separator \
+                + message_items[1] \
+                + BaseMessage.field_separator \
+                + message_items[2] \
+                + BaseMessage.field_separator \
+                + message_items[3] \
+                + BaseMessage.field_separator \
+                + message_items[4]
 
-        if not lfs_target:
-            raise RuntimeError('No lfs_target is set!')
+            len_header = len(header)
 
-        if not db_proxy_target:
-            raise RuntimeError('No db_proxy_target is set!')
+            if len_header < len_message:
+                body = value[len_header + 1:len_message]
 
-        if not db_proxy_port:
-            raise RuntimeError('No db_proxy_port is set!')
+        else:
 
-        body = ost_name \
-            + self.field_separator \
-            + oss_ip \
-            + self.field_separator \
-            + str(block_size_bytes) \
-            + self.field_separator \
-            + str(total_size_bytes) \
-            + self.field_separator \
-            + target_dir \
-            + self.field_separator \
-            + lfs_bin \
-            + self.field_separator \
-            + lfs_target \
-            + self.field_separator \
-            + db_proxy_target \
-            + self.field_separator \
-            + db_proxy_port
+            task_class = value.__class__
+            task_base_classes = task_class.__bases__
 
-        super(TaskAssign, self).__init__(MessageType.TASK_ASSIGN(), body)
+            if (len(task_base_classes) != 1) or (task_base_classes[0].__name__ != BaseTask.__name__):
+                raise RuntimeError("The following task is just allowed to inherit from BaseTask class: '%s'"
+                                   % task_class)
 
-    def validate_body(self):
+            header = TaskAssign._create_header(value, task_class)
+            body = TaskAssign._create_body(value, task_class)
 
-        if not self.body:
-            raise RuntimeError('No body is set!')
+        super(TaskAssign, self).__init__(header, body)
 
-    @property
-    def ost_name(self):
-        return self.body.split(BaseMessage.field_separator)[0]
+    @staticmethod
+    def _create_header(task, task_class):
 
-    @property
-    def oss_ip(self):
-        return self.body.split(BaseMessage.field_separator)[1]
+        if not ("task." in task_class.__module__):
+            raise RuntimeError("A task has to be located into the 'task' package!")
 
-    @property
-    def block_size_bytes(self):
-        return int(self.body.split(BaseMessage.field_separator)[2])
+        if not task.ost_name or task.ost_name == '':
+            raise RuntimeError("Initialization of the attribute 'ost_name' is missing for task: '%s'" % task_class)
 
-    @property
-    def total_size_bytes(self):
-        return int(self.body.split(BaseMessage.field_separator)[3])
+        if not task.oss_ip or task.oss_ip == '':
+            raise RuntimeError("Initialization of the attribute 'oss_ip' is missing for task: '%s'" % task_class)
 
-    @property
-    def target_dir(self):
-        return self.body.split(BaseMessage.field_separator)[4]
+        header = MessageType.TASK_ASSIGN() \
+            + BaseMessage.field_separator \
+            + task_class.__module__ \
+            + BaseMessage.field_separator \
+            + task_class.__name__ \
+            + BaseMessage.field_separator \
+            + task.ost_name \
+            + BaseMessage.field_separator \
+            + task.oss_ip
 
-    @property
-    def lfs_bin(self):
-        return self.body.split(BaseMessage.field_separator)[5]
+        return header
 
-    @property
-    def lfs_target(self):
-        return self.body.split(BaseMessage.field_separator)[6]
+    @staticmethod
+    def _create_body(task, task_class):
 
-    @property
-    def db_proxy_target(self):
-        return self.body.split(BaseMessage.field_separator)[7]
+        # Build body
+        args_list = inspect.getargspec(task_class.__init__).args
+        len_args_list = len(args_list)
 
-    @property
-    def db_proxy_port(self):
-        return self.body.split(BaseMessage.field_separator)[8]
+        # Skip first parameter 'self' of the __init__ method which is a convention in Python for that method.
+        if len_args_list == 2:
+            body = str(getattr(task, args_list[1]))
+
+        if len_args_list > 2:
+
+            body = str(getattr(task, args_list[1]))
+
+            # Ordering of the arguments from the __init__ method is relevant!
+            # getattr throws an exception if an argument is not found in the task object.
+            for index in range(2, len(args_list)):
+                body += BaseMessage.field_separator + str(getattr(task, args_list[index]))
+
+        return body
+
+    def to_task(self):
+        return TaskFactory.create_from_message(BaseMessage(self.header, self.body))
+

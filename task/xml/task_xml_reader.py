@@ -34,6 +34,7 @@ class TaskXmlInfo:
 
     def __init__(self, class_module, class_name, class_properties):
 
+        #TODO: Check required and optional!
         self.class_module = class_module
         self.class_name = class_name
         self.class_properties = class_properties
@@ -79,6 +80,9 @@ class TaskXmlReader:
 
                 if class_module is None:
                     raise RuntimeError("No module definition for class found!")
+
+                if not ("task." in class_module):
+                    raise RuntimeError("A task has to be located into the 'task' package!")
 
                 class_name = class_def.get('name')
 

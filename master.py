@@ -40,8 +40,8 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from task.xml.task_factory import TaskFactory
 from task.xml.task_xml_reader import TaskXmlReader
+from task.task_factory import TaskFactory
 
 
 TASK_DISTRIBUTION = True
@@ -144,8 +144,7 @@ def main():
                 logging.debug("Loaded Task Template: '%s.%s'" % (task_xml_info.class_module, task_xml_info.class_name))
 
                 # Just one task is supported to be executed by the framework yet.
-                task = TaskFactory().create(
-                    task_xml_info.class_module, task_xml_info.class_name, task_xml_info.class_properties)
+                task = TaskFactory().create_from_xml_info(task_xml_info)
 
                 lock_ost_info_queue = multiprocessing.Lock()
 
@@ -175,15 +174,18 @@ def main():
                         if recv_data:
 
                             logging.debug("Retrieved message: " + recv_data)
-                            recv_msg = MessageFactory.create(recv_data)
 
+                            recv_msg = MessageFactory.create(recv_data)
+                            recv_msg_type = recv_msg.type()
+
+                            # TODO: Caution, sender is not set everywhere!
                             controller_heartbeat_dict[recv_msg.sender] = int(time.time())
 
                             if TASK_DISTRIBUTION:
 
                                 # logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
 
-                                if MessageType.TASK_REQUEST() == recv_msg.header:
+                                if MessageType.TASK_REQUEST() == recv_msg_type:
 
                                     ost_info = None
 
@@ -236,16 +238,7 @@ def main():
                                             task.ost_name = ost_info.name
                                             task.oss_ip = ost_info.ip
 
-                                            # TODO: Serialization of the task...
-                                            send_msg = TaskAssign(task.ost_name,
-                                                                  task.oss_ip,
-                                                                  task.block_size_bytes,
-                                                                  task.total_size_bytes,
-                                                                  task.target_dir,
-                                                                  task.lfs_bin,
-                                                                  task.lfs_target,
-                                                                  task.db_proxy_target,
-                                                                  task.db_proxy_port)
+                                            send_msg = TaskAssign(task)
 
                                     else:
                                         # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
@@ -259,7 +252,7 @@ def main():
                                     # logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
-                                elif MessageType.TASK_FINISHED() == recv_msg.header:
+                                elif MessageType.TASK_FINISHED() == recv_msg_type:
 
                                     ost_name = recv_msg.ost_name
 
@@ -285,13 +278,13 @@ def main():
                                     #     print (" >>> GOT IT: %s " % finished_task_count)
 
                                     send_msg = Acknowledge()
-                                    # logging.debug("Sending message: " + send_msg.to_string())
+                                    logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
-                                elif MessageType.HEARTBEAT() == recv_msg.header:
+                                elif MessageType.HEARTBEAT() == recv_msg_type:
 
                                     send_msg = Acknowledge()
-                                    # logging.debug("Sending message: " + send_msg.to_string())
+                                    logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
                                 else:
@@ -346,7 +339,12 @@ def main():
 
     except Exception as e:
 
-        logging.error("Caught exception on main block: %s" % e)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+        logging.error("Caught exception on main block: %s - "
+                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
+
         error_count += 1
 
     try:
@@ -369,7 +367,12 @@ def main():
 
     except Exception as e:
 
-        logging.error("Caught exception terminating OST Processor: " + str(e))
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+        logging.error("Caught exception terminating OST Processor: %s - "
+                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
+
         error_count += 1
 
     logging.info("Finished")

@@ -28,5 +28,6 @@ class ExitCommand(BaseMessage):
     def __init__(self):
         super(ExitCommand, self).__init__(MessageType.EXIT_COMMAND(), '')
 
-    def validate_body(self):
-        return None
+    def _validate(self):
+        pass
+
