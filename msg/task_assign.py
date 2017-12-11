@@ -108,22 +108,22 @@ class TaskAssign(BaseMessage):
     @staticmethod
     def _create_body(task, task_class):
 
-        # Build body
+        body = None
+
         args_list = inspect.getargspec(task_class.__init__).args
         len_args_list = len(args_list)
 
         # Skip first parameter 'self' of the __init__ method which is a convention in Python for that method.
-        if len_args_list == 2:
-            body = str(getattr(task, args_list[1]))
-
-        if len_args_list > 2:
+        if len_args_list > 1:
 
             body = str(getattr(task, args_list[1]))
 
-            # Ordering of the arguments from the __init__ method is relevant!
-            # getattr throws an exception if an argument is not found in the task object.
-            for index in range(2, len(args_list)):
-                body += BaseMessage.field_separator + str(getattr(task, args_list[index]))
+            if len_args_list > 2:
+
+                # Ordering of the arguments from the __init__ method is relevant!
+                # getattr throws an exception if an argument is not found in the task object.
+                for index in range(2, len(args_list)):
+                    body += BaseMessage.field_separator + str(getattr(task, args_list[index]))
 
         return body
 

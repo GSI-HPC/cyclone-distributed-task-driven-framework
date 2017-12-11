@@ -46,7 +46,7 @@ class TaskXmlReader:
         pass
 
     @staticmethod
-    def read_task_definition(file_path):
+    def read_task_definition(file_path, task_name):
 
         if not os.path.isfile(file_path):
             raise IOError("The XML task definition file does not exist or is not a file: %s" % file_path)
@@ -60,46 +60,57 @@ class TaskXmlReader:
             tree = ElementTree.parse(file_path)
             root = tree.getroot()
 
+            found_task = False
+
             if root.tag != 'tasks':
                 raise RuntimeError("Wrong root tag detected: '%s'", root.tag)
 
-            if len(root) != 1:
-                raise RuntimeError("Just one task definition is supported currently!")
+            if not len(root):
+                raise RuntimeError("No task definitions found in '%s'" % file_path)
 
             for child in root:
 
                 if child.tag != 'task':
                     raise RuntimeError("Wrong child tag detected: '%s'", child.tag)
 
-                class_def = child.find('class')
+                if child.attrib['name'] == task_name:
 
-                if class_def is None:
-                    raise RuntimeError("No class definition found!")
+                    if found_task:
+                        raise RuntimeError("Found duplicate task name definition for: '%s'" % task_name)
+                    else:
+                        found_task = True
 
-                class_module = class_def.get('module')
+                    class_def = child.find('class')
 
-                if class_module is None:
-                    raise RuntimeError("No module definition for class found!")
+                    if class_def is None:
+                        raise RuntimeError("No class definition found!")
 
-                if not ("task." in class_module):
-                    raise RuntimeError("A task has to be located into the 'task' package!")
+                    class_module = class_def.get('module')
 
-                class_name = class_def.get('name')
+                    if class_module is None:
+                        raise RuntimeError("No module definition for class found!")
 
-                if class_name is None:
-                    raise RuntimeError("No name definition for class found!")
+                    if not ("task." in class_module):
+                        raise RuntimeError("A task has to be located into the 'task' package!")
 
-                property_def = child.find('property')
+                    class_name = class_def.get('name')
 
-                if property_def is None:
-                    raise RuntimeError("No property definition in class found!")
+                    if class_name is None:
+                        raise RuntimeError("No name definition for class found!")
 
-                for property_item in property_def:
+                    property_def = child.find('property')
 
-                    if not property_item.text:
-                        property_item.text = str("")
+                    if property_def is not None:
 
-                    class_properties[property_item.tag] = property_item.text
+                        for property_item in property_def:
+
+                            if not property_item.text:
+                                property_item.text = str("")
+
+                            class_properties[property_item.tag] = property_item.text
+
+            if not found_task:
+                raise RuntimeError("No task definition found for: '%s'" % task_name)
 
             return TaskXmlInfo(class_module, class_name, class_properties)
 

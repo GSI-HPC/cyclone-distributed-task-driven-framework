@@ -140,10 +140,9 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                task_xml_info = TaskXmlReader.read_task_definition("../config/tasks.xml")
+                task_xml_info = TaskXmlReader.read_task_definition('../config/tasks.xml', 'SampleEmptyTask')
                 logging.debug("Loaded Task Template: '%s.%s'" % (task_xml_info.class_module, task_xml_info.class_name))
 
-                # Just one task is supported to be executed by the framework yet.
                 task = TaskFactory().create_from_xml_info(task_xml_info)
 
                 lock_ost_info_queue = multiprocessing.Lock()

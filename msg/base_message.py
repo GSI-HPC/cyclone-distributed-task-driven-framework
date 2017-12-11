@@ -32,11 +32,11 @@ class BaseMessage(object):
 
         super(BaseMessage, self).__init__()
 
+        if not header:
+            raise RuntimeError('No header is set!')
+
         self.header = header
         self.body = body
-
-        if not self.header:
-            raise RuntimeError('No header is set!')
 
         self._validate()
 
