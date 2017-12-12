@@ -167,8 +167,6 @@ def signal_handler_shutdown(signal, frame):
 
 def main():
 
-    error_flag = False
-
     try:
 
         args = init_arg_parser()
@@ -219,7 +217,6 @@ def main():
                 if not start_worker(worker_handle_dict, worker_state_table):
 
                     logging.error("Not all worker are ready!")
-                    error_flag = True
                     RUN_CONDITION = False
 
                 while RUN_CONDITION:
@@ -273,7 +270,6 @@ def main():
 
                                 logging.error('No worker are alive!')
                                 RUN_CONDITION = False
-                                error_flag = True
                                 continue
 
                             else:   # Available worker are busy
@@ -292,7 +288,7 @@ def main():
 
                         logging.debug("Sending message to master: %s" % send_msg.to_string())
                         comm_handler.send(send_msg.to_string())
-                        
+
                         in_raw_data = comm_handler.recv()
 
                         if in_raw_data:
@@ -373,9 +369,7 @@ def main():
                                 time.sleep(1)
 
                     except Exception as e:
-
                         logging.error("Caught exception terminating Worker: " + str(e))
-                        error_flag = True
 
             else:
                 logging.error("Another instance might be already running as well!")
