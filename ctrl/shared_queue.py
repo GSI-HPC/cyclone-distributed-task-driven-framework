@@ -22,7 +22,6 @@ import multiprocessing
 import Queue
 
 
-# TODO: Think about an item counter for the queue, hence it is not reliable because of multiprocessing semantics!
 class SharedQueue:
 
     def __init__(self):
@@ -36,6 +35,7 @@ class SharedQueue:
 
     def fill(self, in_list):
         """Fills the queue with the passed input list (blocking)"""
+
         if len(in_list) == 0:
             raise RuntimeError('Input list is empty!')
 
@@ -47,6 +47,7 @@ class SharedQueue:
 
     def clear(self):
         """Clears all items from the queue (blocking)"""
+
         while not self._queue.empty():
 
             try:
@@ -56,6 +57,7 @@ class SharedQueue:
 
     def push(self, item):
         """Pushes an item into the queue (blocking)"""
+
         if not item:
             raise RuntimeError("Passed item for shared queue push was not set!")
 
@@ -63,6 +65,7 @@ class SharedQueue:
 
     def pop_nowait(self):
         """Returns an item from the queue (non-blocking)"""
+
         try:
             return self._queue.get_nowait()
         except Queue.Empty:
@@ -72,6 +75,7 @@ class SharedQueue:
 
     def pop(self):
         """Returns an item from the queue (blocking)"""
+
         try:
             return self._queue.get()
         except Queue.Empty:
@@ -81,6 +85,7 @@ class SharedQueue:
 
     def is_empty(self):
         """Checks if the queue is empty (non-blocking)"""
+
         if self._queue.empty():
             return True
         else:

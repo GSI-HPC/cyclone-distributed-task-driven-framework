@@ -278,7 +278,6 @@ def main():
 
                                     with CriticalSection(cond_result_queue):
 
-                                        # TODO: How should the wait time be set?
                                         wait_timeout_result_queue = 1
 
                                         cond_result_queue.wait(wait_timeout_result_queue)

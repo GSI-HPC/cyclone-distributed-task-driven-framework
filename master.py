@@ -162,7 +162,6 @@ def main():
 
                         recv_data = comm_handler.recv()
 
-                        # TODO: To implement...
                         send_msg = None
 
                         if recv_data:
