@@ -46,10 +46,6 @@ class OSTListProcessor(Process):
         self.ost_reg_ex = config_file_reader.ost_reg_ex
         self.ip_reg_ex = config_file_reader.ip_reg_ex
 
-        self.db_proxy_target = config_file_reader.db_proxy_target
-        self.db_proxy_port = config_file_reader.db_proxy_port
-        self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
-
         self.run_flag = False
 
     def start(self):

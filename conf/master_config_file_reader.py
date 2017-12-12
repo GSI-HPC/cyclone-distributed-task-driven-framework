@@ -55,6 +55,3 @@ class MasterConfigFileReader:
         self.lfs_target = config.get('lustre', 'lfs_target')
 
         self.measure_interval = float(config.get('test', 'measure_interval'))
-
-        self.db_proxy_target = config.get('db_proxy', 'target')
-        self.db_proxy_port = config.get('db_proxy', 'port')
