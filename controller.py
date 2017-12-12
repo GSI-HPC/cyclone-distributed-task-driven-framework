@@ -221,129 +221,142 @@ def main():
 
                 while RUN_CONDITION:
 
-                    send_msg = None
+                    try:
 
-                    if not send_msg:
+                        send_msg = None
 
-                        with CriticalSection(cond_result_queue):
+                        if not send_msg:
 
-                            if not result_queue.is_empty():
+                            with CriticalSection(cond_result_queue):
 
-                                ost_name = result_queue.pop_nowait()
+                                if not result_queue.is_empty():
 
-                                if ost_name:
+                                    ost_name = result_queue.pop_nowait()
 
-                                    logging.debug("Finished task for OST: %s" % ost_name)
-                                    send_msg = TaskFinished(comm_handler.fqdn, ost_name)
+                                    if ost_name:
 
-                    if not send_msg:
+                                        logging.debug("Finished task for OST: %s" % ost_name)
+                                        send_msg = TaskFinished(comm_handler.fqdn, ost_name)
 
-                        found_ready_worker = False
+                        if not send_msg:
 
-                        with CriticalSection(lock_worker_state_table):
+                            found_ready_worker = False
 
-                            for worker_id in worker_state_table.iterkeys():
+                            with CriticalSection(lock_worker_state_table):
 
-                                if worker_handle_dict[worker_id].is_alive() \
-                                        and worker_state_table[worker_id].get_state == WorkerState.READY:
+                                for worker_id in worker_state_table.iterkeys():
 
-                                    found_ready_worker = True
-                                    break
+                                    if worker_handle_dict[worker_id].is_alive() \
+                                            and worker_state_table[worker_id].get_state == WorkerState.READY:
 
-                        if found_ready_worker:
+                                        found_ready_worker = True
+                                        break
 
-                            logging.debug('Requesting a task...')
+                            if found_ready_worker:
 
-                            send_msg = TaskRequest(comm_handler.fqdn)
+                                logging.debug('Requesting a task...')
 
-                        else:
+                                send_msg = TaskRequest(comm_handler.fqdn)
 
-                            worker_count = len(worker_state_table)
-                            worker_count_not_active = 0
+                            else:
 
-                            for worker_id in worker_state_table.iterkeys():
+                                worker_count = len(worker_state_table)
+                                worker_count_not_active = 0
 
-                                if not worker_handle_dict[worker_id].is_alive():
-                                    worker_count_not_active += 1
+                                for worker_id in worker_state_table.iterkeys():
 
-                            if worker_count == worker_count_not_active:
+                                    if not worker_handle_dict[worker_id].is_alive():
+                                        worker_count_not_active += 1
 
-                                logging.error('No worker are alive!')
-                                RUN_CONDITION = False
-                                continue
+                                if worker_count == worker_count_not_active:
 
-                            else:   # Available worker are busy
+                                    logging.error('No worker are alive!')
+                                    RUN_CONDITION = False
+                                    continue
 
-                                with CriticalSection(cond_result_queue):
+                                else:   # Available worker are busy
 
-                                    # TODO: How should the wait time be set?
-                                    wait_timeout_result_queue = 1
+                                    with CriticalSection(cond_result_queue):
 
-                                    cond_result_queue.wait(wait_timeout_result_queue)
+                                        # TODO: How should the wait time be set?
+                                        wait_timeout_result_queue = 1
 
-                                    if result_queue.is_empty():
-                                        send_msg = Heartbeat(comm_handler.fqdn)
+                                        cond_result_queue.wait(wait_timeout_result_queue)
 
-                    if send_msg:
+                                        if result_queue.is_empty():
+                                            send_msg = Heartbeat(comm_handler.fqdn)
 
-                        logging.debug("Sending message to master: %s" % send_msg.to_string())
-                        comm_handler.send(send_msg.to_string())
+                        if send_msg:
 
-                        in_raw_data = comm_handler.recv()
+                            logging.debug("Sending message to master: %s" % send_msg.to_string())
+                            comm_handler.send(send_msg.to_string())
 
-                        if in_raw_data:
+                            in_raw_data = comm_handler.recv()
 
-                            logging.debug("Retrieved message (raw data): " + in_raw_data)
+                            if in_raw_data:
 
-                            in_msg = MessageFactory.create(in_raw_data)
-                            in_msg_type = in_msg.type()
+                                logging.debug("Retrieved message (raw data): " + in_raw_data)
 
-                            if MessageType.TASK_ASSIGN() == in_msg_type:
+                                in_msg = MessageFactory.create(in_raw_data)
+                                in_msg_type = in_msg.type()
 
-                                task = in_msg.to_task()
+                                if MessageType.TASK_ASSIGN() == in_msg_type:
 
-                                logging.debug("Retrieved task assign for OST: " + task.ost_name)
+                                    task = in_msg.to_task()
 
-                                task_queue.push(task)
+                                    logging.debug("Retrieved task assign for OST: " + task.ost_name)
 
-                                logging.debug("Pushed task to task queue: %s" % task.ost_name)
+                                    task_queue.push(task)
 
-                            elif MessageType.ACKNOWLEDGE() == in_msg_type:
-                                continue
+                                    logging.debug("Pushed task to task queue: %s" % task.ost_name)
 
-                            elif MessageType.WAIT_COMMAND() == in_msg_type:
+                                elif MessageType.ACKNOWLEDGE() == in_msg_type:
+                                    continue
 
-                                #TODO: Implement it on the master side!
-                                wait_duration = in_msg.duration
-                                logging.debug("Retrieved Wait Command with duration: " + str(wait_duration))
-                                time.sleep(wait_duration)
+                                elif MessageType.WAIT_COMMAND() == in_msg_type:
 
-                            elif MessageType.EXIT_COMMAND() == in_msg_type:
+                                    #TODO: Implement it on the master side!
+                                    wait_duration = in_msg.duration
+                                    logging.debug("Retrieved Wait Command with duration: " + str(wait_duration))
+                                    time.sleep(wait_duration)
 
-                                RUN_CONDITION = False
-                                logging.info('Retrieved exit message from master...')
+                                elif MessageType.EXIT_COMMAND() == in_msg_type:
 
-                            # Reset after retrieving a message
-                            if request_retry_count > 0:
-                                request_retry_count = 0
+                                    RUN_CONDITION = False
+                                    logging.info('Retrieved exit message from master...')
 
-                        else:
+                                # Reset after retrieving a message
+                                if request_retry_count > 0:
+                                    request_retry_count = 0
 
-                            if request_retry_count == max_num_request_retries:
+                            else:
 
-                                logging.debug('Exiting, since maximum retry count is reached!')
-                                comm_handler.disconnect()
-                                RUN_CONDITION = False
+                                if request_retry_count == max_num_request_retries:
 
-                            time.sleep(request_retry_wait_duration)
-                            logging.debug('No response retrieved - Reconnecting...')
-                            comm_handler.reconnect()
-                            request_retry_count += 1
+                                    logging.debug('Exiting, since maximum retry count is reached!')
+                                    comm_handler.disconnect()
+                                    RUN_CONDITION = False
 
-                # Shutdown all worker...
+                                time.sleep(request_retry_wait_duration)
+                                logging.debug('No response retrieved - Reconnecting...')
+                                comm_handler.reconnect()
+                                request_retry_count += 1
+
+                    except Exception as e:
+
+                        RUN_CONDITION = False
+
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+                        logging.error("Caught exception (type: %s) in main loop: %s - %s (line: %s)"
+                                      % (exc_type, str(e), filename, exc_tb.tb_lineno))
+
                 if not RUN_CONDITION:
 
                     try:
+
+                        logging.info("Shutting down all worker...")
 
                         all_worker_down = False
 
