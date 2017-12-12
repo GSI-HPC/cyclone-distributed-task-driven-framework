@@ -149,10 +149,6 @@ def main():
                 ost_list_processor = OSTListProcessor(ost_info_queue, lock_ost_info_queue, config_file_reader)
                 ost_list_processor.start()
 
-                # TODO: Remove Benchmarking:
-                # assigned_task_count = 0
-                # finished_task_count = 0
-
                 # TODO: Make a class for the master.
                 global TASK_DISTRIBUTION
 
@@ -242,11 +238,6 @@ def main():
                                         # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                         send_msg = WaitCommand(controller_wait_duration)
 
-                                    # TODO: Benchmarking...
-                                    # if send_msg.header == MessageType.TASK_ASSIGN():
-                                    #     assigned_task_count += 1
-                                    #     print ("assigned_task_count: %s" % assigned_task_count)
-
                                     # logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
@@ -269,12 +260,6 @@ def main():
                                     else:
                                         raise RuntimeError("Inconsistency detected on task finished!")
 
-                                    # TODO: Benchmarking:
-                                    # finished_task_count += 1
-                                    # print ("finished_task_count: %s" % finished_task_count)
-                                    # if assigned_task_count == finished_task_count:
-                                    #     print (" >>> GOT IT: %s " % finished_task_count)
-
                                     send_msg = Acknowledge()
                                     logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
@@ -290,8 +275,8 @@ def main():
 
                             else:   # No more task distribution (TASK_DISTRIBUTION == FALSE)!
 
-                                send_msg = ExitCommand()
                                 # logging.debug("Sending message: " + send_msg.to_string())
+                                send_msg = ExitCommand()
                                 comm_handler.send(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
