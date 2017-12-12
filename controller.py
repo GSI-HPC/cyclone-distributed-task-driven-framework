@@ -292,7 +292,7 @@ def main():
 
                         logging.debug("Sending message to master: %s" % send_msg.to_string())
                         comm_handler.send(send_msg.to_string())
-
+                        
                         in_raw_data = comm_handler.recv()
 
                         if in_raw_data:
@@ -387,8 +387,9 @@ def main():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-        logging.error("Caught exception on last instance: %s - "
-                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
+        logging.error("Caught exception (type: %s) on last instance: %s - %s (line: %s)"
+                      % (exc_type, str(e), filename, exc_tb.tb_lineno))
+
         exit(1)
 
     logging.info('Finished')
