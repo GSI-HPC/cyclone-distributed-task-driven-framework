@@ -22,6 +22,8 @@ import ConfigParser
 import re
 import os
 
+from config_value_error import ConfigValueError
+
 
 class MasterConfigFileReader:
 
@@ -33,14 +35,12 @@ class MasterConfigFileReader:
         config = ConfigParser.ConfigParser()
         config.read(config_file)
 
-        # TODO: Check parameter values!
         self.pid_file = config.get('control', 'pid_file')
 
         self.ost_reg_ex = re.compile(config.get('control', 'ost_reg_ex'))
         self.ip_reg_ex = re.compile(config.get('control', 'ip_reg_ex'))
 
         self.controller_timeout = float(config.get('control', 'controller_timeout'))
-        self.lock_shared_queue_timeout = int(config.get('control', 'lock_shared_queue_timeout'))
         self.controller_wait_duration = int(config.get('control', 'controller_wait_duration'))
         self.task_resend_timeout = int(config.get('control', 'task_resend_timeout'))
 
@@ -55,3 +55,44 @@ class MasterConfigFileReader:
         self.lfs_target = config.get('lustre', 'lfs_target')
 
         self.measure_interval = float(config.get('test', 'measure_interval'))
+
+    def validate(self):
+
+        if not self.pid_file:
+            raise ConfigValueError("No PID file was specified!")
+
+        if not self.ost_reg_ex:
+            raise ConfigValueError("No regular expression was set for validating OST names!")
+
+        if not self.ip_reg_ex:
+            raise ConfigValueError("No regular expression was set for validating OSS IP addresses!")
+
+        if not self.controller_timeout:
+            raise ConfigValueError("No controller timeout was set!")
+
+        if not self.controller_wait_duration:
+            raise ConfigValueError("No controller wait duration was set!")
+
+        if not self.task_resend_timeout:
+            raise ConfigValueError("No task resend timeout was set!")
+
+        if not self.comm_target:
+            raise ConfigValueError("No communication target was specified!")
+
+        if not self.comm_port:
+            raise ConfigValueError("No communication port was specified!")
+
+        if not self.poll_timeout:
+            raise ConfigValueError("No polling timeout was specified!")
+
+        if not self.lctl_bin:
+            raise ConfigValueError("No LCTL binary was specified!")
+
+        if not self.lfs_bin:
+            raise ConfigValueError("No LFS binary was specified!")
+
+        if not self.lfs_target:
+            raise ConfigValueError("No Lustre file system target was specified!")
+
+        if not self.measure_interval:
+            raise ConfigValueError("No measure interval was specified!")

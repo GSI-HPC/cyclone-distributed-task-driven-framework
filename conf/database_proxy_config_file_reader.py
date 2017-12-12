@@ -21,6 +21,8 @@
 import ConfigParser
 import os
 
+from config_value_error import ConfigValueError
+
 
 class DatabaseProxyConfigFileReader:
 
@@ -32,7 +34,6 @@ class DatabaseProxyConfigFileReader:
         config = ConfigParser.ConfigParser()
         config.read(config_file)
 
-        # TODO: Check parameter values!
         self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
@@ -52,4 +53,36 @@ class DatabaseProxyConfigFileReader:
         self.validate()
 
     def validate(self):
-        pass
+
+        if not self.pid_file:
+            raise ConfigValueError("No PID file was specified!")
+
+        if not self.comm_target:
+            raise ConfigValueError("No communication target was specified!")
+
+        if not self.comm_port:
+            raise ConfigValueError("No communication port was specified!")
+
+        if not self.poll_timeout:
+            raise ConfigValueError("No polling timeout was specified!")
+
+        if not self.host:
+            raise ConfigValueError("No host was specified!")
+
+        if not self.user:
+            raise ConfigValueError("No user was specified!")
+
+        if not self.passwd:
+            raise ConfigValueError("No password was specified!")
+
+        if not self.db:
+            raise ConfigValueError("No database was specified!")
+
+        if not self.table:
+            raise ConfigValueError("No table was specified!")
+
+        if not self.store_timeout:
+            raise ConfigValueError("No store timeout was specified!")
+
+        if not self.store_max_count:
+            raise ConfigValueError("No maximum store count was specified!")

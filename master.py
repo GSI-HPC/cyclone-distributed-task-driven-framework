@@ -135,7 +135,6 @@ def main():
                 ost_status_lookup_dict = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
-                lock_ost_info_queue_timeout = config_file_reader.lock_shared_queue_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
@@ -145,6 +144,7 @@ def main():
                 task = TaskFactory().create_from_xml_info(task_xml_info)
 
                 lock_ost_info_queue = multiprocessing.Lock()
+                lock_ost_info_queue_timeout = 1
 
                 ost_list_processor = OSTListProcessor(ost_info_queue, lock_ost_info_queue, config_file_reader)
                 ost_list_processor.start()

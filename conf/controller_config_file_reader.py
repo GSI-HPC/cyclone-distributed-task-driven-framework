@@ -21,6 +21,8 @@
 import ConfigParser
 import os
 
+from config_value_error import ConfigValueError
+
 
 class ControllerConfigFileReader:
 
@@ -32,7 +34,6 @@ class ControllerConfigFileReader:
         config = ConfigParser.ConfigParser()
         config.read(config_file)
 
-        # TODO: Check parameter values!
         self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
@@ -48,5 +49,20 @@ class ControllerConfigFileReader:
 
     def validate(self):
 
-        if self.worker_count <= 0 or self.worker_count > 1000:
-            raise RuntimeError("Not supported worker count detected: %s" % self.worker_count)
+        if not self.pid_file:
+            raise ConfigValueError("No PID file was specified!")
+
+        if not self.comm_target:
+            raise ConfigValueError("No communication target was specified!")
+
+        if not self.comm_port:
+            raise ConfigValueError("No communication port was specified!")
+
+        if not self.poll_timeout:
+            raise ConfigValueError("No polling timeout was specified!")
+
+        if not self.request_retry_wait_duration:
+            raise ConfigValueError("No request retry wait duration was specified!")
+
+        if self.worker_count < 1 or self.worker_count > 1000:
+            raise ConfigValueError("Not supported worker count detected: %s" % self.worker_count)
