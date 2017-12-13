@@ -20,20 +20,13 @@
 
 from base_task import BaseTask
 
-import time
 
+class EmptyTask(BaseTask):
 
-class SamplePrintTask(BaseTask):
+    def __init__(self):
 
-    def __init__(self, sleep_time):
-
-        super(SamplePrintTask, self).__init__()
-
-        self.sleep_time = int(sleep_time)
+        super(EmptyTask, self).__init__()
 
     def execute(self):
-
-        print("~~~ [SAMPLE PRINT TASK] ~~~ - Sleeping for '%s' seconds!" % self.sleep_time)
-
-        time.sleep(self.sleep_time)
+        pass
 

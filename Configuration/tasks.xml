@@ -1,23 +1,13 @@
 <?xml version="1.0"?>
 <tasks>
 
-   <task name="SampleEmptyTask">
-      <class module="task.sample_empty_task" name="SampleEmptyTask"/>
+   <task name="EmptyTask">
+      <class module="task.empty_task" name="EmptyTask"/>
    </task>
 
-   <task name="SamplePrintTask">
+   <task name="IOTask">
 
-      <class module="task.sample_print_task" name="SamplePrintTask"/>
-
-      <property>
-         <sleep_time>5</sleep_time>
-      </property>
-
-   </task>
-
-   <task name="OSTTask">
-
-      <class module="task.ost_task" name="OSTTask"/>
+      <class module="task.io_task" name="IOTask"/>
 
       <property>
 

@@ -30,7 +30,7 @@ from util.auto_remove_file import AutoRemoveFile
 from lfs.lfs_utils import LFSUtils
 
 
-class OSTTask(BaseTask):
+class IOTask(BaseTask):
 
     def __init__(self,
                  block_size_bytes,
@@ -41,7 +41,7 @@ class OSTTask(BaseTask):
                  db_proxy_target,
                  db_proxy_port):
 
-        super(OSTTask, self).__init__()
+        super(IOTask, self).__init__()
 
         self.block_size_bytes = int(block_size_bytes)
         self.total_size_bytes = int(total_size_bytes)
@@ -160,7 +160,7 @@ class OSTTask(BaseTask):
 
         except Exception as e:
 
-            logging.error("Caught exception in OSTTask: %s" % e)
+            logging.error("Caught exception in IOTask: %s" % e)
             return tuple((-1, -1))
 
     def read_file(self, file_path):
@@ -211,5 +211,5 @@ class OSTTask(BaseTask):
 
         except Exception as e:
 
-            logging.error("Caught exception in OSTTask: %s" % e)
+            logging.error("Caught exception in IOTask: %s" % e)
             return tuple((-1, -1))
