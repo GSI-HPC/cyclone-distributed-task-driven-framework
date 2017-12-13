@@ -23,7 +23,9 @@ import logging
 import signal
 import ctypes
 import time
+import sys
 import abc
+import os
 
 
 from ctrl.critical_section import CriticalSection
@@ -117,42 +119,64 @@ class Worker(multiprocessing.Process):
 
     def run(self):
 
-        signal.signal(signal.SIGUSR1, self.signal_handler_shutdown)
-        signal.siginterrupt(signal.SIGUSR1, True)
+        try:
 
-        logging.debug("Started Worker: '%s'" % multiprocessing.current_process().name)
+            signal.signal(signal.SIGUSR1, self.signal_handler_shutdown)
+            signal.siginterrupt(signal.SIGUSR1, True)
 
-        with CriticalSection(self.lock_worker_state_table):
-
-            self.worker_state_table_item.set_state(WorkerState.READY)
-            self.worker_state_table_item.set_timestamp(int(time.time()))
-
-        while self.run_flag:
-
-            task = self.task_queue.pop()
-
-            with CriticalSection(self.lock_worker_state_table):
-
-                self.worker_state_table_item.set_state(WorkerState.EXECUTING)
-                self.worker_state_table_item.set_ost_name(task.ost_name)
-                self.worker_state_table_item.set_timestamp(int(time.time()))
-
-            task.execute()
-
-            with CriticalSection(self.cond_result_queue):
-
-                self.result_queue.push(task.ost_name)
-                self.cond_result_queue.notify()
+            logging.debug("Started Worker: '%s'" % self.name)
 
             with CriticalSection(self.lock_worker_state_table):
 
                 self.worker_state_table_item.set_state(WorkerState.READY)
-                self.worker_state_table_item.set_ost_name('')
                 self.worker_state_table_item.set_timestamp(int(time.time()))
 
-        logging.debug("Exiting worker: '%s'" % multiprocessing.current_process().name)
+            while self.run_flag:
 
-        exit(0)
+                task = self.task_queue.pop()
+
+                with CriticalSection(self.lock_worker_state_table):
+
+                    self.worker_state_table_item.set_state(WorkerState.EXECUTING)
+                    self.worker_state_table_item.set_ost_name(task.ost_name)
+                    self.worker_state_table_item.set_timestamp(int(time.time()))
+
+                try:
+
+                    task.execute()
+
+                except Exception as e:
+
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+                    logging.error("Caught exception (type: %s) in worker[%s] during task execute: %s - %s (line: %s)"
+                                  % (exc_type, self.name, str(e), filename, exc_tb.tb_lineno))
+
+                with CriticalSection(self.cond_result_queue):
+
+                    self.result_queue.push(task.ost_name)
+                    self.cond_result_queue.notify()
+
+                with CriticalSection(self.lock_worker_state_table):
+
+                    self.worker_state_table_item.set_state(WorkerState.READY)
+                    self.worker_state_table_item.set_ost_name('')
+                    self.worker_state_table_item.set_timestamp(int(time.time()))
+
+            logging.debug("Exiting worker: '%s'" % self.name)
+
+            exit(0)
+
+        except Exception as e:
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error("Caught exception (type: %s) in worker[%s] during run loop: %s - %s (line: %s)"
+                          % (exc_type, self.name, str(e), filename, exc_tb.tb_lineno))
+
+            exit(1)
 
     def signal_handler_shutdown(self, signal, frame):
         self.run_flag = False
