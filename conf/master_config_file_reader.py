@@ -55,6 +55,8 @@ class MasterConfigFileReader:
         self.lfs_target = config.get('lustre', 'lfs_target')
 
         self.measure_interval = float(config.get('test', 'measure_interval'))
+        self.task_def_file = config.get('test', 'task_def_file')
+        self.task_name = config.get('test', 'task_name')
 
     def validate(self):
 
@@ -96,3 +98,9 @@ class MasterConfigFileReader:
 
         if not self.measure_interval:
             raise ConfigValueError("No measure interval was specified!")
+
+        if not self.task_def_file:
+            raise ConfigValueError("No task definition file was specified!")
+
+        if not self.task_name:
+            raise ConfigValueError("No task name for a task execution was specified!")
