@@ -16,6 +16,31 @@
          <target_dir>/lustre/fs/PATH</target_dir>
          <lfs_bin>/usr/bin/lfs_bin</lfs_bin>
          <lfs_target>fs</lfs_target>
+
+         <db_proxy_target>localhost</db_proxy_target>
+         <db_proxy_port>5777</db_proxy_port>
+
+      </property>
+
+   </task>
+
+   <task name="AlertIOTask">
+
+      <class module="task.alert_io_task" name="AlertIOTask"/>
+
+      <property>
+
+         <mail_server>localhost</mail_server>
+         <mail_sender>user@mail.net</mail_sender>
+         <mail_receiver>user@mail.net</mail_receiver>
+         <mail_threshold>14400</mail_threshold>
+
+         <block_size_bytes>1000000</block_size_bytes>
+         <total_size_bytes>1000000</total_size_bytes>
+         <target_dir>/lustre/fs/PATH</target_dir>
+         <lfs_bin>/usr/bin/lfs_bin</lfs_bin>
+         <lfs_target>fs</lfs_target>
+
          <db_proxy_target>localhost</db_proxy_target>
          <db_proxy_port>5777</db_proxy_port>
 
