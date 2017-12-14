@@ -25,6 +25,10 @@ import logging
 import datetime
 import smtplib
 
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.MIMEText import MIMEText
+
 from base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
@@ -53,6 +57,7 @@ class AlertIOTask(BaseTask):
         self.mail_sender = mail_sender
         self.mail_receiver = mail_receiver
         self.mail_threshold = float(mail_threshold)
+        self.mail_receiver_list = self.mail_receiver.replace(' ', '').split(',')
 
         self.block_size_bytes = int(block_size_bytes)
         self.total_size_bytes = int(total_size_bytes)
@@ -180,12 +185,18 @@ class AlertIOTask(BaseTask):
         subject = args[0]
         text = args[1]
 
-        mail = "From: <%s>\nTo: <%s>\nSubject: %s\n\n%s" % (self.mail_sender, self.mail_receiver, subject, text)
+        msg = MIMEMultipart()
+        msg['Subject'] = subject
+        msg['From'] = self.mail_sender
+        msg['To'] = ', '.join(self.mail_receiver_list)
 
-        logging.debug(mail)
+        msg.attach(MIMEText(text))
+        msg_string = msg.as_string()
+
+        logging.debug(msg_string)
 
         smtp_conn = smtplib.SMTP(self.mail_server)
-        smtp_conn.sendmail(self.mail_sender, self.mail_receiver, mail)
+        smtp_conn.sendmail(self.mail_sender, self.mail_receiver_list, msg_string)
         smtp_conn.quit()
 
     def _write_file(self, file_path):
