@@ -26,7 +26,6 @@ import datetime
 import smtplib
 
 from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 
 from base_task import BaseTask
