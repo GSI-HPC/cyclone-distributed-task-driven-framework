@@ -101,8 +101,8 @@ def main():
                                            config_file_reader.table) as table_handler:
 
             if pid_control.lock():
-
-                logging.info("Started (PID: %s)", pid_control.pid())
+                
+                logging.info("Started Database Proxy with PID: [%s]", pid_control.pid())
 
                 signal.signal(signal.SIGINT, signal_handler_terminate)
                 signal.signal(signal.SIGUSR1, signal_handler_shutdown)
