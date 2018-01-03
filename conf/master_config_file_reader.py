@@ -58,6 +58,13 @@ class MasterConfigFileReader:
         self.task_def_file = config.get('test', 'task_def_file')
         self.task_name = config.get('test', 'task_name')
 
+        ost_filter_list = config.get('test', 'ost_filter_list')
+
+        if ost_filter_list:
+            self.ost_filter_list = ost_filter_list.replace(' ', '').split(',')
+        else:
+            self.ost_filter_list = list()
+
     def validate(self):
 
         if not self.pid_file:
@@ -104,3 +111,4 @@ class MasterConfigFileReader:
 
         if not self.task_name:
             raise ConfigValueError("No task name for a task execution was specified!")
+

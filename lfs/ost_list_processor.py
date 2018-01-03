@@ -31,20 +31,22 @@ from ctrl.ost_info import OSTInfo
 
 class OSTListProcessor(Process):
 
-    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader):
+    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader, ost_filter_list=None):
 
         super(OSTListProcessor, self).__init__()
 
-        self.ost_info_queue = ost_info_queue
-        self.lock_ost_queue = lock_ost_queue
+        self.ost_reg_ex = config_file_reader.ost_reg_ex
+        self.ip_reg_ex = config_file_reader.ip_reg_ex
 
-        self.measure_interval = config_file_reader.measure_interval
         self.lctl_bin = config_file_reader.lctl_bin
         self.lfs_bin = config_file_reader.lfs_bin
         self.lfs_target = config_file_reader.lfs_target
 
-        self.ost_reg_ex = config_file_reader.ost_reg_ex
-        self.ip_reg_ex = config_file_reader.ip_reg_ex
+        self.measure_interval = config_file_reader.measure_interval
+        self.ost_filter_list = ost_filter_list
+
+        self.ost_info_queue = ost_info_queue
+        self.lock_ost_queue = lock_ost_queue
 
         self.run_flag = False
 
@@ -62,7 +64,7 @@ class OSTListProcessor(Process):
         while self.run_flag:
 
             try:
-                logging.debug("OST List Processor active!")
+                logging.debug("OSTListProcessor active!")
 
                 ost_info_list = self._create_ost_info_list()
 
@@ -77,10 +79,10 @@ class OSTListProcessor(Process):
                 time.sleep(self.measure_interval)
 
             except Exception as e:
-                logging.error("Caught exception in OST List Processor: %s" % e)
+                logging.error("Caught exception in OSTListProcessor: %s" % e)
                 exit(1)
 
-        logging.debug("OST Processor finished!")
+        logging.debug("OSTListProcessor finished!")
         exit(0)
 
     def signal_handler_shutdown(self, signal, frame):
@@ -140,4 +142,30 @@ class OSTListProcessor(Process):
 
             ost_info_list.append(OSTInfo(ost_name, oss_ip))
 
-        return ost_info_list
+        if len(ost_info_list) == 0:
+            raise RuntimeError("No OST information could be retrieved!")
+
+        if self.ost_filter_list is None:
+            return ost_info_list
+
+        else:
+
+            filter_ost_info_list = list()
+
+            for filter_ost_name in self.ost_filter_list:
+
+                found_filter_ost_name = False
+
+                for ost_info in ost_info_list:
+
+                    if filter_ost_name == ost_info.name:
+
+                        filter_ost_info_list.append(ost_info)
+                        found_filter_ost_name = True
+                        break
+
+                if found_filter_ost_name is False:
+                    raise RuntimeError("OST name to filter was not found in ost_info_list: %s" % filter_ost_name)
+
+            return filter_ost_info_list
+
