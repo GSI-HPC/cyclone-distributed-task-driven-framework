@@ -161,7 +161,11 @@ class OSTListProcessor(Process):
                     if filter_ost_name == ost_info.name:
 
                         filter_ost_info_list.append(ost_info)
+
                         found_filter_ost_name = True
+
+                        logging.debug("Found OST name to filter: %s" % filter_ost_name)
+
                         break
 
                 if found_filter_ost_name is False:
