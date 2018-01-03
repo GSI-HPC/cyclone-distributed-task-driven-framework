@@ -51,12 +51,12 @@ class LFSUtils:
 
                     if self.ost_active_output == line[-len(self.ost_active_output):]:
 
-                        logging.debug("Found active: '%s'" % complete_target)
+                        logging.debug("Found active OST: '%s'" % complete_target)
                         return True
 
                     else:
 
-                        logging.debug("Found inactive: '%s'" % complete_target)
+                        logging.debug("Found inactive or unavailable OST: '%s'" % complete_target)
                         return False
 
         except subprocess.CalledProcessError as e:
