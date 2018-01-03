@@ -89,19 +89,18 @@ def main():
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
-        # TODO: Check this...no PID file specified and it gives no error!
         with PIDControl(config_file_reader.pid_file) as pid_control, \
-                DatabaseProxyCommHandler(config_file_reader.comm_target,
-                                         config_file_reader.comm_port,
-                                         config_file_reader.poll_timeout) as comm_handler, \
-                OSTPerfHistoryTableHandler(config_file_reader.host,
-                                           config_file_reader.user,
-                                           config_file_reader.passwd,
-                                           config_file_reader.db,
-                                           config_file_reader.table) as table_handler:
+            DatabaseProxyCommHandler(config_file_reader.comm_target,
+                                     config_file_reader.comm_port,
+                                     config_file_reader.poll_timeout) as comm_handler, \
+            OSTPerfHistoryTableHandler(config_file_reader.host,
+                                       config_file_reader.user,
+                                       config_file_reader.passwd,
+                                       config_file_reader.db,
+                                       config_file_reader.table) as table_handler:
 
             if pid_control.lock():
-                
+
                 logging.info("Started Database Proxy with PID: [%s]", pid_control.pid())
 
                 signal.signal(signal.SIGINT, signal_handler_terminate)
