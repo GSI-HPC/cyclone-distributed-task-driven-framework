@@ -375,6 +375,7 @@ def main():
 
                             if not found_active_worker:
                                 all_worker_down = True
+                                logging.debug('All worker are down.')
 
                             else:
                                 logging.debug('Waiting for worker to shutdown...')
