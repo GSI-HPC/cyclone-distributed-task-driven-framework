@@ -140,7 +140,7 @@ def main():
 
                 task_def_file = config_file_reader.task_def_file
                 task_name = config_file_reader.task_name
-                ost_filter_list = config_file_reader.ost_filter_list
+                ost_select_list = config_file_reader.ost_select_list
 
                 task_xml_info = TaskXmlReader.read_task_definition(task_def_file, task_name)
                 logging.debug("Loaded Task Template: '%s.%s'" % (task_xml_info.class_module, task_xml_info.class_name))
@@ -150,11 +150,11 @@ def main():
                 lock_ost_info_queue = multiprocessing.Lock()
                 lock_ost_info_queue_timeout = 1
 
-                if ost_filter_list:
+                if ost_select_list:
                     ost_list_processor = OSTListProcessor(ost_info_queue,
                                                           lock_ost_info_queue,
                                                           config_file_reader,
-                                                          ost_filter_list)
+                                                          ost_select_list)
                 else:
                     ost_list_processor = OSTListProcessor(ost_info_queue, lock_ost_info_queue, config_file_reader)
 

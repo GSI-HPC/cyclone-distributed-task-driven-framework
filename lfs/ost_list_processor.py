@@ -31,7 +31,7 @@ from ctrl.ost_info import OSTInfo
 
 class OSTListProcessor(Process):
 
-    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader, ost_filter_list=None):
+    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader, ost_select_list=None):
 
         super(OSTListProcessor, self).__init__()
 
@@ -43,7 +43,7 @@ class OSTListProcessor(Process):
         self.lfs_target = config_file_reader.lfs_target
 
         self.measure_interval = config_file_reader.measure_interval
-        self.ost_filter_list = ost_filter_list
+        self.ost_select_list = ost_select_list
 
         self.ost_info_queue = ost_info_queue
         self.lock_ost_queue = lock_ost_queue
@@ -142,34 +142,36 @@ class OSTListProcessor(Process):
 
             ost_info_list.append(OSTInfo(ost_name, oss_ip))
 
+            logging.debug("Found OST: %s" % ost_name)
+
         if len(ost_info_list) == 0:
             raise RuntimeError("No OST information could be retrieved!")
 
-        if self.ost_filter_list is None:
+        if self.ost_select_list is None:
             return ost_info_list
 
         else:
 
-            filter_ost_info_list = list()
+            select_ost_info_list = list()
 
-            for filter_ost_name in self.ost_filter_list:
+            for select_ost_name in self.ost_select_list:
 
                 found_filter_ost_name = False
 
                 for ost_info in ost_info_list:
 
-                    if filter_ost_name == ost_info.name:
+                    if select_ost_name == ost_info.name:
 
-                        filter_ost_info_list.append(ost_info)
+                        select_ost_info_list.append(ost_info)
 
                         found_filter_ost_name = True
 
-                        logging.debug("Found OST name to filter: %s" % filter_ost_name)
+                        logging.debug("Found OST: %s" % select_ost_name)
 
                         break
 
                 if found_filter_ost_name is False:
-                    raise RuntimeError("OST name to filter was not found in ost_info_list: %s" % filter_ost_name)
+                    raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_name)
 
-            return filter_ost_info_list
+            return select_ost_info_list
 

@@ -58,12 +58,12 @@ class MasterConfigFileReader:
         self.task_def_file = config.get('test', 'task_def_file')
         self.task_name = config.get('test', 'task_name')
 
-        ost_filter_list = config.get('test', 'ost_filter_list')
+        ost_select_list = config.get('test', 'ost_select_list')
 
-        if ost_filter_list:
-            self.ost_filter_list = ost_filter_list.replace(' ', '').split(',')
+        if ost_select_list:
+            self.ost_select_list = ost_select_list.replace(' ', '').split(',')
         else:
-            self.ost_filter_list = list()
+            self.ost_select_list = list()
 
     def validate(self):
 
