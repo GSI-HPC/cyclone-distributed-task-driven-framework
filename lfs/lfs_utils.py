@@ -74,7 +74,7 @@ class LFSUtils:
 
         stripe_index = "0x" + ost_name[self.ost_prefix_len:]
 
-        logging.debug("Setting stripe for file: %s on OST: %s" % (file_path, ost_name))
+        logging.debug("Setting stripe settings for file: %s on OST: %s" % (file_path, ost_name))
 
         # Writes stderr to stdout to read the error message from subprocess.CalledProcessError.output on exception.
         subprocess.check_output([self.lfs_bin, "setstripe", "--stripe-index", stripe_index,
