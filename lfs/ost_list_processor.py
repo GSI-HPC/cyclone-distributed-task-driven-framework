@@ -156,7 +156,7 @@ class OSTListProcessor(Process):
 
             for select_ost_name in self.ost_select_list:
 
-                found_filter_ost_name = False
+                found_select_ost_name = False
 
                 for ost_info in ost_info_list:
 
@@ -164,13 +164,13 @@ class OSTListProcessor(Process):
 
                         select_ost_info_list.append(ost_info)
 
-                        found_filter_ost_name = True
+                        found_select_ost_name = True
 
-                        logging.debug("Found OST: %s" % select_ost_name)
+                        logging.debug("Found OST from selected list: %s" % select_ost_name)
 
                         break
 
-                if found_filter_ost_name is False:
+                if found_select_ost_name is False:
                     raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_name)
 
             return select_ost_info_list
