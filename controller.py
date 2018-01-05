@@ -371,6 +371,9 @@ def main():
 
                                     task_queue.push(PoisenPill())
 
+                                    logging.debug("Waiting for worker to complete: %s"
+                                                  % worker_handle_dict[worker_id].name)
+
                                     found_active_worker = True
 
                             if not found_active_worker:
