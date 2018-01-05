@@ -31,7 +31,7 @@ from ctrl.ost_info import OSTInfo
 
 class OSTListProcessor(Process):
 
-    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader, ost_select_list=None):
+    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader):
 
         super(OSTListProcessor, self).__init__()
 
@@ -43,7 +43,7 @@ class OSTListProcessor(Process):
         self.lfs_target = config_file_reader.lfs_target
 
         self.measure_interval = config_file_reader.measure_interval
-        self.ost_select_list = ost_select_list
+        self.ost_select_list = config_file_reader.ost_select_list
 
         self.ost_info_queue = ost_info_queue
         self.lock_ost_queue = lock_ost_queue
