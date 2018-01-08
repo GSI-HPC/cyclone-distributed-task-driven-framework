@@ -144,7 +144,7 @@ class AlertIOTask(BaseTask):
 
             if ost_perf_result:
 
-                logging.debug(ost_perf_result.to_string_csv_list())
+                logging.debug(ost_perf_result.to_csv_list())
 
                 timeout = 1000
 
@@ -157,7 +157,7 @@ class AlertIOTask(BaseTask):
 
                 sock.connect(self.db_proxy_endpoint)
 
-                sock.send(ost_perf_result.to_string_csv_list())
+                sock.send(ost_perf_result.to_csv_list())
 
         except Exception as e:
             logging.error("Task-Exception: %s" % e)

@@ -19,6 +19,7 @@
 
 
 import os
+import sys
 import zmq
 import time
 import logging
@@ -35,6 +36,7 @@ class IOTask(BaseTask):
     def __init__(self,
                  block_size_bytes,
                  total_size_bytes,
+                 write_file_sync,
                  target_dir,
                  lfs_bin,
                  lfs_target,
@@ -43,21 +45,31 @@ class IOTask(BaseTask):
 
         super(IOTask, self).__init__()
 
+        # Class attributes mapped to the constructor parameters:
         self.block_size_bytes = int(block_size_bytes)
         self.total_size_bytes = int(total_size_bytes)
 
-        self.payload_block = str()
-        self.payload_rest_block = str()
+        self.write_file_sync = write_file_sync
 
         self.target_dir = target_dir
 
         self.lfs_bin = lfs_bin
-        self.lfs_utils = LFSUtils(lfs_bin)
         self.lfs_target = lfs_target
 
         self.db_proxy_target = db_proxy_target
         self.db_proxy_port = db_proxy_port
+
+        # Initialization of other class attributes (not directly mapped to the constructor parameters):
+        self.payload_block = str()
+        self.payload_rest_block = str()
+
+        self.lfs_utils = LFSUtils(lfs_bin)
+
         self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
+
+        # Validation of write_file_sync class attribute:
+        if not (self.write_file_sync == "on" or self.write_file_sync == "off"):
+            raise RuntimeError("Value for parameter write_file_sync must be either 'on' or 'off'!")
 
     def execute(self):
 
@@ -101,7 +113,7 @@ class IOTask(BaseTask):
 
             if ost_perf_result:
 
-                logging.debug(ost_perf_result.to_string_csv_list())
+                logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
 
                 timeout = 1000
 
@@ -114,10 +126,15 @@ class IOTask(BaseTask):
 
                 sock.connect(self.db_proxy_endpoint)
 
-                sock.send(ost_perf_result.to_string_csv_list())
+                sock.send(ost_perf_result.to_csv_list())
 
         except Exception as e:
-            logging.error("Task-Exception: %s" % e)
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error("Caught exception (type: %s) in IOTask: %s - %s (line: %s)"
+                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
 
     def _initialize_payload(self):
 
@@ -145,8 +162,12 @@ class IOTask(BaseTask):
                 if self.payload_rest_block:
                     f.write(self.payload_rest_block)
 
-                f.flush()
-                os.fsync(f.fileno())
+                if self.write_file_sync == "on":
+
+                    logging.debug("write_file_sync is on!")
+
+                    f.flush()
+                    os.fsync(f.fileno())
 
             end_time = time.time() * 1000.0
             duration = (end_time - start_time) / 1000.0
@@ -160,7 +181,12 @@ class IOTask(BaseTask):
 
         except Exception as e:
 
-            logging.error("Caught exception in IOTask: %s" % e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error("Caught exception (type: %s) in IOTask during write file: %s - %s (line: %s)"
+                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
+
             return tuple((-1, -1))
 
     def read_file(self, file_path):
@@ -211,5 +237,10 @@ class IOTask(BaseTask):
 
         except Exception as e:
 
-            logging.error("Caught exception in IOTask: %s" % e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error("Caught exception (type: %s) in IOTask during read file: %s - %s (line: %s)"
+                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
+
             return tuple((-1, -1))

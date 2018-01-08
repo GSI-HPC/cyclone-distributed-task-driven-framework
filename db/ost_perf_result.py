@@ -41,7 +41,7 @@ class OSTPerfResult:
         self.read_duration = read_duration
         self.write_duration = write_duration
 
-    def to_string_csv_list(self):
+    def to_csv_list(self):
 
         return "'" + self.read_timestamp + "'," \
             + "'" + self.write_timestamp + "'," \
