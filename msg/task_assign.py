@@ -72,16 +72,29 @@ class TaskAssign(BaseMessage):
         else:
 
             task_class = value.__class__
-            task_base_classes = task_class.__bases__
 
-            if (len(task_base_classes) != 1) or (task_base_classes[0].__name__ != BaseTask.__name__):
-                raise RuntimeError("The following task is just allowed to inherit from BaseTask class: '%s'"
-                                   % task_class)
+            if not TaskAssign._is_inherited_from_base_task(task_class):
+                raise RuntimeError("The following class was not inherited from the BaseTask class: '%s'" % task_class)
 
             header = TaskAssign._create_header(value, task_class)
             body = TaskAssign._create_body(value, task_class)
 
         super(TaskAssign, self).__init__(header, body)
+
+    @staticmethod
+    def _is_inherited_from_base_task(a_class):
+
+        if not a_class or len(a_class.__bases__) == 0:
+            return False
+
+        if a_class.__name__ == object.__name__:
+            return False
+
+        if a_class.__name__ == BaseTask.__name__:
+            return True
+
+        for base_class in a_class.__bases__:
+            return TaskAssign._is_inherited_from_base_task(base_class)
 
     @staticmethod
     def _create_header(task, task_class):

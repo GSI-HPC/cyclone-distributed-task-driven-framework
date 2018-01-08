@@ -19,6 +19,7 @@
 
 
 import os
+import sys
 import zmq
 import time
 import logging
@@ -29,13 +30,14 @@ from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 
 from base_task import BaseTask
+from io_task import IOTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
 from lfs.lfs_utils import LFSUtils
 from threading import Timer
 
 
-class AlertIOTask(BaseTask):
+class AlertIOTask(IOTask):
 
     def __init__(self,
                  mail_server,
@@ -44,34 +46,30 @@ class AlertIOTask(BaseTask):
                  mail_threshold,
                  block_size_bytes,
                  total_size_bytes,
+                 write_file_sync,
                  target_dir,
                  lfs_bin,
                  lfs_target,
                  db_proxy_target,
                  db_proxy_port):
 
-        super(AlertIOTask, self).__init__()
+        super(AlertIOTask, self).__init__(int(block_size_bytes),
+                                          int(total_size_bytes),
+                                          write_file_sync,
+                                          target_dir,
+                                          lfs_bin,
+                                          lfs_target,
+                                          db_proxy_target,
+                                          db_proxy_port)
 
         self.mail_server = mail_server
         self.mail_sender = mail_sender
         self.mail_receiver = mail_receiver
         self.mail_threshold = float(mail_threshold)
-        self.mail_receiver_list = self.mail_receiver.replace(' ', '').split(',')
+        self.mail_receiver_list = mail_receiver.replace(' ', '').split(',')
 
-        self.block_size_bytes = int(block_size_bytes)
-        self.total_size_bytes = int(total_size_bytes)
-
-        self.payload_block = str()
-        self.payload_rest_block = str()
-
-        self.target_dir = target_dir
-
-        self.lfs_bin = lfs_bin
         self.lfs_utils = LFSUtils(lfs_bin)
-        self.lfs_target = lfs_target
 
-        self.db_proxy_target = db_proxy_target
-        self.db_proxy_port = db_proxy_port
         self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
 
     def execute(self):
@@ -104,7 +102,7 @@ class AlertIOTask(BaseTask):
 
                     mail_timer.start()
 
-                    write_duration, write_throughput = self._write_file(file_path)
+                    write_duration, write_throughput = self.write_file(file_path)
 
                     mail_timer.cancel()
 
@@ -121,7 +119,7 @@ class AlertIOTask(BaseTask):
 
                     mail_timer.start()
 
-                    read_duration, read_throughput = self._read_file(file_path)
+                    read_duration, read_throughput = self.read_file(file_path)
 
                     mail_timer.cancel()
 
@@ -144,7 +142,7 @@ class AlertIOTask(BaseTask):
 
             if ost_perf_result:
 
-                logging.debug(ost_perf_result.to_csv_list())
+                logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
 
                 timeout = 1000
 
@@ -160,7 +158,12 @@ class AlertIOTask(BaseTask):
                 sock.send(ost_perf_result.to_csv_list())
 
         except Exception as e:
-            logging.error("Task-Exception: %s" % e)
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error("Caught exception (type: %s) in AlertIOTask: %s - %s (line: %s)"
+                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
 
     def _initialize_payload(self):
 
@@ -197,88 +200,4 @@ class AlertIOTask(BaseTask):
         smtp_conn = smtplib.SMTP(self.mail_server)
         smtp_conn.sendmail(self.mail_sender, self.mail_receiver_list, msg_string)
         smtp_conn.quit()
-
-    def _write_file(self, file_path):
-
-        try:
-            iterations = self.total_size_bytes / self.block_size_bytes
-
-            start_time = time.time() * 1000.0
-
-            with open(file_path, 'w') as f:
-
-                for i in xrange(int(iterations)):
-                    f.write(self.payload_block)
-
-                if self.payload_rest_block:
-                    f.write(self.payload_rest_block)
-
-                f.flush()
-                os.fsync(f.fileno())
-
-            end_time = time.time() * 1000.0
-            duration = (end_time - start_time) / 1000.0
-
-            throughput = 0
-
-            if duration:
-                throughput = self.total_size_bytes / duration
-
-            return tuple((duration, throughput))
-
-        except Exception as e:
-
-            logging.error("Caught exception in AlertIOTask: %s" % e)
-            return tuple((-1, -1))
-
-    def _read_file(self, file_path):
-
-        try:
-            if os.path.exists(file_path):
-
-                file_size = os.path.getsize(file_path)
-
-                if file_size == self.total_size_bytes:
-
-                    logging.debug("Reading output file from: %s" % file_path)
-
-                    total_read_bytes = 0
-
-                    start_time = time.time() * 1000.0
-
-                    with open(file_path, 'r') as f:
-
-                        read_bytes = f.read(self.block_size_bytes)
-                        total_read_bytes += len(read_bytes)
-
-                        while read_bytes:
-                            read_bytes = f.read(self.block_size_bytes)
-                            total_read_bytes += len(read_bytes)
-
-                    end_time = time.time() * 1000.0
-                    duration = (end_time - start_time) / 1000.0
-
-                    if total_read_bytes != self.total_size_bytes:
-                        raise RuntimeError('Read bytes differ from total size!')
-
-                    throughput = 0
-
-                    if duration:
-                        throughput = self.total_size_bytes / duration
-
-                    return tuple((duration, throughput))
-
-                elif file_size == 0:
-                    raise RuntimeError("File is empty: %s" % file_path)
-
-                else:
-                    raise RuntimeError("File is incomplete: %s" % file_path)
-
-            else:
-                raise RuntimeError("No file to be read could be found under: %s" % file_path)
-
-        except Exception as e:
-
-            logging.error("Caught exception in AlertIOTask: %s" % e)
-            return tuple((-1, -1))
 
