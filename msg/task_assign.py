@@ -32,8 +32,8 @@ class TaskAssign(BaseMessage):
     """
         The __init__ method can take two different types of arguments:
         
-        1. A task object - if the master sends this message to a controller.
-        2. A string object - if the controller retrieves this message from the master.
+        1. A string based object - if the controller retrieves this message from the master.
+        2. A task based object - if the master sends this message to a controller.
     """
     def __init__(self, value):
 
@@ -41,8 +41,9 @@ class TaskAssign(BaseMessage):
         body = None
 
         if not value:
-            raise RuntimeError("No value has been passed!")
+            raise RuntimeError("No value object has been passed!")
 
+        # Initialization by a passed string based object.
         if type(value) == str:
 
             message_items = value.split(BaseMessage.field_separator)
@@ -67,6 +68,7 @@ class TaskAssign(BaseMessage):
             if len_header < len_message:
                 body = value[len_header + 1:len_message]
 
+        # Initialization by a passed task based object.
         else:
 
             task_class = value.__class__
