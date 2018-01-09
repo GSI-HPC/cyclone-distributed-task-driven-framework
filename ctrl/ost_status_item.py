@@ -18,13 +18,15 @@
 #
 
 
-from enum import Enum
+class OstState(object):
 
+    @staticmethod
+    def assigned():
+        return 1
 
-class OstState(Enum):
-
-    ASSIGNED = 1
-    FINISHED = 2
+    @staticmethod
+    def finished():
+        return 2
 
 
 class OstStatusItem:

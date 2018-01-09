@@ -206,12 +206,13 @@ def main():
                                             task_resend_threshold = \
                                                 (ost_status_lookup_dict[ost_info.name].timestamp + task_resend_timeout)
 
-                                            if (ost_status_lookup_dict[ost_info.name].state == OstState.FINISHED) or \
-                                                    last_exec_timestamp >= task_resend_threshold:
+                                            if ost_status_lookup_dict[ost_info.name].state == OstState.finished() \
+                                                    or last_exec_timestamp >= task_resend_threshold:
+
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[ost_info.name].state == OstState.ASSIGNED and \
-                                                    last_exec_timestamp < task_resend_threshold:
+                                            elif ost_status_lookup_dict[ost_info.name].state == OstState.assigned() \
+                                                    and last_exec_timestamp < task_resend_threshold:
 
                                                 # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                                 send_msg = WaitCommand(controller_wait_duration)
@@ -226,7 +227,7 @@ def main():
 
                                             ost_status_lookup_dict[ost_info.name] = \
                                                 OstStatusItem(ost_info.name,
-                                                              OstState.ASSIGNED,
+                                                              OstState.assigned(),
                                                               recv_msg.sender,
                                                               int(time.time()))
 
@@ -253,7 +254,7 @@ def main():
 
                                             logging.debug("Retrieved finished OST message: " + ost_name)
 
-                                            ost_status_lookup_dict[ost_name].state = OstState.FINISHED
+                                            ost_status_lookup_dict[ost_name].state = OstState.finished()
                                             ost_status_lookup_dict[ost_name].timestamp = int(time.time())
 
                                         else:
