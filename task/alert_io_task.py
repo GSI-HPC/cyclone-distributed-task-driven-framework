@@ -101,7 +101,7 @@ class AlertIOTask(IOTask):
 
                     mail_timer.start()
 
-                    write_duration, write_throughput = self.write_file(file_path)
+                    write_duration, write_throughput = self._write_file(file_path)
 
                     mail_timer.cancel()
 
@@ -118,7 +118,7 @@ class AlertIOTask(IOTask):
 
                     mail_timer.start()
 
-                    read_duration, read_throughput = self.read_file(file_path)
+                    read_duration, read_throughput = self._read_file(file_path)
 
                     mail_timer.cancel()
 
@@ -163,17 +163,6 @@ class AlertIOTask(IOTask):
 
             logging.error("Caught exception (type: %s) in AlertIOTask: %s - %s (line: %s)"
                           % (exc_type, str(e), filename, exc_tb.tb_lineno))
-
-    def _initialize_payload(self):
-
-        # No random numbers are used, since no compression is used in Lustre FS directly.
-
-        self.payload_block = "".join('A' for i in xrange(self.block_size_bytes))
-
-        block_rest_size_bytes = self.total_size_bytes % self.block_size_bytes
-
-        if block_rest_size_bytes > 0:
-            self.payload_rest_block = "".join('A' for i in xrange(self.block_rest_size_bytes))
 
     def _send_mail(self, args):
 
