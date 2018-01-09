@@ -150,6 +150,8 @@ class IOTask(BaseTask):
     def _write_file(self, file_path):
 
         try:
+            logging.debug("Started writing to file: %s" % file_path)
+
             iterations = self.total_size_bytes / self.block_size_bytes
 
             start_time = time.time() * 1000.0
@@ -177,6 +179,8 @@ class IOTask(BaseTask):
             if duration:
                 throughput = self.total_size_bytes / duration
 
+            logging.debug("Finished writing to file: %s" % file_path)
+
             return tuple((duration, throughput))
 
         except Exception as e:
@@ -198,7 +202,7 @@ class IOTask(BaseTask):
 
                 if file_size == self.total_size_bytes:
 
-                    logging.debug("Reading output file from: %s" % file_path)
+                    logging.debug("Started reading from file: %s" % file_path)
 
                     total_read_bytes = 0
 
@@ -223,6 +227,8 @@ class IOTask(BaseTask):
 
                     if duration:
                         throughput = self.total_size_bytes / duration
+
+                    logging.debug("Finished reading from file: %s" % file_path)
 
                     return tuple((duration, throughput))
 
