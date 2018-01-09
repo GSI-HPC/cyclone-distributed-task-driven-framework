@@ -89,10 +89,10 @@ class IOTask(BaseTask):
                     self.lfs_utils.set_stripe(self.ost_name, file_path)
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                    write_duration, write_throughput = self.write_file(file_path)
+                    write_duration, write_throughput = self._write_file(file_path)
 
                     read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                    read_duration, read_throughput = self.read_file(file_path)
+                    read_duration, read_throughput = self._read_file(file_path)
 
                     ost_perf_result = \
                         OSTPerfResult(read_timestamp,
@@ -147,7 +147,7 @@ class IOTask(BaseTask):
         if block_rest_size_bytes > 0:
             self.payload_rest_block = "".join('A' for i in xrange(self.block_rest_size_bytes))
 
-    def write_file(self, file_path):
+    def _write_file(self, file_path):
 
         try:
             iterations = self.total_size_bytes / self.block_size_bytes
@@ -189,7 +189,7 @@ class IOTask(BaseTask):
 
             return tuple((-1, -1))
 
-    def read_file(self, file_path):
+    def _read_file(self, file_path):
 
         try:
             if os.path.exists(file_path):
