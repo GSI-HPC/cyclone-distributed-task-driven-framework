@@ -36,7 +36,7 @@ RUN_FLAG = True
 
 def init_arg_parser():
 
-    parser = argparse.ArgumentParser(description='MySQL Database Proxy.')
+    parser = argparse.ArgumentParser(description='LFSM Database Proxy')
 
     default_config_file = "/etc/lfsm.d/database_proxy.conf"
 

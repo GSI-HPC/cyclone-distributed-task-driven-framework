@@ -47,7 +47,7 @@ RUN_CONDITION = True
 
 def init_arg_parser():
 
-    parser = argparse.ArgumentParser(description='Lustre OST Performance Testing Controller Process.')
+    parser = argparse.ArgumentParser(description='LFSM Controller')
 
     default_config_file = "/etc/lfsm.d/controller.conf"
 

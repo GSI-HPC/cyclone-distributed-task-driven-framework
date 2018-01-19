@@ -51,7 +51,7 @@ def init_arg_parser():
 
     default_config_file = "/etc/lfsm.d/master.conf"
 
-    parser = argparse.ArgumentParser(description='Lustre OST Performance Testing Master Process.')
+    parser = argparse.ArgumentParser(description='LFSM Master')
 
     parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=False,
                         help=str('Path to the config file (default: %s)' % default_config_file),
