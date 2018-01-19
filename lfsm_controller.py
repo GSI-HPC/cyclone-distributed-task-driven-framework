@@ -49,8 +49,11 @@ def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='Lustre OST Performance Testing Controller Process.')
 
-    parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=True,
-                        help='Path to the config file.')
+    default_config_file = "/etc/lfsm.d/controller.conf"
+
+    parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=False,
+                        help=str('Path to the config file (default: %s)' % default_config_file),
+                        default=default_config_file)
 
     parser.add_argument('-D', '--enable-debug', dest='enable_debug', required=False, action='store_true',
                         help='Enables debug log messages.')
