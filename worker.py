@@ -166,7 +166,7 @@ class Worker(multiprocessing.Process):
 
             logging.debug("Exiting worker: %s" % self.name)
 
-            exit(0)
+            sys.exit(0)
 
         except Exception as e:
 
@@ -176,7 +176,7 @@ class Worker(multiprocessing.Process):
             logging.error("Caught exception (type: %s) in worker[%s] during run loop: %s - %s (line: %s)"
                           % (exc_type, self.name, str(e), filename, exc_tb.tb_lineno))
 
-            exit(1)
+            sys.exit(1)
 
     def signal_handler_shutdown(self, signal, frame):
         self.run_flag = False

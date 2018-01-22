@@ -80,10 +80,10 @@ class OSTListProcessor(Process):
 
             except Exception as e:
                 logging.error("Caught exception in OSTListProcessor: %s" % e)
-                exit(1)
+                sys.exit(1)
 
         logging.debug("OSTListProcessor finished!")
-        exit(0)
+        sys.exit(0)
 
     def signal_handler_shutdown(self, signal, frame):
         self.run_flag = False

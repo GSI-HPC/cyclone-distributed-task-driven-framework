@@ -150,12 +150,12 @@ def main():
 
                 logging.error("Another instance might be already running as well!")
                 logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
-                exit(1)
+                sys.exit(1)
 
     except Exception as e:
 
         logging.error("Caught exception on main block: %s" % e)
-        exit(1)
+        sys.exit(1)
 
     if table_handler and table_handler.count():
 
@@ -165,7 +165,7 @@ def main():
         table_handler.clear()
 
     logging.info("Finished")
-    exit(0)
+    sys.exit(0)
 
 if __name__ == '__main__':
     main()

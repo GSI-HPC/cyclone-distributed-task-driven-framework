@@ -324,7 +324,8 @@ def main():
 
                 logging.error("Another instance might be already running as well!")
                 logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
-                exit(1)
+
+                sys.exit(1)
 
     except Exception as e:
 
@@ -367,9 +368,9 @@ def main():
     logging.info("Finished")
 
     if error_count:
-        return exit(1)
+        sys.exit(1)
 
-    exit(0)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
