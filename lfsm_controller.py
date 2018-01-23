@@ -152,20 +152,30 @@ def start_worker(worker_handle_dict, worker_state_table):
         logging.debug("Waiting for worker to be READY - Waiting seconds: %s" % (retry_count * retry_count))
 
 
-def signal_handler_terminate(signal, frame):
-
-    logging.info('Terminate')
-    sys.exit(0)
-
-
-def signal_handler_shutdown(signal, frame):
-
-    logging.info('Shutting down...')
+def stop_run_condition():
 
     global RUN_CONDITION
 
     if RUN_CONDITION:
         RUN_CONDITION = False
+
+
+def signal_handler(signum, frame):
+
+    if signum == signal.SIGHUP:
+
+        logging.info('Retrieved hang-up signal.')
+        stop_run_condition()
+
+    if signum == signal.SIGINT:
+
+        logging.info('Retrieved interrupt program signal.')
+        stop_run_condition()
+
+    if signum == signal.SIGTERM:
+
+        logging.info('Retrieved signal to terminate.')
+        stop_run_condition()
 
 
 def main():
@@ -189,11 +199,12 @@ def main():
 
                 logging.info("Started Controller with PID: [%s]", pid_control.pid())
 
-                signal.signal(signal.SIGINT, signal_handler_terminate)
-                signal.signal(signal.SIGUSR1, signal_handler_shutdown)
-                signal.siginterrupt(signal.SIGUSR1, True)
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-                global RUN_CONDITION
+                signal.signal(signal.SIGHUP, signal_handler)
+                signal.signal(signal.SIGTERM, signal_handler)
+
+                signal.siginterrupt(signal.SIGTERM, True)
 
                 comm_handler.connect()
 
@@ -216,6 +227,8 @@ def main():
                                   task_queue,
                                   result_queue,
                                   cond_result_queue)
+
+                global RUN_CONDITION
 
                 if not start_worker(worker_handle_dict, worker_state_table):
 

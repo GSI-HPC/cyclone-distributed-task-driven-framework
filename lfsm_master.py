@@ -76,20 +76,30 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
 
-def signal_handler_terminate(signal, frame):
-
-    logging.info('Terminate')
-    sys.exit(0)
-
-
-def signal_handler_shutdown(signal, frame):
-
-    logging.info('Shutting down...')
+def stop_task_distribution():
 
     global TASK_DISTRIBUTION
 
     if TASK_DISTRIBUTION:
         TASK_DISTRIBUTION = False
+
+
+def signal_handler(signum, frame):
+
+    if signum == signal.SIGHUP:
+
+        logging.info('Retrieved hang-up signal.')
+        stop_task_distribution()
+
+    if signum == signal.SIGINT:
+
+        logging.info('Retrieved interrupt program signal.')
+        stop_task_distribution()
+
+    if signum == signal.SIGTERM:
+
+        logging.info('Retrieved signal to terminate.')
+        stop_task_distribution()
 
 
 def check_all_controller_down(count_active_controller):
@@ -128,9 +138,13 @@ def main():
 
                 logging.info("Started Master with PID: [%s]", pid_control.pid())
 
-                signal.signal(signal.SIGINT, signal_handler_terminate)
-                signal.signal(signal.SIGUSR1, signal_handler_shutdown)
-                signal.siginterrupt(signal.SIGUSR1, True)
+                signal.signal(signal.SIGHUP, signal_handler)
+                signal.signal(signal.SIGINT, signal_handler)
+                signal.signal(signal.SIGTERM, signal_handler)
+
+                signal.siginterrupt(signal.SIGHUP, True)
+                signal.siginterrupt(signal.SIGINT, True)
+                signal.siginterrupt(signal.SIGTERM, True)
 
                 comm_handler.connect()
 
@@ -280,7 +294,7 @@ def main():
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
 
-                            else:   # No more task distribution (TASK_DISTRIBUTION == FALSE)!
+                            else:   # Do graceful shutdown, since task distribution is off!
 
                                 # logging.debug("Sending message: " + send_msg.to_string())
                                 send_msg = ExitCommand()
@@ -311,10 +325,13 @@ def main():
 
                     except Exception as e:
 
-                        logging.error("Caught exception in main loop: %s" % e)
+                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-                        if TASK_DISTRIBUTION:
-                            TASK_DISTRIBUTION = False
+                        logging.error("Caught exception in main loop: %s - "
+                                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
+
+                        stop_task_distribution()
 
                         error_count += 1
 
@@ -333,7 +350,7 @@ def main():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-        logging.error("Caught exception on main block: %s - "
+        logging.error("Caught exception in main block: %s - "
                       "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
 
         error_count += 1
@@ -341,13 +358,15 @@ def main():
     try:
         if ost_list_processor and ost_list_processor.is_alive():
 
-            os.kill(ost_list_processor.pid, signal.SIGUSR1)
+            os.kill(ost_list_processor.pid, signal.SIGTERM)
 
             for i in range(0, 10, 1):
 
                 if ost_list_processor.is_alive():
-                    logging.debug("Waiting for OST Processor to finish...")
+
+                    logging.debug("Waiting for OSTListProcessor to finish...")
                     time.sleep(1)
+
                 else:
                     break
 

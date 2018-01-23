@@ -59,8 +59,9 @@ class OSTListProcessor(Process):
 
     def run(self):
 
-        signal.signal(signal.SIGUSR1, self.signal_handler_shutdown)
-        signal.siginterrupt(signal.SIGUSR1, True)
+        signal.signal(signal.SIGTERM, self._signal_handler_terminate)
+
+        signal.siginterrupt(signal.SIGTERM, True)
 
         while self.run_flag:
 
@@ -86,7 +87,9 @@ class OSTListProcessor(Process):
         logging.debug("OSTListProcessor finished!")
         sys.exit(0)
 
-    def signal_handler_shutdown(self, signal, frame):
+    def _signal_handler_terminate(self, signum, frame):
+
+        logging.debug('OSTListProcessor retrieved signal to terminate.')
         self.run_flag = False
 
     def _create_ost_info_list(self):
