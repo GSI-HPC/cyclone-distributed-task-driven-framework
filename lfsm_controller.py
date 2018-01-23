@@ -18,13 +18,13 @@
 #
 
 
+import multiprocessing
 import argparse
 import logging
-import os
-import sys
-import time
-import multiprocessing
 import signal
+import time
+import sys
+import os
 
 from worker import Worker
 from worker import WorkerState

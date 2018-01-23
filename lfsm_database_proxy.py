@@ -23,7 +23,6 @@ import logging
 import signal
 import time
 import sys
-import os
 
 from ctrl.pid_control import PIDControl
 from comm.database_proxy_handler import DatabaseProxyCommHandler
