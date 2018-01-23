@@ -145,7 +145,8 @@ def main():
                 task_name = config_file_reader.task_name
 
                 task_xml_info = TaskXmlReader.read_task_definition(task_def_file, task_name)
-                logging.debug("Loaded Task Template: '%s.%s'" % (task_xml_info.class_module, task_xml_info.class_name))
+                logging.debug("Loaded Task Information from XML: '%s.%s'" %
+                              (task_xml_info.class_module, task_xml_info.class_name))
 
                 task = TaskFactory().create_from_xml_info(task_xml_info)
 
