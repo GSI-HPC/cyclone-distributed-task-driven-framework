@@ -49,7 +49,7 @@ def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='LFSM Controller')
 
-    default_config_file = "/etc/lfsm.d/controller.conf"
+    default_config_file = "/etc/lfsm/controller.conf"
 
     parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=False,
                         help=str('Path to the config file (default: %s)' % default_config_file),

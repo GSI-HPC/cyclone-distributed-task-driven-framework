@@ -49,7 +49,7 @@ TASK_DISTRIBUTION = True
 
 def init_arg_parser():
 
-    default_config_file = "/etc/lfsm.d/master.conf"
+    default_config_file = "/etc/lfsm/master.conf"
 
     parser = argparse.ArgumentParser(description='LFSM Master')
 
