@@ -37,7 +37,7 @@ def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='LFSM Database Proxy')
 
-    default_config_file = "/etc/lfsm/database_proxy.conf"
+    default_config_file = "/etc/lfsm/database-proxy.conf"
 
     parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=False,
                         help=str('Path to the config file (default: %s)' % default_config_file),
