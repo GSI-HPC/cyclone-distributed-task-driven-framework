@@ -159,6 +159,7 @@ def main():
                 task_name = config_file_reader.task_name
 
                 task_xml_info = TaskXmlReader.read_task_definition(task_def_file, task_name)
+
                 logging.debug("Loaded Task Information from XML: '%s.%s'" %
                               (task_xml_info.class_module, task_xml_info.class_name))
 
@@ -353,6 +354,7 @@ def main():
         error_count += 1
 
     try:
+
         if ost_list_processor and ost_list_processor.is_alive():
 
             os.kill(ost_list_processor.pid, signal.SIGTERM)

@@ -53,9 +53,9 @@ class OSTListProcessor(Process):
 
     def start(self):
 
-        self.run_flag = True
-
         super(OSTListProcessor, self).start()
+
+        self.run_flag = True
 
     def run(self):
 
@@ -66,6 +66,7 @@ class OSTListProcessor(Process):
         while self.run_flag:
 
             try:
+
                 logging.debug("OSTListProcessor active!")
 
                 ost_info_list = self._create_ost_info_list()
@@ -82,6 +83,7 @@ class OSTListProcessor(Process):
                 time.sleep(self.measure_interval)
 
             except Exception as e:
+
                 logging.error("Caught exception in OSTListProcessor: %s" % e)
                 sys.exit(1)
 
