@@ -197,8 +197,6 @@ def main():
 
                             if TASK_DISTRIBUTION:
 
-                                # logging.debug("Task Queue is empty: " + str(ost_info_queue.is_empty()))
-
                                 if MessageType.TASK_REQUEST() == recv_msg_type:
 
                                     ost_info = None
@@ -232,7 +230,7 @@ def main():
                                             elif ost_status_lookup_dict[ost_info.name].state == OstState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
-                                                # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
+                                                logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
@@ -258,7 +256,7 @@ def main():
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
 
-                                    # logging.debug("Sending message: " + send_msg.to_string())
+                                    logging.debug("Sending message: " + send_msg.to_string())
                                     comm_handler.send(send_msg.to_string())
 
                                 elif MessageType.TASK_FINISHED() == recv_msg_type:
@@ -295,7 +293,7 @@ def main():
 
                             else:   # Do graceful shutdown, since task distribution is off!
 
-                                # logging.debug("Sending message: " + send_msg.to_string())
+                                logging.debug("Sending message: " + send_msg.to_string())
                                 send_msg = ExitCommand()
                                 comm_handler.send(send_msg.to_string())  # Does not block.
 
