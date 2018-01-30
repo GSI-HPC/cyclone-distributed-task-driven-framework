@@ -69,6 +69,7 @@ class OSTListProcessor(Process):
                 logging.debug("OSTListProcessor active!")
 
                 ost_info_list = self._create_ost_info_list()
+                logging.debug("Length of OST info list: %s" % len(ost_info_list))
 
                 with CriticalSection(self.lock_ost_queue):
 
@@ -151,10 +152,7 @@ class OSTListProcessor(Process):
         if len(ost_info_list) == 0:
             raise RuntimeError("No OST information could be retrieved!")
 
-        if self.ost_select_list is None:
-            return ost_info_list
-
-        else:
+        if len(self.ost_select_list):
 
             select_ost_info_list = list()
 
@@ -177,5 +175,10 @@ class OSTListProcessor(Process):
                 if found_select_ost_name is False:
                     raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_name)
 
+            if not len(select_ost_info_list):
+                raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
+
             return select_ost_info_list
 
+        else:
+            return ost_info_list

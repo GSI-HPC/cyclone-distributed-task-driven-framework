@@ -197,7 +197,7 @@ def main():
 
                             if TASK_DISTRIBUTION:
 
-                                # logging.debug("Task Queue is empty: " + str(shared_queue.is_empty()))
+                                # logging.debug("Task Queue is empty: " + str(ost_info_queue.is_empty()))
 
                                 if MessageType.TASK_REQUEST() == recv_msg_type:
 
@@ -256,7 +256,6 @@ def main():
                                             send_msg = TaskAssign(task)
 
                                     else:
-                                        # logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                         send_msg = WaitCommand(controller_wait_duration)
 
                                     # logging.debug("Sending message: " + send_msg.to_string())
