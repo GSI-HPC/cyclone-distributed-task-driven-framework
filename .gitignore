@@ -1,4 +1,17 @@
 .idea
 *.log
 *.pyc
+
 Pyinstaller/pybuild/*
+
+Debian/*.buildinfo
+Debian/*.changes
+Debian/*.deb
+
+Debian/*/debian/*debhelper*
+Debian/*/debian/*substvars
+Debian/*/debian/files
+Debian/lfsm-master/debian/lfsm-master
+Debian/lfsm-controller/debian/lfsm-controller
+Debian/lfsm-database-proxy/debian/lfsm-database-proxy
+
