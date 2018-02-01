@@ -214,6 +214,8 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
+                                                logging.error("OSTListProcessor is not alive!")
+
                                     if ost_info:
 
                                         do_task_assign = False  # TODO: Could be a method call instead.
@@ -294,8 +296,8 @@ def main():
 
                             else:   # Do graceful shutdown, since task distribution is off!
 
-                                logging.debug("Sending message: " + send_msg.to_string())
                                 send_msg = ExitCommand()
+                                logging.debug("Sending message: " + send_msg.to_string())
                                 comm_handler.send(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
