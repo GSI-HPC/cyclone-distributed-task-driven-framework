@@ -53,9 +53,9 @@ class OSTListProcessor(Process):
 
     def start(self):
 
-        super(OSTListProcessor, self).start()
-
         self.run_flag = True
+        
+        super(OSTListProcessor, self).start()
 
     def run(self):
 
