@@ -14,4 +14,4 @@ Debian/*/debian/files
 Debian/lfsm-master/debian/lfsm-master
 Debian/lfsm-controller/debian/lfsm-controller
 Debian/lfsm-database-proxy/debian/lfsm-database-proxy
-
+Debian/*.upload
