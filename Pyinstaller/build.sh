@@ -11,7 +11,7 @@ MASTER_EXE=dist/lfsm-master.py
 CONTROLLER_EXE=dist/lfsm-controller.py
 DATABASE_PROXY_EXE=dist/lfsm-database-proxy.py
 
-HIDDEN_IMPORTS="--hidden-import task.alert_io_task --hidden-import task.io_task"
+HIDDEN_IMPORTS="--hidden-import task.empty_task --hidden-import task.io_task --hidden-import task.alert_io_task"
 
 function build_master {
 
