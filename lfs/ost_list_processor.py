@@ -70,6 +70,7 @@ class OSTListProcessor(Process):
                 logging.debug("OSTListProcessor active!")
 
                 ost_info_list = self._create_ost_info_list()
+
                 logging.debug("Length of OST info list: %s" % len(ost_info_list))
 
                 with CriticalSection(self.lock_ost_queue):
