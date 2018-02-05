@@ -23,6 +23,7 @@ import logging
 import signal
 import time
 import sys
+import os
 
 from ctrl.pid_control import PIDControl
 from comm.database_proxy_handler import DatabaseProxyCommHandler
@@ -65,20 +66,30 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
 
-def signal_handler_terminate(signal, frame):
-
-    logging.info('Terminate')
-    sys.exit(0)
-
-
-def signal_handler_shutdown(signal, frame):
-
-    logging.info('Shutting down...')
+def set_run_flag_false():
 
     global RUN_FLAG
 
     if RUN_FLAG:
         RUN_FLAG = False
+
+
+def signal_handler(signum, frame):
+
+    if signum == signal.SIGHUP:
+
+        logging.info('Retrieved hang-up signal.')
+        set_run_flag_false()
+
+    if signum == signal.SIGINT:
+
+        logging.info('Retrieved interrupt program signal.')
+        set_run_flag_false()
+
+    if signum == signal.SIGTERM:
+
+        logging.info('Retrieved signal to terminate.')
+        set_run_flag_false()
 
 
 def main():
@@ -91,6 +102,7 @@ def main():
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
 
+        # TODO: Check Exception with *with* statement.
         with PIDControl(config_file_reader.pid_file) as pid_control, \
             DatabaseProxyCommHandler(config_file_reader.comm_target,
                                      config_file_reader.comm_port,
@@ -101,60 +113,72 @@ def main():
                                        config_file_reader.db,
                                        config_file_reader.table) as table_handler:
 
-            if pid_control.lock():
+            try:
 
-                logging.info("Started Database Proxy with PID: [%s]", pid_control.pid())
+                if pid_control.lock():
 
-                signal.signal(signal.SIGINT, signal_handler_terminate)
-                signal.signal(signal.SIGUSR1, signal_handler_shutdown)
-                signal.siginterrupt(signal.SIGUSR1, True)
+                    logging.info("Started Database Proxy with PID: [%s]", pid_control.pid())
 
-                last_store_timestamp = int(time.time())
-                store_timeout = config_file_reader.store_timeout
-                store_max_count = config_file_reader.store_max_count
+                    signal.signal(signal.SIGHUP, signal_handler)
+                    signal.signal(signal.SIGINT, signal_handler)
+                    signal.signal(signal.SIGTERM, signal_handler)
 
-                if args.create_table:
-                    table_handler.create_table()
+                    signal.siginterrupt(signal.SIGHUP, True)
+                    signal.siginterrupt(signal.SIGINT, True)
+                    signal.siginterrupt(signal.SIGTERM, True)
 
-                comm_handler.connect()
+                    last_store_timestamp = int(time.time())
+                    store_timeout = config_file_reader.store_timeout
+                    store_max_count = config_file_reader.store_max_count
 
-                while RUN_FLAG:
+                    if args.create_table:
+                        table_handler.create_table()
 
-                    last_exec_timestamp = int(time.time())
+                    comm_handler.connect()
 
-                    # TODO: Building an object and validate data...
-                    recv_data = comm_handler.recv()
+                    while RUN_FLAG:
 
-                    if recv_data:
+                        last_exec_timestamp = int(time.time())
 
-                        logging.debug("Retrieved data: %s" % recv_data)
+                        # TODO: Building an object and validate data...
+                        recv_data = comm_handler.recv()
 
-                        table_handler.insert(recv_data)
+                        if recv_data:
 
-                    else:
-                        logging.debug('Timeout...')
+                            logging.debug("Retrieved data: %s" % recv_data)
 
-                    if (last_exec_timestamp >= (last_store_timestamp + store_timeout)) or \
-                            table_handler.count() >= store_max_count:
+                            table_handler.insert(recv_data)
 
-                        if table_handler.count():
-                            logging.debug("Storing results into database...")
+                        else:
+                            logging.debug('Timeout...')
 
-                            table_handler.store()
-                            table_handler.clear()
+                        if (last_exec_timestamp >= (last_store_timestamp + store_timeout)) or \
+                                table_handler.count() >= store_max_count:
 
-                            last_store_timestamp = int(time.time())
+                            if table_handler.count():
 
-            else:
+                                logging.debug("Storing results into database...")
 
-                logging.error("Another instance might be already running as well!")
-                logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
-                sys.exit(1)
+                                table_handler.store()
+                                table_handler.clear()
+
+                                last_store_timestamp = int(time.time())
+
+                else:
+
+                    logging.error("Another instance might be already running as well!")
+                    logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
+                    os._exit(1)
+
+            except Exception as e:
+
+                logging.error("Caught exception in inner block: %s" % e)
+                os._exit(1)
 
     except Exception as e:
 
-        logging.error("Caught exception on main block: %s" % e)
-        sys.exit(1)
+        logging.error("Caught exception in outer block: %s" % e)
+        os._exit(1)
 
     if table_handler and table_handler.count():
 
@@ -164,7 +188,7 @@ def main():
         table_handler.clear()
 
     logging.info("Finished")
-    sys.exit(0)
+    os._exit(0)
 
 if __name__ == '__main__':
     main()
