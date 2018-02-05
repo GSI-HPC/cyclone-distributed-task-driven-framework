@@ -84,6 +84,11 @@ class PIDControl:
 
     def create_pid_file(self):
 
+        pid_file_dir = os.path.dirname(self._pid_file)
+
+        if not os.path.isdir(pid_file_dir):
+            raise IOError("Directory path does not exist for PID file: %s" % pid_file_dir)
+
         fd = open(self._pid_file, 'wb')
 
         fcntl.lockf(fd, fcntl.LOCK_EX)
