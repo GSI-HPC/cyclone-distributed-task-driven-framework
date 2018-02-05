@@ -22,7 +22,6 @@ import commands
 import logging
 import signal
 import time
-import sys
 import os
 
 from multiprocessing import Process
@@ -86,10 +85,10 @@ class OSTListProcessor(Process):
             except Exception as e:
 
                 logging.error("Caught exception in OSTListProcessor: %s" % e)
-                sys.exit(1)
+                os._exit(1)
 
         logging.debug("OSTListProcessor finished!")
-        sys.exit(0)
+        os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
 

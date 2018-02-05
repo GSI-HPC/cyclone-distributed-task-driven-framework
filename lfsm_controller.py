@@ -406,7 +406,7 @@ def main():
             else:
                 logging.error("Another instance might be already running as well!")
                 logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
-                sys.exit(1)
+                os._exit(1)
 
     except Exception as e:
 
@@ -416,10 +416,10 @@ def main():
         logging.error("Caught exception (type: %s) on last instance: %s - %s (line: %s)"
                       % (exc_type, str(e), filename, exc_tb.tb_lineno))
 
-        sys.exit(1)
+        os._exit(1)
 
     logging.info('Finished')
-    sys.exit(0)
+    os._exit(0)
 
 
 if __name__ == '__main__':
