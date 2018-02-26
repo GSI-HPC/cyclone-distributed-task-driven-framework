@@ -1,0 +1,41 @@
+#!/bin/sh
+
+USR=root
+CON=/etc/lfsm/
+LOG=/var/log/lfsm/
+PID=/var/run/lfsm/
+
+case "$1" in
+
+	configure)
+
+		chown -R "$USR":"$USR" "$CON"
+
+		if [ ! "$?" ]; then
+			echo "Failed setting ownership to path: '$CON'"
+			exit 147
+		fi
+
+		mkdir -p "$LOG"
+		chown -R "$USR":"$USR" "$LOG"
+
+		if [ ! "$?" ]; then
+			echo "Failed setting ownership to path: '$LOG'"
+			exit 147
+		fi
+
+		mkdir -p "$PID"
+		chown -R "$USR":"$USR" "$PID"
+
+		if [ ! "$?" ]; then
+			echo "Failed setting ownership to path: '$PID'"
+			exit 147
+		fi
+
+	;;
+
+esac
+
+#DEBHELPER#
+
+exit 0

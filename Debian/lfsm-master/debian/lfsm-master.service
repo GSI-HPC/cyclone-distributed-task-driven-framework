@@ -1,0 +1,14 @@
+[Unit]
+Description=Master of Task Driven Framework for Lustre Monitoring
+Documentation=https://github.com/GSI-HPC/lustre_task_driven_monitoring_framework
+After=network.target lustre-nyx.mount
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/sbin/lfsm-master.py
+RestartSec=2min
+Restart=on-success
+
+[Install]
+WantedBy=multi-user.target

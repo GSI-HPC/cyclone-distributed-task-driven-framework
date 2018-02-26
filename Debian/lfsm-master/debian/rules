@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+DISTRIBUTION = $(shell lsb_release -sc)
+
+%:
+	dh $@ --with systemd
+
+override_dh_gencontrol:
+	dh_gencontrol --
+
+override_dh_auto_install:
+	dh_auto_install -- PREFIX=/usr

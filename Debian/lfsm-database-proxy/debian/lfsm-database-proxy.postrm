@@ -1,0 +1,92 @@
+#!/bin/sh
+
+CON_DIR=/etc/lfsm/
+LOG_DIR=/var/log/lfsm/
+PID_DIR=/var/run/lfsm/
+
+USR=root
+EXE=database-proxy
+BIN=/usr/sbin/lfsm-$EXE.py
+CON=$CON_DIR/$EXE.conf
+LOG=$LOG_DIR/$EXE.log
+PID=$PID_DIR/$EXE.pid
+
+remove_bin() {
+
+	if [ -f "$BIN" ]; then
+		rm "$BIN"
+	fi
+
+}
+
+remove_con() {
+
+	if [ -d "$CON_DIR" ]; then
+
+		if [ -f "$CON" ]; then
+			rm "$CON"
+		fi
+
+		rmdir --ignore-fail-on-non-empty "$CON_DIR"
+
+	fi
+
+}
+
+remove_log() {
+
+	if [ -d "$LOG_DIR" ]; then
+
+		if [ -f "$LOG" ]; then
+			rm "$LOG"
+		fi
+
+		rmdir --ignore-fail-on-non-empty "$LOG_DIR"
+
+	fi
+
+}
+
+remove_pid() {
+
+	if [ -d "$PID_DIR" ]; then
+
+		if [ -f "$PID" ]; then
+			rm "$PID"
+		fi
+
+		rmdir --ignore-fail-on-non-empty "$PID_DIR"
+
+	fi
+
+}
+
+case "$1" in
+
+	remove)
+
+		remove_bin
+
+		remove_log
+
+		remove_pid
+
+	;;
+
+	purge)
+
+		remove_bin
+
+		remove_con
+
+		remove_log
+
+		remove_pid
+
+	;;
+
+esac
+
+#DEBHELPER#
+
+exit 0

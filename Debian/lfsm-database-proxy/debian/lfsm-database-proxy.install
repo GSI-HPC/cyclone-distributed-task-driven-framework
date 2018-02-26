@@ -1,0 +1,2 @@
+../../Pyinstaller/pybuild/dist/lfsm-database-proxy.py usr/sbin
+../../Configuration/database-proxy.conf etc/lfsm/

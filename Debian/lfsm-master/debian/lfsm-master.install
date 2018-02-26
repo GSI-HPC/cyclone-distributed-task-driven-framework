@@ -1,0 +1,3 @@
+../../Pyinstaller/pybuild/dist/lfsm-master.py usr/sbin
+../../Configuration/master.conf etc/lfsm/
+../../Configuration/tasks.xml etc/lfsm/
