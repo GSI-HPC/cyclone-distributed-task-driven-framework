@@ -50,7 +50,7 @@ CREATE TABLE """ + self._table_name + """ (
    read_timestamp  TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",
    write_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
    ost CHAR(7) NOT NULL,
-   ip CHAR(15) NOT NULL,
+   oss VARCHAR(20) NOT NULL,
    size BIGINT(20) UNSIGNED NOT NULL,
    read_throughput BIGINT(20) SIGNED NOT NULL,
    write_throughput BIGINT(20) SIGNED NOT NULL,
@@ -66,6 +66,7 @@ CREATE TABLE """ + self._table_name + """ (
             with closing(conn.cursor()) as cur:
                 cur.execute(sql)
 
+    # TODO: Check if value for field oss does not exceed field definition.
     def insert(self, ost_perf_result):
 
         if not ost_perf_result:
@@ -83,7 +84,7 @@ CREATE TABLE """ + self._table_name + """ (
             + "read_timestamp, " \
             + "write_timestamp, " \
             + "ost, " \
-            + "ip, " \
+            + "oss, " \
             + "size, " \
             + "read_throughput, " \
             + "write_throughput, " \

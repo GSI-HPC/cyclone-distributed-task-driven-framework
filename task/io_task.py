@@ -98,7 +98,7 @@ class IOTask(BaseTask):
                         OSTPerfResult(read_timestamp,
                                       write_timestamp,
                                       self.ost_name,
-                                      self.oss_ip,
+                                      self.oss_name,
                                       self.total_size_bytes,
                                       read_throughput,
                                       write_throughput,
@@ -109,7 +109,7 @@ class IOTask(BaseTask):
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
                 ost_perf_result = \
-                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.oss_ip, self.total_size_bytes, 0, 0, 0, 0)
+                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.oss_name, self.total_size_bytes, 0, 0, 0, 0)
 
             if ost_perf_result:
 

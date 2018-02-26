@@ -220,39 +220,39 @@ def main():
 
                                         do_task_assign = False  # TODO: Could be a method call instead.
 
-                                        if ost_info.name in ost_status_lookup_dict:
+                                        if ost_info.ost_name in ost_status_lookup_dict:
 
                                             task_resend_threshold = \
-                                                (ost_status_lookup_dict[ost_info.name].timestamp + task_resend_timeout)
+                                                (ost_status_lookup_dict[ost_info.ost_name].timestamp + task_resend_timeout)
 
-                                            if ost_status_lookup_dict[ost_info.name].state == OstState.finished() \
+                                            if ost_status_lookup_dict[ost_info.ost_name].state == OstState.finished() \
                                                     or last_exec_timestamp >= task_resend_threshold:
 
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[ost_info.name].state == OstState.assigned() \
+                                            elif ost_status_lookup_dict[ost_info.ost_name].state == OstState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
                                                 logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: ", ost_info.name)
+                                                raise RuntimeError("Undefined state processing task: ", ost_info.ost_name)
 
                                         else:   # Add new OST name to lookup dict!
                                             do_task_assign = True
 
                                         if do_task_assign:
 
-                                            ost_status_lookup_dict[ost_info.name] = \
-                                                OstStatusItem(ost_info.name,
+                                            ost_status_lookup_dict[ost_info.ost_name] = \
+                                                OstStatusItem(ost_info.ost_name,
                                                               OstState.assigned(),
                                                               recv_msg.sender,
                                                               int(time.time()))
 
                                             # Assign Lustre specific information to the task before task assignment.
-                                            task.ost_name = ost_info.name
-                                            task.oss_ip = ost_info.ip
+                                            task.ost_name = ost_info.ost_name
+                                            task.oss_name = ost_info.oss_name
 
                                             send_msg = TaskAssign(task)
 

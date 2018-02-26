@@ -20,7 +20,7 @@
 
 class OSTInfo:
 
-    def __init__(self, ost_name, oss_ip):
+    def __init__(self, ost_name, oss_name):
 
-        self.name = ost_name
-        self.ip = oss_ip
+        self.ost_name = ost_name
+        self.oss_name = oss_name

@@ -30,9 +30,9 @@ class BaseTask(object):
 
         super(BaseTask, self).__init__()
 
-        # For Lustre specific monitoring store the OST name and OSS IP address for each Task.
+        # For Lustre specific monitoring store the OST and OSS name for each Task.
         self.ost_name = str("")
-        self.oss_ip = str("")
+        self.oss_name = str("")
 
     @abc.abstractmethod
     def execute(self):

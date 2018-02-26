@@ -24,7 +24,7 @@ class OSTPerfResult:
                  read_timestamp,
                  write_timestamp,
                  ost,
-                 ip,
+                 oss,
                  size,
                  read_throughput,
                  write_throughput,
@@ -34,7 +34,7 @@ class OSTPerfResult:
         self.read_timestamp = read_timestamp
         self.write_timestamp = write_timestamp
         self.ost = ost
-        self.ip = ip
+        self.oss = oss
         self.size = size
         self.read_throughput = read_throughput
         self.write_throughput = write_throughput
@@ -46,7 +46,7 @@ class OSTPerfResult:
         return "'" + self.read_timestamp + "'," \
             + "'" + self.write_timestamp + "'," \
             + "'" + self.ost + "'," \
-            + "'" + self.ip + "'," \
+            + "'" + self.oss + "'," \
             + str(self.size) + "," \
             + str(int(round(self.read_throughput, 0))) + "," \
             + str(int(round(self.write_throughput, 0))) + "," \

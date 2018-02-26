@@ -1,55 +1,51 @@
 <?xml version="1.0"?>
 <tasks>
 
-   <task name="EmptyTask">
-      <class module="task.empty_task" name="EmptyTask"/>
-   </task>
+	<task name="EmptyTask">
+		<class module="task.empty_task" name="EmptyTask"/>
+	</task>
 
-   <task name="IOTask">
+	<task name="IOTask">
 
-      <class module="task.io_task" name="IOTask"/>
+		<class module="task.io_task" name="IOTask"/>
 
-      <property>
+		<property>
 
-         <block_size_bytes>1000000</block_size_bytes>
-         <total_size_bytes>1000000</total_size_bytes>
-         <write_file_sync>off</write_file_sync>
-         <target_dir>/lustre/fs/PATH</target_dir>
-         <lfs_bin>/usr/bin/lfs</lfs_bin>
-         <lfs_target>fs</lfs_target>
+			<block_size_bytes>1000000</block_size_bytes>
+			<total_size_bytes>1000000</total_size_bytes>
+			<write_file_sync>on</write_file_sync>
+			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring/</target_dir>
+			<lfs_bin>/usr/bin/lfs</lfs_bin>
+			<lfs_target>nyx</lfs_target>
+			<db_proxy_target>lxrbhpe01.gsi.de</db_proxy_target>
+			<db_proxy_port>5777</db_proxy_port>
 
-         # If optional, leave empty values.
-         <db_proxy_target>localhost</db_proxy_target>
-         <db_proxy_port>5777</db_proxy_port>
+		</property>
 
-      </property>
+	</task>
 
-   </task>
+	<task name="AlertIOTask">
 
-   <task name="AlertIOTask">
+		<class module="task.alert_io_task" name="AlertIOTask"/>
 
-      <class module="task.alert_io_task" name="AlertIOTask"/>
+		<property>
 
-      <property>
+			<mail_server>localhost</mail_server>
+			<mail_sender>hpc-data@gsi.de</mail_sender>
+			<mail_receiver>hpc-data@gsi.de</mail_receiver>
+			<mail_threshold>3600</mail_threshold>
 
-         <mail_server>localhost</mail_server>
-         <mail_sender>user@mail.net</mail_sender>
-         <mail_receiver>user@mail.net</mail_receiver>
-         <mail_threshold>14400</mail_threshold>
+			<block_size_bytes>1000000</block_size_bytes>
+			<total_size_bytes>1000000</total_size_bytes>
+			<write_file_sync>on</write_file_sync>
+			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring/</target_dir>
+			<lfs_bin>/usr/bin/lfs</lfs_bin>
+			<lfs_target>nyx</lfs_target>
+			<db_proxy_target>lxrbhpe01.gsi.de</db_proxy_target>
+			<db_proxy_port>5777</db_proxy_port>
 
-         <block_size_bytes>1000000</block_size_bytes>
-         <total_size_bytes>1000000</total_size_bytes>
-         <write_file_sync>off</write_file_sync>
-         <target_dir>/lustre/fs/PATH</target_dir>
-         <lfs_bin>/usr/bin/lfs</lfs_bin>
-         <lfs_target>fs</lfs_target>
+		</property>
 
-         # If optional, leave empty values.
-         <db_proxy_target>localhost</db_proxy_target>
-         <db_proxy_port>5777</db_proxy_port>
-
-      </property>
-
-   </task>
+	</task>
 
 </tasks>

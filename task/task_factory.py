@@ -34,7 +34,6 @@ class TaskFactory:
 
         dynamic_module = importlib.import_module(xml_info.class_module)
         dynamic_class = getattr(dynamic_module, xml_info.class_name)
-        task = None
 
         arg_spec = inspect.getargspec(dynamic_class.__init__)
 
@@ -73,6 +72,8 @@ class TaskFactory:
         # TODO: Might be improved in Python 3?
 
         body_items = xml_info.class_properties.values()
+
+        task = None
 
         if len_body_items == 0:
             task = dynamic_class()
@@ -129,7 +130,7 @@ class TaskFactory:
         task_module = header_items[1]
         task_class = header_items[2]
         task_ost_name = header_items[3]
-        task_oss_ip = header_items[4]
+        task_oss_name = header_items[4]
 
         body_items = None
         len_body_items = 0
@@ -181,7 +182,9 @@ class TaskFactory:
         else:
             raise RuntimeError("No task instantiation supported for: '%s::%s'!" % (task_module, task_class))
 
+        # TODO: Check task is not None
+
         task.ost_name = task_ost_name
-        task.oss_ip = task_oss_ip
+        task.oss_name = task_oss_name
 
         return task

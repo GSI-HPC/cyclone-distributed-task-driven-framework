@@ -20,6 +20,7 @@
 
 import commands
 import logging
+import socket
 import signal
 import time
 import os
@@ -147,9 +148,11 @@ class OSTListProcessor(Process):
 
             oss_ip = ost_info[idx_ost_conn_uuid + len(ost_conn_uuid_str):idx_ost_conn_uuid_term]
 
-            ost_info_list.append(OSTInfo(ost_name, oss_ip))
+            oss_name = OSTListProcessor._get_hostname(oss_ip)
 
-            logging.debug("Found OST: %s" % ost_name)
+            ost_info_list.append(OSTInfo(ost_name, oss_name))
+
+            logging.debug("Found OST: %s on OSS: %s" % (ost_name, oss_name))
 
         if len(ost_info_list) == 0:
             raise RuntimeError("No OST information could be retrieved!")
@@ -164,7 +167,7 @@ class OSTListProcessor(Process):
 
                 for ost_info in ost_info_list:
 
-                    if select_ost_name == ost_info.name:
+                    if select_ost_name == ost_info.ost_name:
 
                         select_ost_info_list.append(ost_info)
 
@@ -184,3 +187,21 @@ class OSTListProcessor(Process):
 
         else:
             return ost_info_list
+
+    @staticmethod
+    def _get_hostname(ip_adr):
+
+        if ip_adr is None or ip_adr == '':
+            raise RuntimeError("Parameter IP address is empty!")
+
+        result_triple = socket.gethostbyaddr(ip_adr)
+
+        if result_triple is None:
+            raise RuntimeError("Returned empty result triple!")
+
+        hostname = result_triple[0]
+
+        if hostname is None or hostname == '':
+            raise RuntimeError("Returned hostname is empty!")
+
+        return hostname

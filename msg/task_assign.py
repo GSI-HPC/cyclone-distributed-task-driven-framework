@@ -105,8 +105,8 @@ class TaskAssign(BaseMessage):
         if not task.ost_name or task.ost_name == '':
             raise RuntimeError("Initialization of the attribute 'ost_name' is missing for task: '%s'" % task_class)
 
-        if not task.oss_ip or task.oss_ip == '':
-            raise RuntimeError("Initialization of the attribute 'oss_ip' is missing for task: '%s'" % task_class)
+        if not task.oss_name or task.oss_name == '':
+            raise RuntimeError("Initialization of the attribute 'oss_name' is missing for task: '%s'" % task_class)
 
         header = MessageType.TASK_ASSIGN() \
             + BaseMessage.field_separator \
@@ -116,7 +116,7 @@ class TaskAssign(BaseMessage):
             + BaseMessage.field_separator \
             + task.ost_name \
             + BaseMessage.field_separator \
-            + task.oss_ip
+            + task.oss_name
 
         return header
 
