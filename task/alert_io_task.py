@@ -92,8 +92,20 @@ class AlertIOTask(IOTask):
 
                     mail_subject = "[LUSTRE Monitoring] OST Write Performance Degradation Detected: %s" % self.ost_name
 
-                    mail_text = "OST: %s\nOSS: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
-                                (self.ost_name, self.oss_name, write_timestamp, str(self.mail_threshold))
+                    mail_text = "OSS: %s\n" \
+                                "OST: %s\n\n" \
+                                "Timestamp: %s\n" \
+                                "Alert Threshold: %ss\n" \
+                                "Total Size: %s\n" \
+                                "Block Size: %s\n" \
+                                "Sync Flag: %s\n" % \
+                                (self.oss_name,
+                                 self.ost_name,
+                                 write_timestamp,
+                                 self.mail_threshold,
+                                 self.total_size_bytes,
+                                 self.block_size_bytes,
+                                 self.write_file_sync)
 
                     args_send_mail = [(mail_subject, mail_text)]
 
