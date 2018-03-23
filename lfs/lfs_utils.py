@@ -61,7 +61,12 @@ class LFSUtils:
 
         except subprocess.CalledProcessError as e:
 
-            logging.error(e.output)
+            # !!! CAUTION !!!
+            #
+            # Check return code that should return False, when Lustre OST was not available.
+            # Validate against Lustre error codes: lustre/include/lustre_errno.h
+
+            logging.error("Return Code: %s -\nOutput: %s" % (e.returncode, e.output))
 
             # Cannot send after transport endpoint shutdown (108)
             if e.returncode == 108:
