@@ -25,9 +25,10 @@ import subprocess
 
 class LFSUtils:
 
-    def __init__(self, lfs_bin):
+    def __init__(self, lfs_bin, lfs_with_sudo):
 
         self.lfs_bin = lfs_bin
+        self.lfs_with_sudo = lfs_with_sudo
         self.ost_prefix_len = len('OST')
         self.ost_active_output = ' active.'
 
@@ -43,7 +44,12 @@ class LFSUtils:
         complete_target = lfs_target + "-" + ost_name
 
         try:
-            output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
+
+            #TODO: Could be one argument list for executing the subprocess.check_output call instad of two calls.
+            if self.lfs_with_sudo:
+                output = subprocess.check_output(["sudo", self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
+            else:
+                output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
 
             for line in output.split('\n'):
 

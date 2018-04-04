@@ -48,6 +48,7 @@ class AlertIOTask(IOTask):
                  write_file_sync,
                  target_dir,
                  lfs_bin,
+                 lfs_with_sudo,
                  lfs_target,
                  db_proxy_target,
                  db_proxy_port):
@@ -57,6 +58,7 @@ class AlertIOTask(IOTask):
                                           write_file_sync,
                                           target_dir,
                                           lfs_bin,
+                                          lfs_with_sudo,
                                           lfs_target,
                                           db_proxy_target,
                                           db_proxy_port)
@@ -66,8 +68,6 @@ class AlertIOTask(IOTask):
         self.mail_receiver = mail_receiver
         self.mail_threshold = float(mail_threshold)
         self.mail_receiver_list = mail_receiver.replace(' ', '').split(',')
-
-        self.lfs_utils = LFSUtils(lfs_bin)
 
         self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
 
@@ -155,18 +155,20 @@ class AlertIOTask(IOTask):
 
                 logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
 
-                timeout = 1000
+                if self.db_proxy_endpoint:
 
-                context = zmq.Context()
+                    timeout = 1000
 
-                sock = context.socket(zmq.PUSH)
+                    context = zmq.Context()
 
-                sock.setsockopt(zmq.LINGER, timeout)
-                sock.SNDTIMEO = timeout
+                    sock = context.socket(zmq.PUSH)
 
-                sock.connect(self.db_proxy_endpoint)
+                    sock.setsockopt(zmq.LINGER, timeout)
+                    sock.SNDTIMEO = timeout
 
-                sock.send(ost_perf_result.to_csv_list())
+                    sock.connect(self.db_proxy_endpoint)
+
+                    sock.send(ost_perf_result.to_csv_list())
 
         except Exception as e:
 

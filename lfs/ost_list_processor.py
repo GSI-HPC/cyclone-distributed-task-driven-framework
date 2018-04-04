@@ -40,7 +40,6 @@ class OSTListProcessor(Process):
         self.ip_reg_ex = config_file_reader.ip_reg_ex
 
         self.lctl_bin = config_file_reader.lctl_bin
-        self.lfs_bin = config_file_reader.lfs_bin
         self.lfs_target = config_file_reader.lfs_target
 
         self.measure_interval = config_file_reader.measure_interval

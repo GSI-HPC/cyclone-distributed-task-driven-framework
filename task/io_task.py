@@ -39,11 +39,14 @@ class IOTask(BaseTask):
                  write_file_sync,
                  target_dir,
                  lfs_bin,
+                 lfs_with_sudo,
                  lfs_target,
                  db_proxy_target,
                  db_proxy_port):
 
         super(IOTask, self).__init__()
+
+        # TODO: We could use a validation method for the class attributes.
 
         # Class attributes mapped to the constructor parameters:
         self.block_size_bytes = int(block_size_bytes)
@@ -63,11 +66,18 @@ class IOTask(BaseTask):
         self.payload_block = str()
         self.payload_rest_block = str()
 
-        self.lfs_utils = LFSUtils(lfs_bin)
+        if lfs_with_sudo != "" and lfs_with_sudo == 'yes':
+            self.lfs_with_sudo = True
+        else:
+            self.lfs_with_sudo = False
 
-        self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
+        self.lfs_utils = LFSUtils(lfs_bin, self.lfs_with_sudo)
 
-        # Validation of write_file_sync class attribute:
+        if self.db_proxy_target != '' and self.db_proxy_port != '':
+            self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
+        else:
+            self.db_proxy_endpoint = None
+
         if not (self.write_file_sync == "on" or self.write_file_sync == "off"):
             raise RuntimeError("Value for parameter write_file_sync must be either 'on' or 'off'!")
 
@@ -115,18 +125,20 @@ class IOTask(BaseTask):
 
                 logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
 
-                timeout = 1000
+                if self.db_proxy_endpoint:
 
-                context = zmq.Context()
+                    timeout = 1000
 
-                sock = context.socket(zmq.PUSH)
+                    context = zmq.Context()
 
-                sock.setsockopt(zmq.LINGER, timeout)
-                sock.SNDTIMEO = timeout
+                    sock = context.socket(zmq.PUSH)
 
-                sock.connect(self.db_proxy_endpoint)
+                    sock.setsockopt(zmq.LINGER, timeout)
+                    sock.SNDTIMEO = timeout
 
-                sock.send(ost_perf_result.to_csv_list())
+                    sock.connect(self.db_proxy_endpoint)
+
+                    sock.send(ost_perf_result.to_csv_list())
 
         except Exception as e:
 
