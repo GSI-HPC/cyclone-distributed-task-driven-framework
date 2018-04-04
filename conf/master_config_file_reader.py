@@ -51,7 +51,6 @@ class MasterConfigFileReader:
         self.log_filename = config.get('log', 'filename')
 
         self.lctl_bin = config.get('lustre', 'lctl_bin')
-        self.lfs_bin = config.get('lustre', 'lfs_bin')
         self.lfs_target = config.get('lustre', 'lfs_target')
 
         self.measure_interval = float(config.get('test', 'measure_interval'))
@@ -96,9 +95,6 @@ class MasterConfigFileReader:
 
         if not self.lctl_bin:
             raise ConfigValueError("No LCTL binary was specified!")
-
-        if not self.lfs_bin:
-            raise ConfigValueError("No LFS binary was specified!")
 
         if not self.lfs_target:
             raise ConfigValueError("No Lustre file system target was specified!")
