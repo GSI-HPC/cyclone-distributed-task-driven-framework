@@ -1,15 +1,15 @@
 #!/bin/sh
 
-CON_DIR=/etc/lfsm/
-LOG_DIR=/var/log/lfsm/
-PID_DIR=/var/run/lfsm/
+LFSM_CON_DIR=/etc/lfsm/
+LFSM_LOG_DIR=/var/log/lfsm/
+LFSM_PID_DIR=/var/run/lfsm/
 
-USR=root
+USR=lfsmon
 EXE=controller
 BIN=/usr/sbin/lfsm-$EXE.py
-CON=$CON_DIR/$EXE.conf
-LOG=$LOG_DIR/$EXE.log
-PID=$PID_DIR/$EXE.pid
+CON=$LFSM_CON_DIR/$EXE.conf
+LOG=$LFSM_LOG_DIR/$EXE.log
+PID=$LFSM_PID_DIR/$EXE.pid
 
 remove_bin() {
 
@@ -21,13 +21,13 @@ remove_bin() {
 
 remove_con() {
 
-	if [ -d "$CON_DIR" ]; then
+	if [ -d "$LFSM_CON_DIR" ]; then
 
 		if [ -f "$CON" ]; then
 			rm "$CON"
 		fi
 
-		rmdir --ignore-fail-on-non-empty "$CON_DIR"
+		rmdir --ignore-fail-on-non-empty "$LFSM_CON_DIR"
 
 	fi
 
@@ -35,13 +35,13 @@ remove_con() {
 
 remove_log() {
 
-	if [ -d "$LOG_DIR" ]; then
+	if [ -d "$LFSM_LOG_DIR" ]; then
 
 		if [ -f "$LOG" ]; then
 			rm "$LOG"
 		fi
 
-		rmdir --ignore-fail-on-non-empty "$LOG_DIR"
+		rmdir --ignore-fail-on-non-empty "$LFSM_LOG_DIR"
 
 	fi
 
@@ -49,13 +49,13 @@ remove_log() {
 
 remove_pid() {
 
-	if [ -d "$PID_DIR" ]; then
+	if [ -d "$LFSM_PID_DIR" ]; then
 
 		if [ -f "$PID" ]; then
 			rm "$PID"
 		fi
 
-		rmdir --ignore-fail-on-non-empty "$PID_DIR"
+		rmdir --ignore-fail-on-non-empty "$LFSM_PID_DIR"
 
 	fi
 

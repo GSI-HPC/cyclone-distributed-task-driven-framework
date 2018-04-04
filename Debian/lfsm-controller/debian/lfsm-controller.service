@@ -5,7 +5,7 @@ After=network.target lustre-nyx.mount
 
 [Service]
 Type=simple
-User=root
+User=lfsmon
 ExecStart=/usr/sbin/lfsm-controller.py
 RestartSec=2min
 Restart=on-success

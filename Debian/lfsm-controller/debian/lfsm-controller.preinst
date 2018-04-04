@@ -1,13 +1,23 @@
 #!/bin/sh
 
-CON=/etc/lfsm/
+LFSM_CON_DIR=/etc/lfsm/
+LFSM_LOG_DIR=/var/log/lfsm/
+LFSM_PID_DIR=/var/run/lfsm/
 
 case "$1" in
 
 	configure)
 
-		if [ ! -d "$CON" ]; then
-			mkdir -p "$CON"
+		if [ ! -d "$LFSM_CON_DIR" ]; then
+			mkdir -p "$LFSM_CON_DIR"
+		fi
+		
+		if [ ! -d "$LFSM_LOG_DIR" ]; then
+			mkdir -p "$LFSM_LOG_DIR"
+		fi
+
+		if [ ! -d "$LFSM_PID_DIR" ]; then
+			mkdir -p "$LFSM_PID_DIR"
 		fi
 
 	;;
