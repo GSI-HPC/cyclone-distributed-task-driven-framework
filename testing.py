@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
-from ctrl.ost_status_item import OstState
-
-state = OstState.finished()
-
-if state == OstState.assigned():
-    print OstState.assigned()
-else:
-    print OstState.finished()
+# from ctrl.ost_status_item import OstState
+#
+# state = OstState.finished()
+#
+# if state == OstState.assigned():
+#     print OstState.assigned()
+# else:
+#     print OstState.finished()
 
 
 
@@ -21,8 +21,8 @@ else:
 # from msg.message_factory import *
 # from task.xml.task_xml_reader import TaskXmlReader
 # from task.task_factory import TaskFactory
-#
-#
+
+
 # task = AlertIOTask("mail_server",
 #               "mail_sender",
 #               "mail_receiver",
@@ -31,19 +31,19 @@ else:
 #               1000000,
 #               "off",
 #                "target_dir_lustre_nyx",
-#                "lfs_bin",
 #                "/usr/bin/lfs",
+#                "yes",
+#                "nyx",
 #                "127.0.0.1",
 #                "5557")
 #
 # task.ost_name = "OST0000"
 # task.oss_ip = "127.0.0.1"
 #
-#
-# message = "TASK_ASS;task.alert_io_task;AlertIOTask;OST0000;127.0.0.1;mail_server;mail_sender;mail_receiver;3000;1000000;1000000;off;target_dir;lfs_bin;lfs;127.0.0.1;5557"
-#
 # task_assign = TaskAssign(task)
 # print task_assign.to_string()
+#
+# message = "TASK_ASS;task.alert_io_task;AlertIOTask;OST0000;127.0.0.1;mail_server;mail_sender;mail_receiver;3000;1000000;1000000;off;target_dir_lustre_nyx;/usr/bin/lfs;yes;nyx;127.0.0.1;5557"
 #
 # task_assign = TaskAssign(message)
 # print task_assign.to_string()
@@ -105,7 +105,9 @@ else:
 # print task.execute()
 
 
-
+# task_xml_info = TaskXmlReader.read_task_definition('Configuration/tasks.xml', 'AlertIOTask')
+#
+# task = TaskFactory().create_from_xml_info(task_xml_info)
 
 
 # from threading import Timer
