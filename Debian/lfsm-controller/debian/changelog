@@ -1,6 +1,5 @@
-lfsm-controller (1.1) jessie-testing; urgency=medium
+lfsm-controller (1.2) jessie-testing; urgency=medium
 
-  * Replaced OSS IP with OSS name.
-  * Added Debian package build.
+  * Added support for executing sudo on lfs command.
 
  -- Gabriele Iannetti <g.iannetti@gsi.de>  Wed, 24 Jan 2018 15:58:40 +0200
