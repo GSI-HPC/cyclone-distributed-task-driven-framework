@@ -67,54 +67,12 @@ class TaskFactory:
 
             arg_index += 1
 
-        # No dynamic constructor instantiation with Python 2.7.
-        # Current limitation is a constructor call with max. 12 arguments!
-        # TODO: Might be improved in Python 3?
+        # TODO: Use a dynamic constructor initialization instead!
+        # No dynamic constructor instantiation with Python 2.7 - Might be improved in Python 3?
 
         body_items = xml_info.class_properties.values()
 
-        task = None
-
-        if len_body_items == 0:
-            task = dynamic_class()
-        elif len_body_items == 1:
-            task = dynamic_class(body_items[0])
-        elif len_body_items == 2:
-            task = dynamic_class(body_items[0], body_items[1])
-        elif len_body_items == 3:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2])
-        elif len_body_items == 4:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3])
-        elif len_body_items == 5:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4])
-        elif len_body_items == 6:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5])
-        elif len_body_items == 7:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5], body_items[6])
-        elif len_body_items == 8:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5], body_items[6], body_items[7])
-        elif len_body_items == 9:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5], body_items[6], body_items[7], body_items[8])
-        elif len_body_items == 10:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5], body_items[6], body_items[7], body_items[8], body_items[9])
-        elif len_body_items == 11:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
-                                 body_items[10])
-        elif len_body_items == 12:
-            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
-                                 body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
-                                 body_items[10], body_items[11])
-        else:
-            raise RuntimeError("No task instantiation supported for: '%s::%s'!"
-                               % (xml_info.class_module, xml_info.class_name))
-
-        return task
+        return TaskFactory._create_task(dynamic_class, body_items, len_body_items)
 
     @staticmethod
     def create_from_message(message):
@@ -138,11 +96,24 @@ class TaskFactory:
         task = None
 
         if message.body:
+
             body_items = message.body.split(BaseMessage.field_separator)
             len_body_items = len(body_items)
 
         module = importlib.import_module(task_module)
         dynamic_class = getattr(module, task_class)
+
+        task = TaskFactory._create_task(dynamic_class, body_items, len_body_items)
+
+        task.ost_name = task_ost_name
+        task.oss_name = task_oss_name
+
+        return task
+
+    @staticmethod
+    def _create_task(dynamic_class, body_items, len_body_items):
+
+        task = None
 
         if len_body_items == 0:
             task = dynamic_class()
@@ -179,12 +150,19 @@ class TaskFactory:
             task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
                                  body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
                                  body_items[10], body_items[11])
+        elif len_body_items == 13:
+            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
+                                 body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
+                                 body_items[10], body_items[11], body_items[12])
+        elif len_body_items == 14:
+            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
+                                 body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
+                                 body_items[10], body_items[11], body_items[12], body_items[13])
+        elif len_body_items == 15:
+            task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
+                                 body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
+                                 body_items[10], body_items[11], body_items[12], body_items[14])
         else:
-            raise RuntimeError("No task instantiation supported for: '%s::%s'!" % (task_module, task_class))
-
-        # TODO: Check task is not None
-
-        task.ost_name = task_ost_name
-        task.oss_name = task_oss_name
+            raise RuntimeError("No task instantiation supported for: '%s'!" % dynamic_class.__name__)
 
         return task
