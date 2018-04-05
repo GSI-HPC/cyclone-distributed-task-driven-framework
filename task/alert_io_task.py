@@ -69,8 +69,6 @@ class AlertIOTask(IOTask):
         self.mail_threshold = float(mail_threshold)
         self.mail_receiver_list = mail_receiver.replace(' ', '').split(',')
 
-        self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
-
     def execute(self):
 
         try:
@@ -151,6 +149,7 @@ class AlertIOTask(IOTask):
                 ost_perf_result = \
                     OSTPerfResult(timestamp, timestamp, self.ost_name, self.oss_name, self.total_size_bytes, 0, 0, 0, 0)
 
+            # TODO: Remove code redundancy in IOTasks.
             if ost_perf_result:
 
                 logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
@@ -169,6 +168,8 @@ class AlertIOTask(IOTask):
                     sock.connect(self.db_proxy_endpoint)
 
                     sock.send(ost_perf_result.to_csv_list())
+
+                    logging.debug('Sent ost_perf_result to db-proxy.')
 
         except Exception as e:
 

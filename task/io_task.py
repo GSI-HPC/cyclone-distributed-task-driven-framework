@@ -140,6 +140,8 @@ class IOTask(BaseTask):
 
                     sock.send(ost_perf_result.to_csv_list())
 
+                    logging.debug('Sent ost_perf_result to db-proxy.')
+
         except Exception as e:
 
             exc_type, exc_obj, exc_tb = sys.exc_info()
