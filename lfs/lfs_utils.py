@@ -46,7 +46,7 @@ class LFSUtils:
         try:
 
             #TODO: Could be one argument list for executing the subprocess.check_output call instad of two calls.
-            if self.lfs_with_sudo:
+            if self.lfs_with_sudo == 'yes':
                 output = subprocess.check_output(["sudo", self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
             else:
                 output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)

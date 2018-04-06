@@ -32,7 +32,6 @@ from email.MIMEText import MIMEText
 from io_task import IOTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
-from lfs.lfs_utils import LFSUtils
 from threading import Timer
 
 
