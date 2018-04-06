@@ -1,34 +1,37 @@
 #!/bin/sh
 
-USR=root
-CON=/etc/lfsm/
-LOG=/var/log/lfsm/
-PID=/var/run/lfsm/
+#TODO: Use one config file for all lfsm Debian packages.
+
+LFSM_USR=lfsmon
+LFSM_GRP=root
+LFSM_CON_DIR=/etc/lfsm/
+LFSM_LOG_DIR=/var/log/lfsm/
+LFSM_PID_DIR=/var/run/lfsm/
 
 case "$1" in
 
 	configure)
 
-		chown -R "$USR":"$USR" "$CON"
+		chown -R "$LFSM_USR":"$LFSM_GRP" "$LFSM_CON_DIR"
 
 		if [ ! "$?" ]; then
-			echo "Failed setting ownership to path: '$CON'"
+			echo "Failed setting ownership to path: '$LFSM_CON_DIR'"
 			exit 147
 		fi
 
-		mkdir -p "$LOG"
-		chown -R "$USR":"$USR" "$LOG"
+		mkdir -p "$LFSM_LOG_DIR"
+		chown -R "$LFSM_USR":"$LFSM_GRP" "$LFSM_LOG_DIR"
 
 		if [ ! "$?" ]; then
-			echo "Failed setting ownership to path: '$LOG'"
+			echo "Failed setting ownership to path: '$LFSM_LOG_DIR'"
 			exit 147
 		fi
 
-		mkdir -p "$PID"
-		chown -R "$USR":"$USR" "$PID"
+		mkdir -p "$LFSM_PID_DIR"
+		chown -R "$LFSM_USR":"$LFSM_GRP" "$LFSM_PID_DIR"
 
 		if [ ! "$?" ]; then
-			echo "Failed setting ownership to path: '$PID'"
+			echo "Failed setting ownership to path: '$LFSM_PID_DIR'"
 			exit 147
 		fi
 

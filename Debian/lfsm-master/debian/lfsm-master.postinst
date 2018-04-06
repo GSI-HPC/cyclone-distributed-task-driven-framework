@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#TODO: Use one config file for all lfsm Debian packages.
+
 LFSM_USR=lfsmon
 LFSM_GRP=root
 LFSM_CON_DIR=/etc/lfsm/
