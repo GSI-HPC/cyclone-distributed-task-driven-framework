@@ -6,6 +6,8 @@ After=network.target lustre-nyx.mount
 [Service]
 Type=simple
 User=lfsmon
+PermissionsStartOnly=true
+ExecStartPre=-/usr/bin/install -o lfsmon -g root -d /var/run/lfsm/
 ExecStart=/usr/sbin/lfsm-database-proxy.py
 RestartSec=2min
 Restart=on-success
