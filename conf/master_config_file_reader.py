@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 # Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
