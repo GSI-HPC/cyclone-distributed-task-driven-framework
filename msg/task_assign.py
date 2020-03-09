@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 
 import inspect
 
-from base_message import BaseMessage
-from message_type import MessageType
+from msg.base_message import BaseMessage
+from msg.message_type import MessageType
 from task.base_task import BaseTask
 from task.task_factory import TaskFactory
 

@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 #
 
 
-import commands
+import subprocess
 import logging
 import socket
 import signal
@@ -102,7 +102,7 @@ class OSTListProcessor(Process):
 
         cmd = self.lctl_bin + " get_param 'osc." + self.lfs_target + "-*.ost_conn_uuid'"
 
-        (status, output) = commands.getstatusoutput(cmd)
+        (status, output) = subprocess.getstatusoutput(cmd)
 
         if status > 0:
             raise RuntimeError("Error occurred during read of OST connection UUID information: %s" % output)

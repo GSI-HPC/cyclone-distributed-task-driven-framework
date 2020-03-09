@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 #
 
 
-import ConfigParser
+import configparser
 import re
 import os
 
-from config_value_error import ConfigValueError
+from conf.config_value_error import ConfigValueError
 
 
 class MasterConfigFileReader:
@@ -32,7 +32,7 @@ class MasterConfigFileReader:
         if not os.path.isfile(config_file):
             raise IOError("The config file does not exist or is not a file: %s" % config_file)
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(config_file)
 
         self.pid_file = config.get('control', 'pid_file')

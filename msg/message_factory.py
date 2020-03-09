@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,15 +20,15 @@
 
 from abc import ABCMeta
 
-from base_message import BaseMessage
-from message_type import MessageType
-from task_request import TaskRequest
-from task_assign import TaskAssign
-from wait_command import WaitCommand
-from task_finished import TaskFinished
-from acknowledge import Acknowledge
-from heartbeat import Heartbeat
-from exit_command import ExitCommand
+from msg.base_message import BaseMessage
+from msg.message_type import MessageType
+from msg.task_request import TaskRequest
+from msg.task_assign import TaskAssign
+from msg.wait_command import WaitCommand
+from msg.task_finished import TaskFinished
+from msg.acknowledge import Acknowledge
+from msg.heartbeat import Heartbeat
+from msg.exit_command import ExitCommand
 
 
 class MessageFactory:

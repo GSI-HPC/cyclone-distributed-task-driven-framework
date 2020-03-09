@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 
 import multiprocessing
-import Queue
+import queue
 
 
 class SharedQueue:
@@ -53,7 +53,8 @@ class SharedQueue:
             try:
                 self._queue.get()
             except Queue.Empty:
-                print '>>>>>>> clear: get item caught exception <<<<<<<<'
+                # TODO throw exception?
+                print('>>>>>>> clear: get item caught exception <<<<<<<<')
 
     def push(self, item):
         """Pushes an item into the queue (blocking)"""
@@ -69,7 +70,8 @@ class SharedQueue:
         try:
             return self._queue.get_nowait()
         except Queue.Empty:
-            print '>>>>>>> pop_nowait caught exception <<<<<<<<'
+            # TODO throw exception?
+            print('>>>>>>> pop_nowait caught exception <<<<<<<<')
 
         return None
 
@@ -79,7 +81,8 @@ class SharedQueue:
         try:
             return self._queue.get()
         except Queue.Empty:
-            print '>>>>>>> pop_nowait caught exception <<<<<<<<'
+            # TODO throw exception?
+            print('>>>>>>> pop_nowait caught exception <<<<<<<<')
 
         return None
 

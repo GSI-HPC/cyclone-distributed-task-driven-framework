@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017 Gabriele Iannetti
+# Copyright 2020 Gabriele Iannetti
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -68,10 +68,10 @@ class PIDControl:
 
         if os.path.isfile(self._pid_file):
 
-            fd = open(self._pid_file, 'rb')
+            # TODO Use with statement for opening file
+            fd = open(self._pid_file, 'r')
             content = fd.read()
             fd.close()
-
             if content == '':
                 raise RuntimeError("PID file is empty: %s" % self._pid_file)
 
@@ -89,7 +89,8 @@ class PIDControl:
         if not os.path.isdir(pid_file_dir):
             raise IOError("Directory path does not exist for PID file: %s" % pid_file_dir)
 
-        fd = open(self._pid_file, 'wb')
+        # TODO use with statement for writing to file
+        fd = open(self._pid_file, 'w')
 
         fcntl.lockf(fd, fcntl.LOCK_EX)
 
