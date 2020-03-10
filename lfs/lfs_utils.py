@@ -45,11 +45,17 @@ class LFSUtils:
 
         try:
 
-            #TODO: Could be one argument list for executing the subprocess.check_output call instad of two calls.
+            args = list()
+
             if self.lfs_with_sudo == 'yes':
-                output = subprocess.check_output(["sudo", self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
-            else:
-                output = subprocess.check_output([self.lfs_bin, "check", "osts"], stderr=subprocess.STDOUT)
+                args.append('sudo')
+
+            args.append(self.lfs_bin)
+            args.append('check')
+            args.append('osts')
+
+            #TODO Use subprocess.run() with Python3.5
+            output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
 
             for line in output.split('\n'):
 
@@ -87,6 +93,8 @@ class LFSUtils:
 
         logging.debug("Setting stripe settings for file: %s on OST: %s" % (file_path, ost_name))
 
-        # Writes stderr to stdout to read the error message from subprocess.CalledProcessError.output on exception.
-        subprocess.check_output([self.lfs_bin, "setstripe", "--stripe-index", stripe_index,
-                                 "--stripe-count", "1", "--stripe-size", "0", file_path], stderr=subprocess.STDOUT)
+        args = [self.lfs_bin, 'setstripe', '--stripe-index', stripe_index,
+                '--stripe-count', '1', '--stripe-size', '0', file_path]
+
+        # TODO Use subprocess.run() with Python3.5
+        subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
