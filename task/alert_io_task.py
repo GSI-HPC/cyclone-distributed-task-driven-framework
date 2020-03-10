@@ -26,8 +26,8 @@ import logging
 import datetime
 import smtplib
 
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from task.io_task import IOTask
 from db.ost_perf_result import OSTPerfResult

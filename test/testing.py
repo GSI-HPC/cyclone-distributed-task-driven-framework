@@ -19,8 +19,6 @@
 # from task.base_task import BaseTask
 # from task.empty_task import EmptyTask
 # from msg.message_factory import *
-# from task.xml.task_xml_reader import TaskXmlReader
-# from task.task_factory import TaskFactory
 
 
 # task = AlertIOTask("mail_server",
@@ -95,19 +93,6 @@
 #
 # for base_class in task_base_classes[0].__bases__:
 #     print base_class.__name__
-
-
-
-# task_xml_info = TaskXmlReader.read_task_definition('Configuration/tasks.xml', 'EmptyTask')
-#
-# task = TaskFactory().create_from_xml_info(task_xml_info)
-#
-# print task.execute()
-
-
-# task_xml_info = TaskXmlReader.read_task_definition('Configuration/tasks.xml', 'AlertIOTask')
-#
-# task = TaskFactory().create_from_xml_info(task_xml_info)
 
 
 # from threading import Timer

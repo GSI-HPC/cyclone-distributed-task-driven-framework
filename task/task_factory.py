@@ -70,7 +70,12 @@ class TaskFactory:
         # TODO: Use a dynamic constructor initialization instead!
         # No dynamic constructor instantiation with Python 2.7 - Might be improved in Python 3?
 
-        body_items = xml_info.class_properties.values()
+        # Python 2.7: Worked, because OrderedDict.values returned a list.
+        # Python 3.5: Broken since: 'odict_values' object does not support indexing
+        ## body_items = xml_info.class_properties.values()
+
+        # For Python 3, so the values can be accessed via indexes later...
+        body_items = list(xml_info.class_properties.values())
 
         return TaskFactory._create_task(dynamic_class, body_items, len_body_items)
 
