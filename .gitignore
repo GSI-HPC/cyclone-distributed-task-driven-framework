@@ -1,6 +1,7 @@
 .idea
 *.log
 *.pyc
+*.pid
 
 Pyinstaller/pybuild/*
 
