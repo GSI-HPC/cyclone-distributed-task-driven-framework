@@ -153,12 +153,12 @@ class IOTask(BaseTask):
 
         # No random numbers are used, since no compression is used in Lustre FS directly.
 
-        self.payload_block = "".join('A' for i in xrange(self.block_size_bytes))
+        self.payload_block = "".join('A' for i in range(self.block_size_bytes))
 
         block_rest_size_bytes = self.total_size_bytes % self.block_size_bytes
 
         if block_rest_size_bytes > 0:
-            self.payload_rest_block = "".join('A' for i in xrange(self.block_rest_size_bytes))
+            self.payload_rest_block = "".join('A' for i in range(self.block_rest_size_bytes))
 
     def _write_file(self, file_path):
 
@@ -171,7 +171,7 @@ class IOTask(BaseTask):
 
             with open(file_path, 'w') as f:
 
-                for i in xrange(int(iterations)):
+                for i in range(int(iterations)):
                     f.write(self.payload_block)
 
                 if self.payload_rest_block:
