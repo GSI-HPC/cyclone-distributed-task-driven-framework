@@ -29,7 +29,7 @@ import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 
-from io_task import IOTask
+from task.io_task import IOTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
 from threading import Timer

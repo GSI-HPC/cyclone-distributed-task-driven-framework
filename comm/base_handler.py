@@ -86,18 +86,20 @@ class BaseHandler(object):
         self.disconnect()
         self.connect()
 
+    # TODO use PyZMQ recv_string()...
     def recv(self):
 
         events = dict(self.poller.poll(self.poll_timeout))
 
         if events.get(self.socket) == zmq.POLLIN:
 
-            message = self.socket.recv()
+            message = self.socket.recv().decode('UTF-8')
 
             if message:
                 return message
 
         return None
 
+    # TODO use PyZMQ send_string()...
     def send(self, message):
-        self.socket.send(message)
+        self.socket.send(message.encode('UTF-8'))

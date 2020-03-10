@@ -20,7 +20,7 @@
 
 import zmq
 
-from base_handler import BaseHandler
+from comm.base_handler import BaseHandler
 
 
 class ControllerCommHandler(BaseHandler):

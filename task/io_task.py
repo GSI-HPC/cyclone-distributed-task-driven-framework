@@ -25,7 +25,7 @@ import time
 import logging
 import datetime
 
-from base_task import BaseTask
+from task.base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
 from lfs.lfs_utils import LFSUtils

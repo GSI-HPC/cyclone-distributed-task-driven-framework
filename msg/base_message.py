@@ -46,8 +46,8 @@ class BaseMessage(object):
 
     def type(self):
 
-        if self.header.find(BaseMessage.field_separator):
-            return filter(None, self.header.split(BaseMessage.field_separator))[0]
+        if self.header.find(BaseMessage.field_separator) > 0:
+            return self.header.split(BaseMessage.field_separator)[0]
         else:
             return self.header
 
@@ -58,3 +58,4 @@ class BaseMessage(object):
         else:
             return self.header
 
+    # TODO add to_byte method?

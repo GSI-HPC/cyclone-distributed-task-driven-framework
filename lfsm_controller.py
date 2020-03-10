@@ -106,7 +106,7 @@ def create_worker(worker_state_table,
 
     worker_handle_dict = dict()
 
-    for worker_id in worker_state_table.iterkeys():
+    for worker_id in worker_state_table.keys():
 
         worker_state_table_item = worker_state_table[worker_id]
 
@@ -131,7 +131,7 @@ def start_worker(worker_handle_dict, worker_state_table):
     if len(worker_handle_dict) != len(worker_state_table):
         raise RuntimeError('Different sizes in worker handle dict and worker state table detected!')
 
-    for worker_id in worker_handle_dict.iterkeys():
+    for worker_id in worker_handle_dict.keys():
         worker_handle_dict[worker_id].start()
 
     max_retry_count = 3
@@ -139,7 +139,7 @@ def start_worker(worker_handle_dict, worker_state_table):
 
         worker_ready = True
 
-        for worker_id in worker_handle_dict.iterkeys():
+        for worker_id in worker_handle_dict.keys():
 
             if not (worker_handle_dict[worker_id].is_alive()
                     and worker_state_table[worker_id].get_state == WorkerState.READY):
@@ -260,7 +260,7 @@ def main():
 
                             with CriticalSection(lock_worker_state_table):
 
-                                for worker_id in worker_state_table.iterkeys():
+                                for worker_id in worker_state_table.keys():
 
                                     if worker_handle_dict[worker_id].is_alive() \
                                             and worker_state_table[worker_id].get_state == WorkerState.READY:
@@ -279,7 +279,7 @@ def main():
                                 worker_count = len(worker_state_table)
                                 worker_count_not_active = 0
 
-                                for worker_id in worker_state_table.iterkeys():
+                                for worker_id in worker_state_table.keys():
 
                                     if not worker_handle_dict[worker_id].is_alive():
                                         worker_count_not_active += 1
@@ -379,7 +379,7 @@ def main():
 
                             found_active_worker = False
 
-                            for worker_id in worker_state_table.iterkeys():
+                            for worker_id in worker_state_table.keys():
 
                                 if worker_handle_dict[worker_id].is_alive():
 

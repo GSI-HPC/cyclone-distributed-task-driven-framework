@@ -18,10 +18,10 @@
 #
 
 
-import ConfigParser
+import configparser
 import os
 
-from config_value_error import ConfigValueError
+from conf.config_value_error import ConfigValueError
 
 
 class ControllerConfigFileReader:
@@ -31,7 +31,7 @@ class ControllerConfigFileReader:
         if not os.path.isfile(config_file):
             raise IOError("The config file does not exist or is not a file: %s" % config_file)
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(config_file)
 
         self.pid_file = config.get('control', 'pid_file')

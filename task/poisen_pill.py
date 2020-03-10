@@ -21,7 +21,7 @@
 import logging
 import multiprocessing
 
-from base_task import BaseTask
+from task.base_task import BaseTask
 
 
 class PoisenPill(BaseTask):

@@ -191,6 +191,7 @@ def main():
                             logging.debug("Retrieved message: " + recv_data)
 
                             recv_msg = MessageFactory.create(recv_data)
+
                             recv_msg_type = recv_msg.type()
 
                             # TODO: Caution, sender is not set everywhere!
