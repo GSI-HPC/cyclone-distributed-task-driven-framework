@@ -146,6 +146,7 @@ def main():
             if pid_control.lock():
 
                 logging.info("Started Master with PID: [%s]", pid_control.pid())
+                logging.debug("Version: %s" % config_file_reader.version)
 
                 signal.signal(signal.SIGHUP, signal_handler)
                 signal.signal(signal.SIGINT, signal_handler)

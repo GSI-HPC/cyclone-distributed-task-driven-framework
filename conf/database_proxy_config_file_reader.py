@@ -18,10 +18,10 @@
 #
 
 
-import ConfigParser
+import configparser
 import os
 
-from config_value_error import ConfigValueError
+from conf.config_value_error import ConfigValueError
 
 
 class DatabaseProxyConfigFileReader:
@@ -31,9 +31,10 @@ class DatabaseProxyConfigFileReader:
         if not os.path.isfile(config_file):
             raise IOError("The config file does not exist or is not a file: %s" % config_file)
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(config_file)
 
+        self.version = config.get('control', 'version')
         self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
@@ -53,6 +54,9 @@ class DatabaseProxyConfigFileReader:
         self.validate()
 
     def validate(self):
+
+        if not self.version:
+            raise ConfigValueError("No version number was specified!")
 
         if not self.pid_file:
             raise ConfigValueError("No PID file was specified!")

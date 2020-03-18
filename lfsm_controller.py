@@ -207,6 +207,7 @@ def main():
             if pid_control.lock():
 
                 logging.info("Started Controller with PID: [%s]", pid_control.pid())
+                logging.debug("Version: %s" % config_file_reader.version)
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 

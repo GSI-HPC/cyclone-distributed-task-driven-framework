@@ -34,6 +34,7 @@ class ControllerConfigFileReader:
         config = configparser.ConfigParser()
         config.read(config_file)
 
+        self.version = config.get('control', 'version')
         self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
@@ -48,6 +49,9 @@ class ControllerConfigFileReader:
         self.validate()
 
     def validate(self):
+
+        if not self.version:
+            raise ConfigValueError("No version number was specified!")
 
         if not self.pid_file:
             raise ConfigValueError("No PID file was specified!")
