@@ -51,11 +51,20 @@ def init_arg_parser():
 
     default_config_file = "/etc/lfsm/controller.conf"
 
-    parser.add_argument('-f', '--config-file', dest='config_file', type=str, required=False,
-                        help=str('Path to the config file (default: %s)' % default_config_file),
+    parser.add_argument('-f',
+                        '--config-file',
+                        dest='config_file',
+                        type=str,
+                        required=False,
+                        help=str('Path to the config file (default: %s)'
+                                 % default_config_file),
                         default=default_config_file)
 
-    parser.add_argument('-D', '--enable-debug', dest='enable_debug', required=False, action='store_true',
+    parser.add_argument('-D',
+                        '--debug',
+                        dest='enable_debug',
+                        required=False,
+                        action='store_true',
                         help='Enables debug log messages.')
 
     return parser.parse_args()
