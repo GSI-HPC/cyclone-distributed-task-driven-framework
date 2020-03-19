@@ -4,7 +4,7 @@
 ### Required
 **Python bindings for 0MQ (zmq)** - Interprocess communication between different hosts e.g. master and controller components
 ### Optional
-**Python interface to MySQL (MySQLdb)** - For storing provided example IO-task results into a MySQL database
+**MySQL Connector Python (mysql)** - For storing provided example IO-task results into a MySQL database
 
 ## Documentation
 ### Short Introduction Slides

@@ -19,7 +19,7 @@
 
 
 import logging
-import MySQLdb
+import mysql
 
 from contextlib import closing
 
@@ -62,7 +62,7 @@ CREATE TABLE """ + self._table_name + """ (
 
         logging.debug("Creating database table:\n" + sql)
 
-        with closing(MySQLdb.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
+        with closing(mysql.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
             with closing(conn.cursor()) as cur:
                 cur.execute(sql)
 
@@ -104,7 +104,7 @@ CREATE TABLE """ + self._table_name + """ (
 
         logging.debug("Executing SQL statement:\n" + sql)
 
-        with closing(MySQLdb.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
+        with closing(mysql.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
             with closing(conn.cursor()) as cur:
 
                 cur.execute(sql)
