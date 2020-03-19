@@ -106,6 +106,8 @@ def signal_handler(signum, frame):
 
 def main():
 
+    error = False
+
     try:
 
         args = init_arg_parser()
@@ -183,12 +185,11 @@ def main():
                     logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
                     os._exit(1)
 
-            # TODO Catch Interrupted System Call instead and shutdown clearly,
-            #      so cached store results are written to database.
             except Exception as e:
 
                 logging.error("Caught exception in inner block: %s" % e)
                 set_run_flag_false()
+                error = True
 
     except Exception as e:
 
@@ -203,7 +204,12 @@ def main():
         table_handler.clear()
 
     logging.info("Finished")
-    os._exit(0)
+
+    if error:
+        os._exit(1)
+    else:
+        os._exit(0)
+
 
 if __name__ == '__main__':
     main()
