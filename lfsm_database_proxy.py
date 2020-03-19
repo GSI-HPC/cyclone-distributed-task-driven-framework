@@ -147,13 +147,16 @@ def main():
                     store_max_count = config_file_reader.store_max_count
 
                     if args.create_table:
-                        table_handler.create_table()
 
-                    comm_handler.connect()
+                        table_handler.create_table()
+                        logging.info('Created database table.')
+                        set_run_flag_false()
 
                     while RUN_FLAG:
 
                         last_exec_timestamp = int(time.time())
+
+                        comm_handler.connect()
 
                         # TODO: Building an object and validate data...
                         recv_data = comm_handler.recv()
