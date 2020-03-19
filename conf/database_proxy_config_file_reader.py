@@ -45,8 +45,8 @@ class DatabaseProxyConfigFileReader:
 
         self.host = config.get('db', 'host')
         self.user = config.get('db', 'user')
-        self.passwd = config.get('db', 'passwd')
-        self.db = config.get('db', 'database')
+        self.password = config.get('db', 'password')
+        self.database = config.get('db', 'database')
         self.table = config.get('db', 'table')
         self.store_timeout = int(config.get('db', 'store_timeout'))
         self.store_max_count = int(config.get('db', 'store_max_count'))
@@ -76,10 +76,10 @@ class DatabaseProxyConfigFileReader:
         if not self.user:
             raise ConfigValueError("No user was specified!")
 
-        if not self.passwd:
+        if not self.password:
             raise ConfigValueError("No password was specified!")
 
-        if not self.db:
+        if not self.database:
             raise ConfigValueError("No database was specified!")
 
         if not self.table:

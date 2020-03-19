@@ -19,20 +19,20 @@
 
 
 import logging
-import mysql
+import mysql.connector
 
 from contextlib import closing
 
 
 class OSTPerfHistoryTableHandler:
 
-    def __init__(self, host, user, passwd, db, table_name):
+    def __init__(self, host, user, password, database, table):
 
         self._host = host
         self._user = user
-        self._passwd = passwd
-        self._db = db
-        self._table_name = table_name
+        self._password = password
+        self._database = database
+        self._table = table
 
         self._ost_perf_result_list = list()
 
@@ -45,7 +45,7 @@ class OSTPerfHistoryTableHandler:
     def create_table(self):
 
         sql = """
-CREATE TABLE """ + self._table_name + """ (
+CREATE TABLE """ + self._table + """ (
    id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
    read_timestamp  TIMESTAMP NOT NULL DEFAULT "0000-00-00 00:00:00",
    write_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -62,7 +62,11 @@ CREATE TABLE """ + self._table_name + """ (
 
         logging.debug("Creating database table:\n" + sql)
 
-        with closing(mysql.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
+        with closing(mysql.connector.connect(host=self._host,
+                                             user=self._user,
+                                             password=self._password,
+                                             db=self._database)) as conn:
+
             with closing(conn.cursor()) as cur:
                 cur.execute(sql)
 
@@ -79,7 +83,7 @@ CREATE TABLE """ + self._table_name + """ (
         len_ost_perf_result_list = len(self._ost_perf_result_list)
 
         sql = "INSERT INTO " \
-            + self._table_name \
+            + self.table \
             + "(" \
             + "read_timestamp, " \
             + "write_timestamp, " \
@@ -104,16 +108,21 @@ CREATE TABLE """ + self._table_name + """ (
 
         logging.debug("Executing SQL statement:\n" + sql)
 
-        with closing(mysql.connect(host=self._host, user=self._user, passwd=self._passwd, db=self._db)) as conn:
+        with closing(mysql.connect(host=self._host,
+                                   user=self._user,
+                                   password=self._password,
+                                   database=self._database)) as conn:
+
             with closing(conn.cursor()) as cur:
 
                 cur.execute(sql)
 
                 if cur.rowcount != len_ost_perf_result_list:
-                    raise RuntimeError("Number of rows inserted is not equal to number of input records for table: %s"
-                                       % self._table_name)
+                    raise RuntimeError("Number of rows inserted is not equal "
+                                       "to number of input records!")
 
-        logging.debug("Inserted: %s records into table: %s" % (len_ost_perf_result_list, self._table_name))
+        logging.debug("Inserted: %s records into table: %s"
+                      % (len_ost_perf_result_list, self.table))
 
     def count(self):
         return len(self._ost_perf_result_list)

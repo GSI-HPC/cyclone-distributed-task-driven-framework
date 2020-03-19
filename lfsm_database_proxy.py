@@ -123,8 +123,8 @@ def main():
                                      config_file_reader.poll_timeout) as comm_handler, \
             OSTPerfHistoryTableHandler(config_file_reader.host,
                                        config_file_reader.user,
-                                       config_file_reader.passwd,
-                                       config_file_reader.db,
+                                       config_file_reader.password,
+                                       config_file_reader.database,
                                        config_file_reader.table) as table_handler:
 
             try:
