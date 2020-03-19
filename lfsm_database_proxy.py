@@ -183,10 +183,12 @@ def main():
                     logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
                     os._exit(1)
 
+            # TODO Catch Interrupted System Call instead and shutdown clearly,
+            #      so cached store results are written to database.
             except Exception as e:
 
                 logging.error("Caught exception in inner block: %s" % e)
-                os._exit(1)
+                set_run_flag_false()
 
     except Exception as e:
 
