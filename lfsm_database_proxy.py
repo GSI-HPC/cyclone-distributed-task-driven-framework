@@ -150,13 +150,13 @@ def main():
 
                         table_handler.create_table()
                         logging.info('Created database table.')
-                        set_run_flag_false()
+                        os._exit(0)
+
+                    comm_handler.connect()
 
                     while RUN_FLAG:
 
                         last_exec_timestamp = int(time.time())
-
-                        comm_handler.connect()
 
                         # TODO: Building an object and validate data...
                         recv_data = comm_handler.recv()
