@@ -137,7 +137,7 @@ class IOTask(BaseTask):
 
                     sock.connect(self.db_proxy_endpoint)
 
-                    sock.send(ost_perf_result.to_csv_list())
+                    sock.send_string(ost_perf_result.to_csv_list())
 
                     logging.debug('Sent ost_perf_result to db-proxy.')
 

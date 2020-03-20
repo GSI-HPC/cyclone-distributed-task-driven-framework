@@ -314,9 +314,9 @@ def main():
                         if send_msg:
 
                             logging.debug("Sending message to master: %s" % send_msg.to_string())
-                            comm_handler.send(send_msg.to_string())
+                            comm_handler.send_string(send_msg.to_string())
 
-                            in_raw_data = comm_handler.recv()
+                            in_raw_data = comm_handler.recv_string()
 
                             if in_raw_data:
 

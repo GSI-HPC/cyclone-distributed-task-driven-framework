@@ -192,7 +192,7 @@ def main():
 
                         last_exec_timestamp = int(time.time())
 
-                        recv_data = comm_handler.recv()
+                        recv_data = comm_handler.recv_string()
 
                         send_msg = None
 
@@ -271,7 +271,7 @@ def main():
                                         send_msg = WaitCommand(controller_wait_duration)
 
                                     logging.debug("Sending message: " + send_msg.to_string())
-                                    comm_handler.send(send_msg.to_string())
+                                    comm_handler.send_string(send_msg.to_string())
 
                                 elif MessageType.TASK_FINISHED() == recv_msg_type:
 
@@ -294,13 +294,13 @@ def main():
 
                                     send_msg = Acknowledge()
                                     logging.debug("Sending message: " + send_msg.to_string())
-                                    comm_handler.send(send_msg.to_string())
+                                    comm_handler.send_string(send_msg.to_string())
 
                                 elif MessageType.HEARTBEAT() == recv_msg_type:
 
                                     send_msg = Acknowledge()
                                     logging.debug("Sending message: " + send_msg.to_string())
-                                    comm_handler.send(send_msg.to_string())
+                                    comm_handler.send_string(send_msg.to_string())
 
                                 else:
                                     raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
@@ -309,7 +309,7 @@ def main():
 
                                 send_msg = ExitCommand()
                                 logging.debug("Sending message: " + send_msg.to_string())
-                                comm_handler.send(send_msg.to_string())  # Does not block.
+                                comm_handler.send_string(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
 

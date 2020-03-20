@@ -159,7 +159,7 @@ def main():
                         last_exec_timestamp = int(time.time())
 
                         # TODO: Building an object and validate data...
-                        recv_data = comm_handler.recv()
+                        recv_data = comm_handler.recv_string()
 
                         if recv_data:
 
