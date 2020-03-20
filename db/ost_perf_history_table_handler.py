@@ -83,7 +83,7 @@ CREATE TABLE """ + self._table + """ (
         len_ost_perf_result_list = len(self._ost_perf_result_list)
 
         sql = "INSERT INTO " \
-            + self.table \
+            + self._table \
             + "(" \
             + "read_timestamp, " \
             + "write_timestamp, " \
@@ -122,7 +122,7 @@ CREATE TABLE """ + self._table + """ (
                                        "to number of input records!")
 
         logging.debug("Inserted: %s records into table: %s"
-                      % (len_ost_perf_result_list, self.table))
+                      % (len_ost_perf_result_list, self._table))
 
     def count(self):
         return len(self._ost_perf_result_list)
