@@ -73,9 +73,12 @@ def init_logging(log_filename, enable_debug):
         log_level = logging.INFO
 
     if log_filename:
-        logging.basicConfig(filename=log_filename, level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
+        logging.basicConfig(filename=log_filename,
+                            level=log_level,
+                            format="%(asctime)s - %(levelname)s: %(message)s")
     else:
-        logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
+        logging.basicConfig(level=log_level,
+                            format="%(asctime)s - %(levelname)s: %(message)s")
 
 
 def set_run_flag_false():
@@ -118,20 +121,23 @@ def main():
 
         # TODO: Check Exception with *with* statement.
         with PIDControl(config_file_reader.pid_file) as pid_control, \
-            DatabaseProxyCommHandler(config_file_reader.comm_target,
-                                     config_file_reader.comm_port,
-                                     config_file_reader.poll_timeout) as comm_handler, \
-            OSTPerfHistoryTableHandler(config_file_reader.host,
-                                       config_file_reader.user,
-                                       config_file_reader.password,
-                                       config_file_reader.database,
-                                       config_file_reader.table) as table_handler:
+            DatabaseProxyCommHandler(
+                config_file_reader.comm_target,
+                config_file_reader.comm_port,
+                config_file_reader.poll_timeout) as comm_handler, \
+            OSTPerfHistoryTableHandler(
+                config_file_reader.host,
+                config_file_reader.user,
+                config_file_reader.password,
+                config_file_reader.database,
+                config_file_reader.table) as table_handler:
 
             try:
 
                 if pid_control.lock():
 
-                    logging.info("Started Database Proxy with PID: [%s]", pid_control.pid())
+                    logging.info("Started")
+                    logging.info("Database Proxy PID: [%s]", pid_control.pid())
                     logging.debug("Version: %s" % config_file_reader.version)
 
                     signal.signal(signal.SIGHUP, signal_handler)
@@ -150,6 +156,7 @@ def main():
 
                         table_handler.create_table()
                         logging.info('Created database table.')
+                        logging.info("Finished")
                         os._exit(0)
 
                     comm_handler.connect()
@@ -170,12 +177,13 @@ def main():
                         else:
                             logging.debug('Timeout...')
 
-                        if (last_exec_timestamp >= (last_store_timestamp + store_timeout)) or \
+                        if (last_exec_timestamp >=
+                            (last_store_timestamp + store_timeout)) or \
                                 table_handler.count() >= store_max_count:
 
                             if table_handler.count():
 
-                                logging.debug("Storing results into database...")
+                                logging.debug("Storing results...")
 
                                 table_handler.store()
                                 table_handler.clear()
@@ -184,8 +192,9 @@ def main():
 
                 else:
 
-                    logging.error("Another instance might be already running as well!")
-                    logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
+                    logging.error("Another instance might be already running!")
+                    logging.info("PID lock file: '%s'" %
+                                 config_file_reader.pid_file)
                     os._exit(1)
 
             except Exception as e:
