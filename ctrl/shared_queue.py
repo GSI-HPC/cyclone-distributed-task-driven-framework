@@ -52,7 +52,7 @@ class SharedQueue:
 
             try:
                 self._queue.get()
-            except Queue.Empty:
+            except queue.Empty:
                 # TODO throw exception?
                 print('>>>>>>> clear: get item caught exception <<<<<<<<')
 
@@ -69,7 +69,7 @@ class SharedQueue:
 
         try:
             return self._queue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             # TODO throw exception?
             print('>>>>>>> pop_nowait caught exception <<<<<<<<')
 
@@ -80,7 +80,7 @@ class SharedQueue:
 
         try:
             return self._queue.get()
-        except Queue.Empty:
+        except queue.Empty:
             # TODO throw exception?
             print('>>>>>>> pop_nowait caught exception <<<<<<<<')
 
