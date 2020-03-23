@@ -59,7 +59,6 @@ class OSTListProcessor(Process):
     def run(self):
 
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
-
         signal.siginterrupt(signal.SIGTERM, True)
 
         while self.run_flag:
