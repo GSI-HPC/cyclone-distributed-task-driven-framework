@@ -214,7 +214,8 @@ def main():
 
                                     ost_info = None
 
-                                    with CriticalSection(lock_ost_info_queue, True, lock_ost_info_queue_timeout):
+                                    with CriticalSection(lock_ost_info_queue,
+                                                         timeout=lock_ost_info_queue_timeout):
 
                                         if not ost_info_queue.is_empty():
                                             ost_info = ost_info_queue.pop_nowait()
