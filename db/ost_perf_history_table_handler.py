@@ -108,10 +108,10 @@ CREATE TABLE """ + self._table + """ (
 
         logging.debug("Executing SQL statement:\n" + sql)
 
-        with closing(mysql.connect(host=self._host,
-                                   user=self._user,
-                                   password=self._password,
-                                   database=self._database)) as conn:
+        with closing(mysql.connector.connect(host=self._host,
+                                             user=self._user,
+                                             password=self._password,
+                                             database=self._database)) as conn:
 
             with closing(conn.cursor()) as cur:
 
