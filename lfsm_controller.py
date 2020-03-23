@@ -206,7 +206,8 @@ def main():
 
             if pid_control.lock():
 
-                logging.info("Started Controller with PID: [%s]", pid_control.pid())
+                logging.info("Started")
+                logging.info("Controller PID: %s", pid_control.pid())
                 logging.debug("Version: %s" % config_file_reader.version)
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -414,8 +415,8 @@ def main():
                         logging.error("Caught exception terminating Worker: " + str(e))
 
             else:
-                logging.error("Another instance might be already running as well!")
-                logging.info("PID lock file: '%s'" % config_file_reader.pid_file)
+                logging.error("Another instance might be already running!")
+                logging.info("PID file: %s" % config_file_reader.pid_file)
                 os._exit(1)
 
     except Exception as e:

@@ -137,7 +137,7 @@ def main():
                 if pid_control.lock():
 
                     logging.info("Started")
-                    logging.info("Database Proxy PID: [%s]", pid_control.pid())
+                    logging.info("Database Proxy PID: %s", pid_control.pid())
                     logging.debug("Version: %s" % config_file_reader.version)
 
                     signal.signal(signal.SIGHUP, signal_handler)
@@ -193,8 +193,7 @@ def main():
                 else:
 
                     logging.error("Another instance might be already running!")
-                    logging.info("PID lock file: '%s'" %
-                                 config_file_reader.pid_file)
+                    logging.info("PID file: %s" % config_file_reader.pid_file)
                     os._exit(1)
 
             except Exception as e:
