@@ -30,10 +30,42 @@ class BaseTask(object):
 
         super(BaseTask, self).__init__()
 
-        # For Lustre specific monitoring store the OST and OSS name for each Task.
-        self.ost_name = str("")
-        self.oss_name = str("")
+        # Lustre specific: Store the OST and OSS name for each Task.
+        self._ost_name = None
+        self._oss_name = None
 
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError('This method has to be implemented by a subclass!')
+
+    @property
+    def ost_name(self):
+        return self._ost_name
+
+    @property
+    def oss_name(self):
+        return self._oss_name
+
+    @ost_name.setter
+    def ost_name(self, ost_name):
+
+        if type(ost_name) is not str:
+            raise ValueError('Argument ost_name must be str type!')
+
+        if not ost_name:
+            raise ValueError('Argument ost_name must be set!')
+
+        self._ost_name = ost_name
+
+    @oss_name.setter
+    def oss_name(self, oss_name):
+
+        if type(oss_name) is not str:
+            raise ValueError('Argument oss_name must be str type!')
+
+        if not oss_name:
+            raise ValueError('Argument oss_name must be set!')
+
+        self._oss_name = oss_name
+
+
