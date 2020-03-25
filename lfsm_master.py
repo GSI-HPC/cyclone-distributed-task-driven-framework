@@ -33,7 +33,6 @@ from ctrl.ost_status_item import OstStatusItem
 from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
 from ctrl.critical_section import CriticalSection
-from lfs.ost_list_processor import OSTListProcessor
 from msg.exit_command import ExitCommand
 from msg.message_factory import MessageFactory
 from msg.message_type import MessageType
@@ -42,6 +41,10 @@ from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
+
+# TODO Create Factory for creating different TaskGenerator
+from lfs.ost_list_processor import OSTListProcessor
+from lfs.local_ost_list_processor import LocalOstListProcessor
 
 
 TASK_DISTRIBUTION = True
@@ -68,6 +71,13 @@ def init_arg_parser():
                         required=False,
                         action='store_true',
                         help='Enables debug log messages.')
+
+    parser.add_argument('-L',
+                        '--local',
+                        dest='local_mode',
+                        required=False,
+                        action='store_true',
+                        help='Enables local mode.')
 
     return parser.parse_args()
 
@@ -179,8 +189,22 @@ def main():
                 lock_ost_info_queue = multiprocessing.Lock()
                 lock_ost_info_queue_timeout = 1
 
-                ost_list_processor = OSTListProcessor(ost_info_queue, lock_ost_info_queue, config_file_reader)
+                # TODO: Call Factory for Task Generator ////////////////////////
+                ost_list_processor = None
+
+                if args.local_mode:
+                    ost_list_processor = \
+                        LocalOstListProcessor(ost_info_queue,
+                                              lock_ost_info_queue,
+                                              config_file_reader)
+                else:
+                    ost_list_processor = \
+                        OSTListProcessor(ost_info_queue,
+                                         lock_ost_info_queue,
+                                         config_file_reader)
+
                 ost_list_processor.start()
+                # //////////////////////////////////////////////////////////////
 
                 # TODO: Make a class for the master.
                 global TASK_DISTRIBUTION

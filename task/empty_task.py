@@ -24,7 +24,6 @@ from task.base_task import BaseTask
 class EmptyTask(BaseTask):
 
     def __init__(self):
-
         super(EmptyTask, self).__init__()
 
     def execute(self):

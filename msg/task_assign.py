@@ -100,13 +100,15 @@ class TaskAssign(BaseMessage):
     def _create_header(task, task_class):
 
         if not ("task." in task_class.__module__):
-            raise RuntimeError("A task has to be located into the 'task' package!")
+            raise RuntimeError("Task has to be located into the task package!")
 
-        if not task.ost_name or task.ost_name == '':
-            raise RuntimeError("Initialization of the attribute 'ost_name' is missing for task: '%s'" % task_class)
+        if not task.ost_name:
+            raise RuntimeError("Attribute ost_name not set for task: %s" %
+                               task_class)
 
-        if not task.oss_name or task.oss_name == '':
-            raise RuntimeError("Initialization of the attribute 'oss_name' is missing for task: '%s'" % task_class)
+        if not task.oss_name:
+            raise RuntimeError("Attribute oss_name not set for task: %s" %
+                               task_class)
 
         header = MessageType.TASK_ASSIGN() \
             + BaseMessage.field_separator \
