@@ -36,11 +36,7 @@ class MasterConfigFileReader:
         config.read(config_file)
 
         self.version = config.get('control', 'version')
-
         self.pid_file = config.get('control', 'pid_file')
-
-        self.ost_reg_ex = re.compile(config.get('control', 'ost_reg_ex'))
-        self.ip_reg_ex = re.compile(config.get('control', 'ip_reg_ex'))
 
         self.controller_timeout = float(config.get('control', 'controller_timeout'))
         self.controller_wait_duration = int(config.get('control', 'controller_wait_duration'))
@@ -55,14 +51,16 @@ class MasterConfigFileReader:
         self.lctl_bin = config.get('lustre', 'lctl_bin')
         self.lfs_target = config.get('lustre', 'lfs_target')
 
-        self.measure_interval = float(config.get('test', 'measure_interval'))
-        self.task_def_file = config.get('test', 'task_def_file')
-        self.task_name = config.get('test', 'task_name')
+        self.task_def_file = config.get('task', 'task_def_file')
+        self.task_name = config.get('task', 'task_name')
 
-        ost_select_list = config.get('test', 'ost_select_list')
+        self.measure_interval = float(config.get('task_generator', 'measure_interval'))
+        self.ost_reg_ex = re.compile(config.get('task_generator', 'ost_reg_ex'))
+        self.ip_reg_ex = re.compile(config.get('task_generator', 'ip_reg_ex'))
+        tmp_ost_select_list = config.get('task_generator', 'ost_select_list')
 
-        if ost_select_list:
-            self.ost_select_list = ost_select_list.replace(' ', '').split(',')
+        if tmp_ost_select_list:
+            self.ost_select_list = tmp_ost_select_list.replace(' ', '').split(',')
         else:
             self.ost_select_list = list()
 
