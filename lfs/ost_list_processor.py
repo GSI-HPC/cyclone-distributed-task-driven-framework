@@ -32,15 +32,19 @@ from ctrl.ost_info import OSTInfo
 
 class OSTListProcessor(Process):
 
-    def __init__(self, ost_info_queue, lock_ost_queue, config_file_reader):
+    def __init__(self,
+                 ost_info_queue,
+                 lock_ost_queue,
+                 config_file_reader,
+                 local_mode=False):
 
         super(OSTListProcessor, self).__init__()
 
-        self.ost_reg_ex = config_file_reader.ost_reg_ex
-        self.ip_reg_ex = config_file_reader.ip_reg_ex
-
         self.lctl_bin = config_file_reader.lctl_bin
         self.lfs_target = config_file_reader.lfs_target
+
+        self.ost_reg_ex = config_file_reader.ost_reg_ex
+        self.ip_reg_ex = config_file_reader.ip_reg_ex
 
         self.measure_interval = config_file_reader.measure_interval
         self.ost_select_list = config_file_reader.ost_select_list
@@ -48,15 +52,16 @@ class OSTListProcessor(Process):
         self.ost_info_queue = ost_info_queue
         self.lock_ost_queue = lock_ost_queue
 
+        self.local_mode = local_mode
+
         self.run_flag = False
 
     def start(self):
-
-        self.run_flag = True
-        
         super(OSTListProcessor, self).start()
 
     def run(self):
+
+        self.run_flag = True
 
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGTERM, True)
@@ -67,7 +72,12 @@ class OSTListProcessor(Process):
 
                 logging.debug("OSTListProcessor active!")
 
-                ost_info_list = self._create_ost_info_list()
+                ost_info_list = None
+
+                if self.local_mode:
+                    ost_info_list = self._create_local_ost_info_list()
+                else:
+                    ost_info_list = self._create_ost_info_list()
 
                 logging.debug("Length of OST info list: %s" % len(ost_info_list))
 
@@ -81,8 +91,10 @@ class OSTListProcessor(Process):
 
                 time.sleep(self.measure_interval)
 
-            except Exception as e:
+            except InterruptedError as e:
+                logging.debug("Caught InterruptedError exception.")
 
+            except Exception as e:
                 logging.error("Caught exception in OSTListProcessor: %s" % e)
                 os._exit(1)
 
@@ -91,8 +103,11 @@ class OSTListProcessor(Process):
 
     def _signal_handler_terminate(self, signum, frame):
 
-        logging.debug('OSTListProcessor retrieved signal to terminate.')
         self.run_flag = False
+
+        msg = "OSTListProcessor retrieved signal to terminate."
+        logging.debug(msg)
+        raise InterruptedError(msg)
 
     def _create_ost_info_list(self):
 
@@ -186,6 +201,46 @@ class OSTListProcessor(Process):
         else:
             return ost_info_list
 
+    def _create_local_ost_info_list(self):
+
+        ost_info_list = list()
+
+        max_ost_idx = 100
+
+        for ost_idx in range(max_ost_idx):
+            ost_info_list.append(OSTInfo(str(ost_idx), "OSS-IGNORED"))
+
+        if len(self.ost_select_list):
+
+            select_ost_info_list = list()
+
+            for select_ost_name in self.ost_select_list:
+
+                found_select_ost_name = False
+
+                for ost_info in ost_info_list:
+
+                    if select_ost_name == ost_info.ost_name:
+
+                        logging.debug("Found OST from selected list: %s" %
+                                      select_ost_name)
+
+                        if not found_select_ost_name:
+                            found_select_ost_name = True
+
+                        select_ost_info_list.append(ost_info)
+
+                        break
+
+                if not found_select_ost_name:
+                    raise RuntimeError("OST to select was not found "
+                                       "in ost_info_list: %s" % select_ost_name)
+
+            return select_ost_info_list
+
+        else:
+            return ost_info_list
+
     @staticmethod
     def _get_hostname(ip_adr):
 
@@ -203,3 +258,4 @@ class OSTListProcessor(Process):
             raise RuntimeError("Returned hostname is empty!")
 
         return hostname
+
