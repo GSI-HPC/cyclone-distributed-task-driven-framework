@@ -276,7 +276,6 @@ def main():
 
                                             # Assign Lustre specific information to the task before task assignment.
                                             task.ost_name = ost_info.ost_name
-                                            task.oss_name = ost_info.oss_name
 
                                             send_msg = TaskAssign(task)
 

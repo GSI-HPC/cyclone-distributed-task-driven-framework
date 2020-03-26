@@ -25,22 +25,31 @@ from task.empty_task import EmptyTask
 from msg.task_assign import TaskAssign
 
 
-def test_task_assign():
+def test_empty_task_from_class():
 
     task = EmptyTask()
     task.ost_name = "OST0000"
-    task.oss_name = "127.0.0.1"
-
     task_assign = TaskAssign(task)
 
-    print(task_assign.to_string())
+    print("test_empty_task_from_class: %s" % task_assign.to_string())
+
+
+def test_io_task_from_str():
+
+    message = "TASK_ASS;task.io_task;IOTask;OST0000;1000;1000000;off;target_dir;/usr/bin/lfs;yes;fs-name"
+    task_assign = TaskAssign(message)
+
+    print("test_io_task_from_str: %s" % task_assign.to_string())
+    print("test_io_task_from_str.header: %s" % task_assign.header)
+    print("test_io_task_from_str.body: %s" % task_assign.body)
 
 
 def main():
 
     try:
 
-        test_task_assign()
+        test_empty_task_from_class()
+        test_io_task_from_str()
 
     except Exception as e:
 

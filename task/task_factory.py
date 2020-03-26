@@ -87,13 +87,12 @@ class TaskFactory:
 
         header_items = message.header.split(BaseMessage.field_separator)
 
-        if len(header_items) != 5:
+        if len(header_items) != 4:
             raise RuntimeError("Invalid message header for a task creation found: %s" % message)
 
         task_module = header_items[1]
         task_class = header_items[2]
         task_ost_name = header_items[3]
-        task_oss_name = header_items[4]
 
         body_items = None
         len_body_items = 0
@@ -109,9 +108,7 @@ class TaskFactory:
         dynamic_class = getattr(module, task_class)
 
         task = TaskFactory._create_task(dynamic_class, body_items, len_body_items)
-
         task.ost_name = task_ost_name
-        task.oss_name = task_oss_name
 
         return task
 

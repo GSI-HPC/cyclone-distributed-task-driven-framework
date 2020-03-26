@@ -50,7 +50,7 @@ class TaskAssign(BaseMessage):
             count_message_items = len(message_items)
             len_message = len(value)
 
-            if count_message_items < 5:
+            if count_message_items < 4:
                 raise RuntimeError("Invalid header size found in message: '%s'" % value)
 
             header = message_items[0] \
@@ -59,9 +59,7 @@ class TaskAssign(BaseMessage):
                 + BaseMessage.field_separator \
                 + message_items[2] \
                 + BaseMessage.field_separator \
-                + message_items[3] \
-                + BaseMessage.field_separator \
-                + message_items[4]
+                + message_items[3]
 
             len_header = len(header)
 
@@ -106,19 +104,13 @@ class TaskAssign(BaseMessage):
             raise RuntimeError("Attribute ost_name not set for task: %s" %
                                task_class)
 
-        if not task.oss_name:
-            raise RuntimeError("Attribute oss_name not set for task: %s" %
-                               task_class)
-
         header = MessageType.TASK_ASSIGN() \
             + BaseMessage.field_separator \
             + task_class.__module__ \
             + BaseMessage.field_separator \
             + task_class.__name__ \
             + BaseMessage.field_separator \
-            + task.ost_name \
-            + BaseMessage.field_separator \
-            + task.oss_name
+            + task.ost_name
 
         return header
 

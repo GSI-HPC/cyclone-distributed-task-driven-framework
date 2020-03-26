@@ -90,14 +90,12 @@ class AlertIOTask(IOTask):
                     mail_subject = "[LUSTRE Monitoring] OST Write Performance Degradation Detected: %s" % self.ost_name
 
                     mail_text = "Timestamp: %s\n" \
-                                "OSS: %s\n" \
                                 "OST: %s\n\n" \
                                 "Alert Threshold: %ss\n" \
                                 "Total Size: %s\n" \
                                 "Block Size: %s\n" \
                                 "Sync Flag: %s\n" % \
                                 (write_timestamp,
-                                 self.oss_name,
                                  self.ost_name,
                                  self.mail_threshold,
                                  self.total_size_bytes,
@@ -119,7 +117,7 @@ class AlertIOTask(IOTask):
                     mail_subject = "[LUSTRE Monitoring] OST Read Performance Degradation Detected: %s" % self.ost_name
 
                     mail_text = "OST: %s\nOSS: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
-                                (self.ost_name, self.oss_name, write_timestamp, str(self.mail_threshold))
+                                (self.ost_name, write_timestamp, str(self.mail_threshold))
 
                     args_send_mail = [(mail_subject, mail_text)]
 
@@ -135,7 +133,6 @@ class AlertIOTask(IOTask):
                         OSTPerfResult(read_timestamp,
                                       write_timestamp,
                                       self.ost_name,
-                                      self.oss_name,
                                       self.total_size_bytes,
                                       read_throughput,
                                       write_throughput,
@@ -146,7 +143,7 @@ class AlertIOTask(IOTask):
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
                 ost_perf_result = \
-                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.oss_name, self.total_size_bytes, 0, 0, 0, 0)
+                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.total_size_bytes, 0, 0, 0, 0)
 
             # TODO: Remove code redundancy in IOTasks.
             if ost_perf_result:

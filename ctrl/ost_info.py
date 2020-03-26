@@ -20,18 +20,13 @@
 
 class OSTInfo:
 
-    def __init__(self, ost_name, oss_name):
+    def __init__(self, ost_name):
 
         self.ost_name = ost_name
-        self.oss_name = oss_name
 
     @property
     def ost_name(self):
         return self._ost_name
-
-    @property
-    def oss_name(self):
-        return self._oss_name
 
     @ost_name.setter
     def ost_name(self, ost_name):
@@ -44,13 +39,3 @@ class OSTInfo:
 
         self._ost_name = ost_name
 
-    @oss_name.setter
-    def oss_name(self, oss_name):
-
-        if type(oss_name) is not str:
-            raise ValueError('Argument oss_name must be str type!')
-
-        if not oss_name:
-            raise ValueError('Argument oss_name must be set!')
-
-        self._oss_name = oss_name

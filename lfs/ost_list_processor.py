@@ -128,44 +128,28 @@ class OSTListProcessor(Process):
 
         ost_list = output.split('\n')
 
-        for ost_info in ost_list:
+        for ost_line in ost_list:
 
-            idx_ost_name = ost_info.find('OST')
+            idx_ost_name = ost_line.find('OST')
 
             if idx_ost_name == -1:
-                raise RuntimeError("No OST name found in output line: %s" % ost_info)
+                raise RuntimeError("No OST name found in output line: %s" % ost_line)
 
-            idx_ost_name_term = ost_info.find('-', idx_ost_name)
+            idx_ost_name_term = ost_line.find('-', idx_ost_name)
 
             if idx_ost_name_term == -1:
-                raise RuntimeError("Could not find end of OST name identified by '-' in: %s" % ost_info)
+                raise RuntimeError("Could not find end of OST name identified by '-' in: %s" % ost_line)
 
-            ost_name = ost_info[idx_ost_name:idx_ost_name_term]
+            ost_name = ost_line[idx_ost_name:idx_ost_name_term]
 
             re_match = self.ost_reg_ex.match(ost_name)
 
             if not re_match:
-                raise RuntimeError("No valid OST name found in output line: %s" % ost_info)
+                raise RuntimeError("No valid OST name found in output line: %s" % ost_line)
 
-            ost_conn_uuid_str = 'ost_conn_uuid='
+            ost_info_list.append(OSTInfo(ost_name))
 
-            idx_ost_conn_uuid = ost_info.find(ost_conn_uuid_str)
-
-            if idx_ost_conn_uuid == -1:
-                raise RuntimeError("Could not find '%s' in line: %s" % (ost_conn_uuid_str, ost_info))
-
-            idx_ost_conn_uuid_term = ost_info.find('@', idx_ost_conn_uuid)
-
-            if idx_ost_conn_uuid_term == -1:
-                raise RuntimeError("Could not find terminating '@' for ost_conn_uuid identification: %s" % ost_info)
-
-            oss_ip = ost_info[idx_ost_conn_uuid + len(ost_conn_uuid_str):idx_ost_conn_uuid_term]
-
-            oss_name = OSTListProcessor._get_hostname(oss_ip)
-
-            ost_info_list.append(OSTInfo(ost_name, oss_name))
-
-            logging.debug("Found OST: %s on OSS: %s" % (ost_name, oss_name))
+            logging.debug("Found OST: %s" % ost_name)
 
         if len(ost_info_list) == 0:
             raise RuntimeError("No OST information could be retrieved!")
@@ -208,7 +192,7 @@ class OSTListProcessor(Process):
         max_ost_idx = 100
 
         for ost_idx in range(max_ost_idx):
-            ost_info_list.append(OSTInfo(str(ost_idx), "OSS-IGNORED"))
+            ost_info_list.append(OSTInfo(str(ost_idx)))
 
         if len(self.ost_select_list):
 
@@ -240,22 +224,4 @@ class OSTListProcessor(Process):
 
         else:
             return ost_info_list
-
-    @staticmethod
-    def _get_hostname(ip_adr):
-
-        if ip_adr is None or ip_adr == '':
-            raise RuntimeError("Parameter IP address is empty!")
-
-        result_triple = socket.gethostbyaddr(ip_adr)
-
-        if result_triple is None:
-            raise RuntimeError("Returned empty result triple!")
-
-        hostname = result_triple[0]
-
-        if hostname is None or hostname == '':
-            raise RuntimeError("Returned hostname is empty!")
-
-        return hostname
 
