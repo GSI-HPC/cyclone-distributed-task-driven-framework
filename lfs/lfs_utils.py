@@ -52,9 +52,9 @@ class LFSUtils:
 
             output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
 
-            for line in output.split('\n'):
+            for line in output:
 
-                match = pattern.match(line)
+                match = pattern.match(line.strip())
 
                 if match:
 
@@ -63,7 +63,7 @@ class LFSUtils:
 
                     ost_info = lfs_target + "-" + ost + "-" + state
 
-                    if ost == "active.":
+                    if state == "active.":
                         logging.debug("Found active OST: %s" % ost_info)
                     else:
                         logging.debug("Found non-active OST: %s" % ost_info)
