@@ -16,7 +16,6 @@
 			<write_file_sync>on</write_file_sync>
 			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring/</target_dir>
 			<lfs_bin>/usr/bin/lfs</lfs_bin>
-			<lfs_with_sudo>yes</lfs_with_sudo>
 			<lfs_target>fs-name</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
 			<db_proxy_port>5777</db_proxy_port>
@@ -41,7 +40,6 @@
 			<write_file_sync>on</write_file_sync>
 			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring/</target_dir>
 			<lfs_bin>/usr/bin/lfs</lfs_bin>
-			<lfs_with_sudo>yes</lfs_with_sudo>
 			<lfs_target>fs-name</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
 			<db_proxy_port>5777</db_proxy_port>

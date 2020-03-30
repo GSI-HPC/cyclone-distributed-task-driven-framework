@@ -47,7 +47,6 @@ class AlertIOTask(IOTask):
                  write_file_sync,
                  target_dir,
                  lfs_bin,
-                 lfs_with_sudo,
                  lfs_target,
                  db_proxy_target,
                  db_proxy_port):
@@ -57,7 +56,6 @@ class AlertIOTask(IOTask):
                                           write_file_sync,
                                           target_dir,
                                           lfs_bin,
-                                          lfs_with_sudo,
                                           lfs_target,
                                           db_proxy_target,
                                           db_proxy_port)

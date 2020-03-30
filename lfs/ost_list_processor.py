@@ -20,7 +20,6 @@
 
 import subprocess
 import logging
-import socket
 import signal
 import time
 import os
@@ -28,6 +27,7 @@ import os
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
 from ctrl.ost_info import OSTInfo
+from lfs.lfs_utils import LFSUtils
 
 
 class OSTListProcessor(Process):
@@ -40,13 +40,9 @@ class OSTListProcessor(Process):
 
         super(OSTListProcessor, self).__init__()
 
-        self.lctl_bin = config_file_reader.lctl_bin
-        self.lfs_target = config_file_reader.lfs_target
-
-        self.ost_reg_ex = config_file_reader.ost_reg_ex
-        self.ip_reg_ex = config_file_reader.ip_reg_ex
-
         self.measure_interval = config_file_reader.measure_interval
+        self.lfs_bin = config_file_reader.lfs_bin
+        self.lfs_target = config_file_reader.lfs_target
         self.ost_select_list = config_file_reader.ost_select_list
 
         self.ost_info_queue = ost_info_queue
@@ -55,6 +51,8 @@ class OSTListProcessor(Process):
         self.local_mode = local_mode
 
         self.run_flag = False
+
+        self.lfs_utils = LFSUtils(self.lfs_bin)
 
     def start(self):
         super(OSTListProcessor, self).start()
@@ -111,48 +109,16 @@ class OSTListProcessor(Process):
 
     def _create_ost_info_list(self):
 
-        if not os.path.isfile(self.lctl_bin):
-            raise RuntimeError("LCTL binary was not found under: %s" % self.lctl_bin)
-
-        cmd = self.lctl_bin + " get_param 'osc." + self.lfs_target + "-*.ost_conn_uuid'"
-
-        (status, output) = subprocess.getstatusoutput(cmd)
-
-        if status > 0:
-            raise RuntimeError("Error occurred during read of OST connection UUID information: %s" % output)
-
-        if not output:
-            raise RuntimeError("No OST connection UUID information retrieved!")
-
         ost_info_list = list()
 
-        ost_list = output.split('\n')
+        # ost_list = self.lfs_utils.create_ost_list()
+        ost_list = self.lfs_utils._check_osts(self.lfs_target)
 
-        for ost_line in ost_list:
-
-            idx_ost_name = ost_line.find('OST')
-
-            if idx_ost_name == -1:
-                raise RuntimeError("No OST name found in output line: %s" % ost_line)
-
-            idx_ost_name_term = ost_line.find('-', idx_ost_name)
-
-            if idx_ost_name_term == -1:
-                raise RuntimeError("Could not find end of OST name identified by '-' in: %s" % ost_line)
-
-            ost_name = ost_line[idx_ost_name:idx_ost_name_term]
-
-            re_match = self.ost_reg_ex.match(ost_name)
-
-            if not re_match:
-                raise RuntimeError("No valid OST name found in output line: %s" % ost_line)
-
+        for ost_name in ost_list:
             ost_info_list.append(OSTInfo(ost_name))
 
-            logging.debug("Found OST: %s" % ost_name)
-
         if len(ost_info_list) == 0:
-            raise RuntimeError("No OST information could be retrieved!")
+            raise RuntimeError("OST list is empty!")
 
         if len(self.ost_select_list):
 

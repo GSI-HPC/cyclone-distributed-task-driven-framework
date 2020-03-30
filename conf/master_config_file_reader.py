@@ -19,7 +19,6 @@
 
 
 import configparser
-import re
 import os
 
 from conf.config_value_error import ConfigValueError
@@ -48,15 +47,12 @@ class MasterConfigFileReader:
 
         self.log_filename = config.get('log', 'filename')
 
-        self.lctl_bin = config.get('lustre', 'lctl_bin')
-        self.lfs_target = config.get('lustre', 'lfs_target')
-
         self.task_def_file = config.get('task', 'task_def_file')
         self.task_name = config.get('task', 'task_name')
 
         self.measure_interval = float(config.get('task_generator', 'measure_interval'))
-        self.ost_reg_ex = re.compile(config.get('task_generator', 'ost_reg_ex'))
-        self.ip_reg_ex = re.compile(config.get('task_generator', 'ip_reg_ex'))
+        self.lfs_bin = config.get('task_generator', 'lfs_bin')
+        self.lfs_target = config.get('task_generator', 'lfs_target')
         tmp_ost_select_list = config.get('task_generator', 'ost_select_list')
 
         if tmp_ost_select_list:
@@ -71,12 +67,6 @@ class MasterConfigFileReader:
 
         if not self.pid_file:
             raise ConfigValueError("No PID file was specified!")
-
-        if not self.ost_reg_ex:
-            raise ConfigValueError("No regular expression was set for validating OST names!")
-
-        if not self.ip_reg_ex:
-            raise ConfigValueError("No regular expression was set for validating OSS IP addresses!")
 
         if not self.controller_timeout:
             raise ConfigValueError("No controller timeout was set!")
@@ -96,8 +86,8 @@ class MasterConfigFileReader:
         if not self.poll_timeout:
             raise ConfigValueError("No polling timeout was specified!")
 
-        if not self.lctl_bin:
-            raise ConfigValueError("No LCTL binary was specified!")
+        if not self.lfs_bin:
+            raise ConfigValueError("No LFS binary was specified!")
 
         if not self.lfs_target:
             raise ConfigValueError("No Lustre file system target was specified!")

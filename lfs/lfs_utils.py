@@ -19,37 +19,72 @@
 
 
 import os
+import re
 import logging
 import subprocess
 
 
 class LFSUtils:
 
-    def __init__(self, lfs_bin, lfs_with_sudo):
+    def __init__(self, lfs_bin):
 
         self.lfs_bin = lfs_bin
-        self.lfs_with_sudo = lfs_with_sudo
         self.ost_prefix_len = len('OST')
         self.ost_active_output = ' active.'
 
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
 
+    def _check_osts(self, lfs_target):
+
+        try:
+
+            regex_str = lfs_target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
+            pattern = re.compile(regex_str)
+
+            args = ['sudo', self.lfs_bin, 'check', 'osts']
+
+            # TODO: Python3.5
+            # process_result = subprocess.run(args,
+            #                                 check=True,
+            #                                 stdout=subprocess.PIPE,
+            #                                 stderr=subprocess.PIPE)
+
+            output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
+
+            for line in output.split('\n'):
+
+                match = pattern.match(line)
+
+                if match:
+
+                    ost = match.group(1)
+                    state = match.group(2)
+
+                    ost_info = lfs_target + "-" + ost + "-" + state
+
+                    if ost == "active.":
+                        logging.debug("Found active OST: %s" % ost_info)
+                    else:
+                        logging.debug("Found non-active OST: %s" % ost_info)
+
+                else:
+                    logging.debug("No regex match for line: %s" % line)
+
+        except subprocess.CalledProcessError as error:
+            pass
+
+    def create_ost_list(self, lfs_target):
+        pass
+
     def is_ost_available(self, ost_name, lfs_target):
-        """
-            May rethrow subprocess.CalledProcessError as RuntimeError on error in subprocess.check_output
-            if the return code of the caught CalledProcessError is not handled here.
-        """
 
         complete_target = lfs_target + "-" + ost_name
 
         try:
 
             args = list()
-
-            if self.lfs_with_sudo == 'yes':
-                args.append('sudo')
-
+            args.append('sudo')
             args.append(self.lfs_bin)
             args.append('check')
             args.append('osts')

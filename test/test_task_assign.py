@@ -36,7 +36,7 @@ def test_empty_task_from_class():
 
 def test_io_task_from_str():
 
-    message = "TASK_ASS;task.io_task;IOTask;OST0000;1000;1000000;off;target_dir;/usr/bin/lfs;yes;fs-name"
+    message = "TASK_ASS;task.io_task;IOTask;OST0000;1000;1000000;off;target_dir;/usr/bin/lfs;fs-name"
     task_assign = TaskAssign(message)
 
     print("test_io_task_from_str: %s" % task_assign.to_string())

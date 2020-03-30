@@ -39,7 +39,6 @@ class IOTask(BaseTask):
                  write_file_sync,
                  target_dir,
                  lfs_bin,
-                 lfs_with_sudo,
                  lfs_target,
                  db_proxy_target,
                  db_proxy_port):
@@ -57,7 +56,6 @@ class IOTask(BaseTask):
         self.target_dir = target_dir
 
         self.lfs_bin = lfs_bin
-        self.lfs_with_sudo = lfs_with_sudo
         self.lfs_target = lfs_target
 
         self.db_proxy_target = db_proxy_target
@@ -67,10 +65,7 @@ class IOTask(BaseTask):
         self.payload_block = str()
         self.payload_rest_block = str()
 
-        if not (self.lfs_with_sudo == 'yes' or self.lfs_with_sudo == 'no'):
-            raise RuntimeError("Value for parameter lfs_with_sudo must be either 'yes' or 'no'!")
-
-        self.lfs_utils = LFSUtils(lfs_bin, self.lfs_with_sudo)
+        self.lfs_utils = LFSUtils(lfs_bin)
 
         if self.db_proxy_target != '' and self.db_proxy_port != '':
             self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
