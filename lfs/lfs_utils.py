@@ -52,7 +52,7 @@ class LFSUtils:
 
             output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
 
-            for line in output:
+            for line in output.strip().split('\n'):
 
                 match = pattern.match(line.strip())
 
