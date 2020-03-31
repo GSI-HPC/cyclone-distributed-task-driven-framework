@@ -77,6 +77,10 @@ class OSTListProcessor(Process):
                 else:
                     ost_info_list = self._create_ost_info_list()
 
+                if logging.getLogger().isEnabledFor(logging.DEBUG):
+                    for ost_info in ost_info_list:
+                        logging.debug("Found OST: %s" % ost_info.ost_name)
+
                 logging.debug("Length of OST info list: %s" % len(ost_info_list))
 
                 with CriticalSection(self.lock_ost_queue):

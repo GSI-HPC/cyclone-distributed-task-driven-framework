@@ -52,6 +52,7 @@ class LFSUtils:
         try:
 
             regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
+            logging.debug("Using OST regex: %s" % regex_str)
             pattern = re.compile(regex_str)
 
             args = ['sudo', self.lfs_bin, 'check', 'osts']
@@ -74,14 +75,12 @@ class LFSUtils:
                     state = match.group(2)
 
                     if state == "active.":
-                        logging.debug("Found active OST: %s" % ost)
                         ost_list.append(LFSOstItem(target, ost, state, True))
                     else:
-                        logging.debug("Found non-active OST: %s" % ost)
                         ost_list.append(LFSOstItem(target, ost, state, False))
 
                 else:
-                    logging.debug("No regex match for line: %s" % line)
+                    logging.warning("No regex match for line: %s" % line)
 
         except Exception as e:
             logging.error("Exception occurred: %s" % e)

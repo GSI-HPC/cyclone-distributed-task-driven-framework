@@ -81,6 +81,8 @@ class IOTask(BaseTask):
 
             if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_name):
 
+                logging.debug("Found active OST: %s" % self.ost_name)
+
                 self._initialize_payload()
 
                 file_path = self.target_dir + os.path.sep + self.ost_name + "_perf_test.tmp"
@@ -108,6 +110,8 @@ class IOTask(BaseTask):
                                       read_duration,
                                       write_duration)
             else:
+
+                logging.debug("Found non-active OST: %s" % self.ost_name)
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
