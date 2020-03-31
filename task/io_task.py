@@ -79,7 +79,7 @@ class IOTask(BaseTask):
 
         try:
 
-            if self.lfs_utils.is_ost_available(self.ost_name, self.lfs_target):
+            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_name):
 
                 self._initialize_payload()
 

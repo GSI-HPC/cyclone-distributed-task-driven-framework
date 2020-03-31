@@ -47,6 +47,8 @@ class LFSUtils:
 
     def create_ost_item_list(self, target):
 
+        ost_list = list()
+
         try:
 
             regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
@@ -61,8 +63,6 @@ class LFSUtils:
             #                                 stderr=subprocess.PIPE)
 
             output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
-
-            ost_list = list()
 
             for line in output.strip().split('\n'):
 
@@ -83,54 +83,23 @@ class LFSUtils:
                 else:
                     logging.debug("No regex match for line: %s" % line)
 
-            return ost_list
+        except Exception as e:
+            logging.error("Exception occurred: %s" % e)
 
-        except subprocess.CalledProcessError as error:
-            pass
+        return ost_list
 
-    def is_ost_available(self, ost_name, lfs_target):
+    def is_ost_active(self, target, ost):
 
-        complete_target = lfs_target + "-" + ost_name
+        for ost_item in self.create_ost_item_list(target, ost):
 
-        try:
+            if ost_item.ost == ost:
 
-            args = list()
-            args.append('sudo')
-            args.append(self.lfs_bin)
-            args.append('check')
-            args.append('osts')
+                if ost_item.active:
+                    return True
+                else:
+                    return False
 
-            #TODO Use subprocess.run() with Python3.5
-            output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
-
-            for line in output.split('\n'):
-
-                if complete_target in line:
-
-                    if self.ost_active_output == line[-len(self.ost_active_output):]:
-
-                        logging.debug("Found active OST: '%s'" % complete_target)
-                        return True
-
-                    else:
-
-                        logging.debug("Found inactive or unavailable OST: '%s'" % complete_target)
-                        return False
-
-        except subprocess.CalledProcessError as e:
-
-            # !!! CAUTION !!!
-            #
-            # Check return code that should return False, when Lustre OST was not available.
-            # Validate against Lustre error codes: lustre/include/lustre_errno.h
-
-            logging.error("Return Code: %s -\nOutput: %s" % (e.returncode, e.output))
-
-            # Cannot send after transport endpoint shutdown (108)
-            if e.returncode == 108:
-                return False
-
-            raise RuntimeError(e.output)
+        raise RuntimeError("[LFSUtils::is_ost_active] OST not found: %s" % ost)
 
     def set_stripe(self, ost_name, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
