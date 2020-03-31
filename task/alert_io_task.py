@@ -70,22 +70,22 @@ class AlertIOTask(IOTask):
 
         try:
 
-            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_name):
+            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_idx):
 
                 self._initialize_payload()
 
-                file_path = self.target_dir + os.path.sep + self.ost_name + "_perf_test.tmp"
+                file_path = self.target_dir + os.path.sep + self.ost_idx + "_perf_test.tmp"
 
                 with AutoRemoveFile(file_path):
 
                     if os.path.exists(file_path):
                         os.remove(file_path)
 
-                    self.lfs_utils.set_stripe(self.ost_name, file_path)
+                    self.lfs_utils.set_stripe(self.ost_idx, file_path)
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
-                    mail_subject = "[LUSTRE Monitoring] OST Write Performance Degradation Detected: %s" % self.ost_name
+                    mail_subject = "[LUSTRE Monitoring] OST Write Performance Degradation Detected: %s" % self.ost_idx
 
                     mail_text = "Timestamp: %s\n" \
                                 "OST: %s\n\n" \
@@ -94,7 +94,7 @@ class AlertIOTask(IOTask):
                                 "Block Size: %s\n" \
                                 "Sync Flag: %s\n" % \
                                 (write_timestamp,
-                                 self.ost_name,
+                                 self.ost_idx,
                                  self.mail_threshold,
                                  self.total_size_bytes,
                                  self.block_size_bytes,
@@ -112,10 +112,10 @@ class AlertIOTask(IOTask):
 
                     read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
-                    mail_subject = "[LUSTRE Monitoring] OST Read Performance Degradation Detected: %s" % self.ost_name
+                    mail_subject = "[LUSTRE Monitoring] OST Read Performance Degradation Detected: %s" % self.ost_idx
 
-                    mail_text = "OST: %s\nOSS: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
-                                (self.ost_name, write_timestamp, str(self.mail_threshold))
+                    mail_text = "OST: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
+                                (self.ost_idx, write_timestamp, str(self.mail_threshold))
 
                     args_send_mail = [(mail_subject, mail_text)]
 
@@ -130,7 +130,7 @@ class AlertIOTask(IOTask):
                     ost_perf_result = \
                         OSTPerfResult(read_timestamp,
                                       write_timestamp,
-                                      self.ost_name,
+                                      self.ost_idx,
                                       self.total_size_bytes,
                                       read_throughput,
                                       write_throughput,
@@ -141,7 +141,7 @@ class AlertIOTask(IOTask):
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
                 ost_perf_result = \
-                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.total_size_bytes, 0, 0, 0, 0)
+                    OSTPerfResult(timestamp, timestamp, self.ost_idx, self.total_size_bytes, 0, 0, 0, 0)
 
             # TODO: Remove code redundancy in IOTasks.
             if ost_perf_result:

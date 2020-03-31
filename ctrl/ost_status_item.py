@@ -31,9 +31,9 @@ class OstState(object):
 
 class OstStatusItem:
 
-    def __init__(self, ost, state, controller, timestamp):
+    def __init__(self, ost_idx, state, controller, timestamp):
 
-        self.ost = ost
+        self.ost_idx = ost_idx
         self.state = state
         self.controller = controller
         self.timestamp = timestamp

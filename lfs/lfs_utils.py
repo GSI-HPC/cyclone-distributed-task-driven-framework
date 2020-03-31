@@ -100,15 +100,12 @@ class LFSUtils:
 
         raise RuntimeError("[LFSUtils::is_ost_active] OST not found: %s" % ost)
 
-    def set_stripe(self, ost_name, file_path):
+    def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
-        stripe_index = "0x" + ost_name[self.ost_prefix_len:]
+        logging.debug("Setting stripe settings for file: %s on OST: %s" % (file_path, ost_idx))
 
-        logging.debug("Setting stripe settings for file: %s on OST: %s" % (file_path, ost_name))
-
-        args = [self.lfs_bin, 'setstripe', '--stripe-index', stripe_index,
-                '--stripe-count', '1', '--stripe-size', '0', file_path]
+        args = [self.lfs_bin, 'setstripe', '-i', ost_idx, file_path]
 
         # TODO Use subprocess.run() with Python3.5
         subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')

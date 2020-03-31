@@ -25,15 +25,15 @@ from msg.message_type import MessageType
 class TaskFinished(BaseMessage):
     """Controller sends this message to the master when a task is finished."""
 
-    def __init__(self, sender, ost_name):
+    def __init__(self, sender, ost_idx):
 
         if not sender:
             raise RuntimeError('No sender is set!')
 
-        if not ost_name:
+        if not ost_idx:
             raise RuntimeError('No task name is set!')
 
-        body = sender + self.field_separator + ost_name
+        body = sender + self.field_separator + ost_idx
 
         super(TaskFinished, self).__init__(MessageType.TASK_FINISHED(), body)
 
@@ -47,6 +47,6 @@ class TaskFinished(BaseMessage):
         return self.body.split(BaseMessage.field_separator)[0]
 
     @property
-    def ost_name(self):
+    def ost_idx(self):
         return self.body.split(BaseMessage.field_separator)[1]
 

@@ -244,38 +244,38 @@ def main():
 
                                         do_task_assign = False  # TODO: Could be a method call instead.
 
-                                        if ost_info.ost_name in ost_status_lookup_dict:
+                                        if ost_info.ost_idx in ost_status_lookup_dict:
 
                                             task_resend_threshold = \
-                                                (ost_status_lookup_dict[ost_info.ost_name].timestamp + task_resend_timeout)
+                                                (ost_status_lookup_dict[ost_info.ost_idx].timestamp + task_resend_timeout)
 
-                                            if ost_status_lookup_dict[ost_info.ost_name].state == OstState.finished() \
+                                            if ost_status_lookup_dict[ost_info.ost_idx].state == OstState.finished() \
                                                     or last_exec_timestamp >= task_resend_threshold:
 
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[ost_info.ost_name].state == OstState.assigned() \
+                                            elif ost_status_lookup_dict[ost_info.ost_idx].state == OstState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
                                                 logging.debug("Waiting for a task on OST to finish: %s" % ost_info)
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: ", ost_info.ost_name)
+                                                raise RuntimeError("Undefined state processing task: ", ost_info.ost_idx)
 
                                         else:   # Add new OST name to lookup dict!
                                             do_task_assign = True
 
                                         if do_task_assign:
 
-                                            ost_status_lookup_dict[ost_info.ost_name] = \
-                                                OstStatusItem(ost_info.ost_name,
+                                            ost_status_lookup_dict[ost_info.ost_idx] = \
+                                                OstStatusItem(ost_info.ost_idx,
                                                               OstState.assigned(),
                                                               recv_msg.sender,
                                                               int(time.time()))
 
                                             # Assign Lustre specific information to the task before task assignment.
-                                            task.ost_name = ost_info.ost_name
+                                            task.ost_idx = ost_info.ost_idx
 
                                             send_msg = TaskAssign(task)
 
@@ -287,16 +287,16 @@ def main():
 
                                 elif MessageType.TASK_FINISHED() == recv_msg_type:
 
-                                    ost_name = recv_msg.ost_name
+                                    ost_idx = recv_msg.ost_idx
 
-                                    if ost_name in ost_status_lookup_dict:
+                                    if ost_idx in ost_status_lookup_dict:
 
-                                        if recv_msg.sender == ost_status_lookup_dict[ost_name].controller:
+                                        if recv_msg.sender == ost_status_lookup_dict[ost_idx].controller:
 
-                                            logging.debug("Retrieved finished OST message: " + ost_name)
+                                            logging.debug("Retrieved finished OST message: " + ost_idx)
 
-                                            ost_status_lookup_dict[ost_name].state = OstState.finished()
-                                            ost_status_lookup_dict[ost_name].timestamp = int(time.time())
+                                            ost_status_lookup_dict[ost_idx].state = OstState.finished()
+                                            ost_status_lookup_dict[ost_idx].timestamp = int(time.time())
 
                                         else:
                                             logging.warning("Retrieved task finished from different controller!")

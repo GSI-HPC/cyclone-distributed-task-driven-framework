@@ -20,22 +20,22 @@
 
 class OSTInfo:
 
-    def __init__(self, ost_name):
+    def __init__(self, ost_idx):
 
-        self.ost_name = ost_name
+        self.ost_idx = ost_idx
 
     @property
-    def ost_name(self):
-        return self._ost_name
+    def ost_idx(self):
+        return self._ost_idx
 
-    @ost_name.setter
-    def ost_name(self, ost_name):
+    @ost_idx.setter
+    def ost_idx(self, ost_idx):
 
-        if type(ost_name) is not str:
-            raise ValueError('Argument ost_name must be str type!')
+        if type(ost_idx) is not str:
+            raise ValueError('Argument ost_idx must be str type!')
 
-        if not ost_name:
-            raise ValueError('Argument ost_name must be set!')
+        if not ost_idx:
+            raise ValueError('Argument ost_idx must be set!')
 
-        self._ost_name = ost_name
+        self._ost_idx = ost_idx
 

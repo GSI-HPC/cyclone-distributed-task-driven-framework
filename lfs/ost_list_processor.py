@@ -18,7 +18,6 @@
 #
 
 
-import subprocess
 import logging
 import signal
 import time
@@ -52,8 +51,6 @@ class OSTListProcessor(Process):
 
         self.run_flag = False
 
-        self.lfs_utils = LFSUtils(self.lfs_bin)
-
     def start(self):
         super(OSTListProcessor, self).start()
 
@@ -63,6 +60,8 @@ class OSTListProcessor(Process):
 
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGTERM, True)
+
+        logging.info("OSTListProcessor started!")
 
         while self.run_flag:
 
@@ -79,7 +78,7 @@ class OSTListProcessor(Process):
 
                 if logging.getLogger().isEnabledFor(logging.DEBUG):
                     for ost_info in ost_info_list:
-                        logging.debug("Found OST: %s" % ost_info.ost_name)
+                        logging.debug("Found OST: %s" % ost_info.ost_idx)
 
                 logging.debug("Length of OST info list: %s" % len(ost_info_list))
 
@@ -94,13 +93,14 @@ class OSTListProcessor(Process):
                 time.sleep(self.measure_interval)
 
             except InterruptedError as e:
-                logging.debug("Caught InterruptedError exception.")
+                logging.error("Caught InterruptedError exception.")
 
             except Exception as e:
                 logging.error("Caught exception in OSTListProcessor: %s" % e)
+                logging.info("OSTListProcessor exited!")
                 os._exit(1)
 
-        logging.debug("OSTListProcessor finished!")
+        logging.info("OSTListProcessor finished!")
         os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
@@ -115,7 +115,8 @@ class OSTListProcessor(Process):
 
         ost_info_list = list()
 
-        ost_item_list = self.lfs_utils.create_ost_item_list(self.lfs_target)
+        lfs_utils = LFSUtils(self.lfs_bin)
+        ost_item_list = lfs_utils.create_ost_item_list(self.lfs_target)
 
         for ost_item in ost_item_list:
             ost_info_list.append(OSTInfo(ost_item.ost))
@@ -127,24 +128,24 @@ class OSTListProcessor(Process):
 
             select_ost_info_list = list()
 
-            for select_ost_name in self.ost_select_list:
+            for select_ost_idx in self.ost_select_list:
 
-                found_select_ost_name = False
+                found_select_ost_idx = False
 
                 for ost_info in ost_info_list:
 
-                    if select_ost_name == ost_info.ost_name:
+                    if select_ost_idx == ost_info.ost_idx:
 
                         select_ost_info_list.append(ost_info)
 
-                        found_select_ost_name = True
+                        found_select_ost_idx = True
 
-                        logging.debug("Found OST from selected list: %s" % select_ost_name)
+                        logging.debug("Found OST from selected list: %s" % select_ost_idx)
 
                         break
 
-                if found_select_ost_name is False:
-                    raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_name)
+                if found_select_ost_idx is False:
+                    raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_idx)
 
             if not len(select_ost_info_list):
                 raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
@@ -167,27 +168,27 @@ class OSTListProcessor(Process):
 
             select_ost_info_list = list()
 
-            for select_ost_name in self.ost_select_list:
+            for select_ost_idx in self.ost_select_list:
 
-                found_select_ost_name = False
+                found_select_ost_idx = False
 
                 for ost_info in ost_info_list:
 
-                    if select_ost_name == ost_info.ost_name:
+                    if select_ost_idx == ost_info.ost_idx:
 
-                        logging.debug("Found OST from selected list: %s" %
-                                      select_ost_name)
+                        logging.debug("Found OST-IDX from selected list: %s" %
+                                      select_ost_idx)
 
-                        if not found_select_ost_name:
-                            found_select_ost_name = True
+                        if not found_select_ost_idx:
+                            found_select_ost_idx = True
 
                         select_ost_info_list.append(ost_info)
 
                         break
 
-                if not found_select_ost_name:
-                    raise RuntimeError("OST to select was not found "
-                                       "in ost_info_list: %s" % select_ost_name)
+                if not found_select_ost_idx:
+                    raise RuntimeError("OST-IDX to select was not found "
+                                       "in ost_info_list: %s" % select_ost_idx)
 
             return select_ost_info_list
 

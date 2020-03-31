@@ -92,7 +92,7 @@ class TaskFactory:
 
         task_module = header_items[1]
         task_class = header_items[2]
-        task_ost_name = header_items[3]
+        task_ost_idx = header_items[3]
 
         body_items = None
         len_body_items = 0
@@ -108,7 +108,7 @@ class TaskFactory:
         dynamic_class = getattr(module, task_class)
 
         task = TaskFactory._create_task(dynamic_class, body_items, len_body_items)
-        task.ost_name = task_ost_name
+        task.ost_idx = task_ost_idx
 
         return task
 

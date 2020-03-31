@@ -24,6 +24,7 @@ import multiprocessing
 from task.base_task import BaseTask
 
 
+# TODO: Rename to PoisonPill
 class PoisenPill(BaseTask):
 
     def __init__(self):
@@ -31,10 +32,10 @@ class PoisenPill(BaseTask):
         super(PoisenPill, self).__init__()
 
         # Since the monitoring is Lustre specific and a task is bound to an OST,
-        # an ost_name has to be set even for a pseudo task like this one.
-        # In more detail: The ost_name is pushed after executing a task into the result queue.
+        # an ost_idx has to be set even for a pseudo task like this one.
+        # In more detail: The ost_idx is pushed after executing a task into the result queue.
         # TODO: Check if the Poisen Pill might just be quit the worker anyway without accessing the result queue.
-        self.ost_name = "POISEN_PILL_" + multiprocessing.current_process().name
+        self.ost_idx = "POISEN_PILL_" + multiprocessing.current_process().name
 
     def execute(self):
         logging.debug("Worker retrieved poisen pill: '%s'" % multiprocessing.current_process().name)

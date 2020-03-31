@@ -59,20 +59,21 @@ class WorkerStateTableItem:
         # # RETURNS STDOUT: self._state = "TEXT" + str(NUMBER)
         # # RETURNS BAD VALUE: self._timestamp.value = 1234567890.99
         # self._state = multiprocessing.RawValue(ctypes.c_char_p)
-        # self._ost_name = multiprocessing.RawValue(ctypes.c_char_p)
+        # self._ost_idx = multiprocessing.RawValue(ctypes.c_char_p)
         # self._timestamp = multiprocessing.RawValue(ctypes.c_float)
 
         self._state = multiprocessing.RawValue(ctypes.c_int, WorkerState.NOT_READY)
-        self._ost_name = multiprocessing.RawArray('c', 64)
+        self._ost_idx = multiprocessing.RawArray('c', 64)
         self._timestamp = multiprocessing.RawValue(ctypes.c_uint, 0)
 
+    # TODO: Use Properties... see OSTInfo
     @property
     def get_state(self):
         return self._state.value
 
     @property
-    def get_ost_name(self):
-        return self._ost_name.value.decode()
+    def get_ost_idx(self):
+        return self._ost_idx.value.decode()
 
     @property
     def get_timestamp(self):
@@ -81,8 +82,8 @@ class WorkerStateTableItem:
     def set_state(self, state):
         self._state.value = state
 
-    def set_ost_name(self, task_name):
-        self._ost_name.value = task_name.encode()
+    def set_ost_idx(self, task_name):
+        self._ost_idx.value = task_name.encode()
 
     def set_timestamp(self, timestamp):
         self._timestamp.value = timestamp
@@ -138,7 +139,7 @@ class Worker(multiprocessing.Process):
                 with CriticalSection(self.lock_worker_state_table):
 
                     self.worker_state_table_item.set_state(WorkerState.EXECUTING)
-                    self.worker_state_table_item.set_ost_name(task.ost_name)
+                    self.worker_state_table_item.set_ost_idx(task.ost_idx)
                     self.worker_state_table_item.set_timestamp(int(time.time()))
 
                 try:
@@ -155,13 +156,13 @@ class Worker(multiprocessing.Process):
 
                 with CriticalSection(self.cond_result_queue):
 
-                    self.result_queue.push(task.ost_name)
+                    self.result_queue.push(task.ost_idx)
                     self.cond_result_queue.notify()
 
                 with CriticalSection(self.lock_worker_state_table):
 
                     self.worker_state_table_item.set_state(WorkerState.READY)
-                    self.worker_state_table_item.set_ost_name('')
+                    self.worker_state_table_item.set_ost_idx('')
                     self.worker_state_table_item.set_timestamp(int(time.time()))
 
             logging.debug("Exiting worker: %s" % self.name)

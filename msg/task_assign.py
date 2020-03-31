@@ -100,8 +100,8 @@ class TaskAssign(BaseMessage):
         if not ("task." in task_class.__module__):
             raise RuntimeError("Task has to be located into the task package!")
 
-        if not task.ost_name:
-            raise RuntimeError("Attribute ost_name not set for task: %s" %
+        if not task.ost_idx:
+            raise RuntimeError("Attribute ost_idx not set for task: %s" %
                                task_class)
 
         header = MessageType.TASK_ASSIGN() \
@@ -110,7 +110,7 @@ class TaskAssign(BaseMessage):
             + BaseMessage.field_separator \
             + task_class.__name__ \
             + BaseMessage.field_separator \
-            + task.ost_name
+            + task.ost_idx
 
         return header
 

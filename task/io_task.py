@@ -79,20 +79,21 @@ class IOTask(BaseTask):
 
         try:
 
-            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_name):
+            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_idx):
 
-                logging.debug("Found active OST: %s" % self.ost_name)
+                # TODO: Also print hex value
+                logging.debug("Found active OST: %s" % self.ost_idx)
 
                 self._initialize_payload()
 
-                file_path = self.target_dir + os.path.sep + self.ost_name + "_perf_test.tmp"
+                file_path = self.target_dir + os.path.sep + self.ost_idx + "_perf_test.tmp"
 
                 with AutoRemoveFile(file_path):
 
                     if os.path.exists(file_path):
                         os.remove(file_path)
 
-                    self.lfs_utils.set_stripe(self.ost_name, file_path)
+                    self.lfs_utils.set_stripe(self.ost_idx, file_path)
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                     write_duration, write_throughput = self._write_file(file_path)
@@ -103,7 +104,7 @@ class IOTask(BaseTask):
                     ost_perf_result = \
                         OSTPerfResult(read_timestamp,
                                       write_timestamp,
-                                      self.ost_name,
+                                      self.ost_idx,
                                       self.total_size_bytes,
                                       read_throughput,
                                       write_throughput,
@@ -111,12 +112,13 @@ class IOTask(BaseTask):
                                       write_duration)
             else:
 
-                logging.debug("Found non-active OST: %s" % self.ost_name)
+                # TODO: Also print hex value
+                logging.debug("Found non-active OST: %s" % self.ost_idx)
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
                 ost_perf_result = \
-                    OSTPerfResult(timestamp, timestamp, self.ost_name, self.total_size_bytes, 0, 0, 0, 0)
+                    OSTPerfResult(timestamp, timestamp, self.ost_idx, self.total_size_bytes, 0, 0, 0, 0)
 
             if ost_perf_result:
 
