@@ -111,11 +111,10 @@ class OSTListProcessor(Process):
 
         ost_info_list = list()
 
-        # ost_list = self.lfs_utils.create_ost_list()
-        ost_list = self.lfs_utils._check_osts(self.lfs_target)
+        ost_item_list = self.lfs_utils.create_ost_item_list(self.lfs_target)
 
-        for ost_name in ost_list:
-            ost_info_list.append(OSTInfo(ost_name))
+        for ost_item in ost_item_list:
+            ost_info_list.append(OSTInfo(ost_item.name))
 
         if len(ost_info_list) == 0:
             raise RuntimeError("OST list is empty!")

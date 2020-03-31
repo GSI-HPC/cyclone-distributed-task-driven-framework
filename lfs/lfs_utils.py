@@ -24,6 +24,16 @@ import logging
 import subprocess
 
 
+class LFSOstItem:
+
+    def __init__(self, target, ost, state, active):
+
+        self.target = target
+        self.ost = ost
+        self.state = state
+        self.active = active
+
+
 class LFSUtils:
 
     def __init__(self, lfs_bin):
@@ -35,11 +45,11 @@ class LFSUtils:
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
 
-    def _check_osts(self, lfs_target):
+    def create_ost_item_list(self, target):
 
         try:
 
-            regex_str = lfs_target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
+            regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
             pattern = re.compile(regex_str)
 
             args = ['sudo', self.lfs_bin, 'check', 'osts']
@@ -52,6 +62,8 @@ class LFSUtils:
 
             output = subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
 
+            ost_list = list()
+
             for line in output.strip().split('\n'):
 
                 match = pattern.match(line.strip())
@@ -61,21 +73,20 @@ class LFSUtils:
                     ost = match.group(1)
                     state = match.group(2)
 
-                    ost_info = lfs_target + "-" + ost + "-" + state
-
                     if state == "active.":
-                        logging.debug("Found active OST: %s" % ost_info)
+                        logging.debug("Found active OST: %s" % ost)
+                        ost_list.append(LFSOstItem(target, ost, state, True))
                     else:
-                        logging.debug("Found non-active OST: %s" % ost_info)
+                        logging.debug("Found non-active OST: %s" % ost)
+                        ost_list.append(LFSOstItem(target, ost, state, False))
 
                 else:
                     logging.debug("No regex match for line: %s" % line)
 
+            return ost_list
+
         except subprocess.CalledProcessError as error:
             pass
-
-    def create_ost_list(self, lfs_target):
-        pass
 
     def is_ost_available(self, ost_name, lfs_target):
 
