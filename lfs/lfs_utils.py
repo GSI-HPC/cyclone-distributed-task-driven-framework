@@ -90,7 +90,7 @@ class LFSUtils:
 
     def is_ost_active(self, target, ost):
 
-        for ost_item in self.create_ost_item_list(target, ost):
+        for ost_item in self.create_ost_item_list(target):
 
             if ost_item.ost == ost:
 
