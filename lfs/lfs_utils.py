@@ -32,6 +32,20 @@ class LFSOstItem:
         self.ost = ost
         self.state = state
         self.active = active
+        self.ost_idx = ost
+
+    @property
+    def ost_idx(self):
+        return self._ost_idx
+
+    @ost_idx.setter
+    def ost_idx(self, ost):
+
+        if ost[0:3] != "OST":
+            raise RuntimeError("OST word not found in argument: %s" % ost)
+
+        # Cut and convert to hex but keep the decimal index as str!
+        self._ost_idx = str(int(ost[3:], 16))
 
 
 class LFSUtils:
@@ -52,7 +66,7 @@ class LFSUtils:
         try:
 
             regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
-            logging.debug("Using OST regex: %s" % regex_str)
+            logging.debug("Using regex for `lfs check osts`: %s" % regex_str)
             pattern = re.compile(regex_str)
 
             args = ['sudo', self.lfs_bin, 'check', 'osts']

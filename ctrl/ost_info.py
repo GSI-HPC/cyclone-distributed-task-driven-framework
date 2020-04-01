@@ -21,7 +21,6 @@
 class OSTInfo:
 
     def __init__(self, ost_idx):
-
         self.ost_idx = ost_idx
 
     @property
@@ -30,6 +29,8 @@ class OSTInfo:
 
     @ost_idx.setter
     def ost_idx(self, ost_idx):
+
+        # TODO: Validate that ost_idx is a valid number!
 
         if type(ost_idx) is not str:
             raise ValueError('Argument ost_idx must be str type!')
