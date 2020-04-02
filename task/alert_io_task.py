@@ -114,7 +114,7 @@ class AlertIOTask(IOTask):
 
                     mail_subject = "[LUSTRE Monitoring] OST Read Performance Degradation Detected: %s" % self.ost_idx
 
-                    mail_text = "OST: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
+                    mail_text = "OST-IDX: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
                                 (self.ost_idx, write_timestamp, str(self.mail_threshold))
 
                     args_send_mail = [(mail_subject, mail_text)]

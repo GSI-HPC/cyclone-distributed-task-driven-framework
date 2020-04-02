@@ -112,13 +112,14 @@ class LFSUtils:
                 else:
                     return False
 
-        raise RuntimeError("[LFSUtils::is_ost_idx_active] OST-IDX not found: %s"
+        raise RuntimeError("[LFSUtils::is_ost_idx_active] Index not found: %s"
                            % ost_idx)
 
     def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
-        logging.debug("Setting stripe settings for file: %s on OST: %s" % (file_path, ost_idx))
+        logging.debug("Setting stripe for file: %s - OST: %s"
+                      % (file_path, ost_idx))
 
         args = [self.lfs_bin, 'setstripe', '-i', ost_idx, file_path]
 
