@@ -70,7 +70,7 @@ class AlertIOTask(IOTask):
 
         try:
 
-            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_idx):
+            if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
                 self._initialize_payload()
 

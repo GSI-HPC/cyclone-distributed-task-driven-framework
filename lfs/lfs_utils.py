@@ -101,18 +101,19 @@ class LFSUtils:
 
         return ost_list
 
-    def is_ost_active(self, target, ost):
+    def is_ost_idx_active(self, target, ost_idx):
 
         for ost_item in self.create_ost_item_list(target):
 
-            if ost_item.ost == ost:
+            if ost_item.ost_idx == ost_idx:
 
                 if ost_item.active:
                     return True
                 else:
                     return False
 
-        raise RuntimeError("[LFSUtils::is_ost_active] OST not found: %s" % ost)
+        raise RuntimeError("[LFSUtils::is_ost_idx_active] OST-IDX not found: %s"
+                           % ost_idx)
 
     def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""

@@ -79,7 +79,7 @@ class IOTask(BaseTask):
 
         try:
 
-            if self.lfs_utils.is_ost_active(self.lfs_target, self.ost_idx):
+            if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
                 # TODO: Also print hex value
                 logging.debug("Found active OST: %s" % self.ost_idx)
