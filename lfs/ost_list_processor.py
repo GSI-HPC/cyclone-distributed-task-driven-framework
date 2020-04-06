@@ -17,15 +17,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import logging
 import signal
+import copy
 import time
 import os
 
 from multiprocessing import Process
 from ctrl.critical_section import CriticalSection
 from lfs.lfs_utils import LFSUtils
+from task.xml.task_xml_reader import TaskXmlReader
+from task.task_factory import TaskFactory
 
 
 class OSTListProcessor(Process):
@@ -38,6 +40,9 @@ class OSTListProcessor(Process):
 
         super(OSTListProcessor, self).__init__()
 
+        self.task_file = config_file_reader.task_def_file
+        self.task_name = config_file_reader.task_name
+
         self.measure_interval = config_file_reader.measure_interval
         self.lfs_bin = config_file_reader.lfs_bin
         self.lfs_target = config_file_reader.lfs_target
@@ -48,10 +53,26 @@ class OSTListProcessor(Process):
 
         self.local_mode = local_mode
 
+        self.task_skeleton = None
+
         self.run_flag = False
 
     def start(self):
+        self._initialize()
         super(OSTListProcessor, self).start()
+
+    def _initialize(self):
+        self._init_task_skeleton()
+
+    def _init_task_skeleton(self):
+
+        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
+                                                           self.task_name)
+
+        logging.debug("Loaded Task Information from XML: '%s.%s'" %
+                      (task_xml_info.class_module, task_xml_info.class_name))
+
+        self.task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
 
     def run(self):
 
@@ -75,19 +96,15 @@ class OSTListProcessor(Process):
                 else:
                     ost_idx_list = self._create_ost_idx_list()
 
-                if logging.getLogger().isEnabledFor(logging.DEBUG):
-                    for ost_idx in ost_idx_list:
-                        logging.debug("Found OST index: %s" % ost_idx)
-
-                logging.debug("Length of OST info list: %s" % len(ost_idx_list))
+                task_list = self._create_task_list(ost_idx_list)
 
                 with CriticalSection(self.lock_ost_queue):
 
                     if not self.ost_info_queue.is_empty():
                         self.ost_info_queue.clear()
 
-                    if ost_idx_list:
-                        self.ost_info_queue.fill(ost_idx_list)
+                    if task_list:
+                        self.ost_info_queue.fill(task_list)
 
                 time.sleep(self.measure_interval)
 
@@ -193,4 +210,37 @@ class OSTListProcessor(Process):
 
         else:
             return ost_idx_list
+
+    def _create_task_list(self, ost_idx_list):
+
+        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
+                                                           self.task_name)
+
+        task_list = list()
+
+        logging.debug("Creating task list...")
+        logging.debug("Length of OST index list: %s" % len(ost_idx_list))
+
+        for ost_idx in ost_idx_list:
+
+            logging.debug("Create task for OST index: %s" % ost_idx)
+
+            start_time = time.time_ns() / 1000
+
+            #task = copy.copy(self.task_skeleton)
+            #task = TaskFactory().create_from_xml_info(task_xml_info)
+
+            task = self.task_skeleton.copy()
+            task.ost_idx = ost_idx
+
+            end_time = time.time_ns() / 1000
+            duration = (end_time - start_time)
+
+            #print("DUR [us]: %s" % duration)
+
+            task_list.append(task)
+
+        return task_list
+
+
 

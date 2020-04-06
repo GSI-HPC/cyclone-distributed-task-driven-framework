@@ -66,6 +66,21 @@ class AlertIOTask(IOTask):
         self.mail_threshold = float(mail_threshold)
         self.mail_receiver_list = mail_receiver.replace(' ', '').split(',')
 
+    def copy(self):
+
+        return AlertIOTask(self.mail_server,
+                           self.mail_sender,
+                           self.mail_receiver,
+                           self.mail_threshold,
+                           self.block_size_bytes,
+                           self.total_size_bytes,
+                           self.write_file_sync,
+                           self.target_dir,
+                           self.lfs_bin,
+                           self.lfs_target,
+                           self.db_proxy_target,
+                           self.db_proxy_port)
+
     def execute(self):
 
         try:

@@ -39,8 +39,6 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from task.xml.task_xml_reader import TaskXmlReader
-from task.task_factory import TaskFactory
 from lfs.ost_list_processor import OSTListProcessor
 
 
@@ -173,16 +171,6 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                task_def_file = config_file_reader.task_def_file
-                task_name = config_file_reader.task_name
-
-                task_xml_info = TaskXmlReader.read_task_definition(task_def_file, task_name)
-
-                logging.debug("Loaded Task Information from XML: '%s.%s'" %
-                              (task_xml_info.class_module, task_xml_info.class_name))
-
-                task = TaskFactory().create_from_xml_info(task_xml_info)
-
                 lock_ost_info_queue = multiprocessing.Lock()
                 lock_ost_info_queue_timeout = 1
 
@@ -213,7 +201,6 @@ def main():
                             logging.debug("Retrieved message: " + recv_data)
 
                             recv_msg = MessageFactory.create(recv_data)
-
                             recv_msg_type = recv_msg.type()
 
                             # TODO: Caution, sender is not set everywhere!
@@ -223,13 +210,13 @@ def main():
 
                                 if MessageType.TASK_REQUEST() == recv_msg_type:
 
-                                    ost_idx = None
+                                    task = None
 
                                     with CriticalSection(lock_ost_info_queue,
                                                          timeout=lock_ost_info_queue_timeout):
 
                                         if not ost_info_queue.is_empty():
-                                            ost_idx = ost_info_queue.pop_nowait()
+                                            task = ost_info_queue.pop_nowait()
 
                                         else:
 
@@ -240,42 +227,45 @@ def main():
 
                                                 logging.error("OSTListProcessor is not alive!")
 
-                                    if ost_idx:
+                                    if task:
 
-                                        do_task_assign = False  # TODO: Could be a method call instead.
+                                        do_task_assign = False
 
-                                        if ost_idx in ost_status_lookup_dict:
+                                        # TODO: Rename ost_idx to id
+                                        if task.ost_idx in ost_status_lookup_dict:
 
                                             task_resend_threshold = \
-                                                (ost_status_lookup_dict[ost_idx].timestamp + task_resend_timeout)
+                                                (ost_status_lookup_dict[task.ost_idx].timestamp + task_resend_timeout)
 
-                                            if ost_status_lookup_dict[ost_idx].state == OstState.finished() \
+                                            if ost_status_lookup_dict[task.ost_idx].state == OstState.finished() \
                                                     or last_exec_timestamp >= task_resend_threshold:
 
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[ost_idx].state == OstState.assigned() \
+                                            elif ost_status_lookup_dict[task.ost_idx].state == OstState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
-                                                logging.debug("Waiting for a task on OST to finish: %s" % ost_idx)
+                                                logging.debug("Ignoring task to assign... - "
+                                                              "Waiting for task with OST index to finish: %s"
+                                                              % task.ost_idx)
+
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: ", ost_idx)
+                                                raise RuntimeError("Undefined state processing task: ", task.ost_idx)
 
-                                        else:   # Add new OST name to lookup dict!
+                                        else:
                                             do_task_assign = True
 
+                                        # TODO: Could be a method to be called instead of `do_task_assign = True`
                                         if do_task_assign:
 
-                                            ost_status_lookup_dict[ost_idx] = \
-                                                OstStatusItem(ost_idx,
+                                            # TODO: change from ost_stuff to task_stuff...
+                                            ost_status_lookup_dict[task.ost_idx] = \
+                                                OstStatusItem(task.ost_idx,
                                                               OstState.assigned(),
                                                               recv_msg.sender,
                                                               int(time.time()))
-
-                                            # Assign Lustre specific information to the task before task assignment.
-                                            task.ost_idx = ost_idx
 
                                             send_msg = TaskAssign(task)
 

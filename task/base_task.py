@@ -34,8 +34,12 @@ class BaseTask(object):
         self._ost_idx = None
 
     @abc.abstractmethod
+    def copy(self):
+        raise NotImplementedError('Must be implemented in subclass!')
+
+    @abc.abstractmethod
     def execute(self):
-        raise NotImplementedError('This method has to be implemented by a subclass!')
+        raise NotImplementedError('Must be implemented in subclass!')
 
     @property
     def ost_idx(self):
