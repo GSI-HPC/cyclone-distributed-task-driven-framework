@@ -30,7 +30,7 @@ from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 
 
-class OSTListProcessor(Process):
+class XmlTaskGenerator(Process):
 
     def __init__(self,
                  ost_info_queue,
@@ -38,7 +38,7 @@ class OSTListProcessor(Process):
                  config_file_reader,
                  local_mode=False):
 
-        super(OSTListProcessor, self).__init__()
+        super(XmlTaskGenerator, self).__init__()
 
         self.task_file = config_file_reader.task_def_file
         self.task_name = config_file_reader.task_name
@@ -56,7 +56,7 @@ class OSTListProcessor(Process):
         self.run_flag = False
 
     def start(self):
-        super(OSTListProcessor, self).start()
+        super(XmlTaskGenerator, self).start()
 
     def run(self):
 
@@ -65,13 +65,13 @@ class OSTListProcessor(Process):
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGTERM, True)
 
-        logging.info("OSTListProcessor started!")
+        logging.info("XmlTaskGenerator started!")
 
         while self.run_flag:
 
             try:
 
-                logging.debug("OSTListProcessor active!")
+                logging.debug("XmlTaskGenerator active!")
 
                 ost_idx_list = None
 
@@ -96,18 +96,18 @@ class OSTListProcessor(Process):
                 logging.error("Caught InterruptedError exception.")
 
             except Exception as e:
-                logging.error("Caught exception in OSTListProcessor: %s" % e)
-                logging.info("OSTListProcessor exited!")
+                logging.error("Caught exception in XmlTaskGenerator: %s" % e)
+                logging.info("XmlTaskGenerator exited!")
                 os._exit(1)
 
-        logging.info("OSTListProcessor finished!")
+        logging.info("XmlTaskGenerator finished!")
         os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
 
         self.run_flag = False
 
-        msg = "OSTListProcessor retrieved signal to terminate."
+        msg = "XmlTaskGenerator retrieved signal to terminate."
         logging.debug(msg)
         raise InterruptedError(msg)
 

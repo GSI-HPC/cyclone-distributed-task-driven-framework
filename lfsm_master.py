@@ -39,7 +39,7 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from lfs.ost_list_processor import OSTListProcessor
+from task.generator.xml_task_generator import XmlTaskGenerator
 
 
 TASK_DISTRIBUTION = True
@@ -174,7 +174,7 @@ def main():
                 lock_ost_info_queue = multiprocessing.Lock()
                 lock_ost_info_queue_timeout = 1
 
-                ost_list_processor = OSTListProcessor(ost_info_queue,
+                ost_list_processor = XmlTaskGenerator(ost_info_queue,
                                                       lock_ost_info_queue,
                                                       config_file_reader,
                                                       args.local_mode)
@@ -225,7 +225,7 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                                logging.error("OSTListProcessor is not alive!")
+                                                logging.error("XmlTaskGenerator is not alive!")
 
                                     if task:
 
@@ -377,7 +377,7 @@ def main():
 
                 if ost_list_processor.is_alive():
 
-                    logging.debug("Waiting for OSTListProcessor to finish...")
+                    logging.debug("Waiting for XmlTaskGenerator to finish...")
                     time.sleep(1)
 
                 else:
