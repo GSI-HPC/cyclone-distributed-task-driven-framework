@@ -111,6 +111,34 @@ class XmlTaskGenerator(Process):
         logging.debug(msg)
         raise InterruptedError(msg)
 
+    def _create_task_list(self, ost_idx_list):
+
+        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
+                                                           self.task_name)
+
+        logging.debug("Loaded Task Information from XML: '%s.%s'" %
+                      (task_xml_info.class_module, task_xml_info.class_name))
+
+        task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
+
+        task_list = list()
+
+        logging.debug("Creating task list...")
+        logging.debug("Length of OST index list: %s" % len(ost_idx_list))
+
+        for ost_idx in ost_idx_list:
+
+            logging.debug("Create task for OST index: %s" % ost_idx)
+
+            task = copy.copy(task_skeleton)
+
+            task.tid = ost_idx
+            task.ost_idx = ost_idx
+
+            task_list.append(task)
+
+        return task_list
+
     def _create_ost_idx_list(self):
 
         ost_idx_list = list()
@@ -194,32 +222,4 @@ class XmlTaskGenerator(Process):
 
         else:
             return ost_idx_list
-
-    def _create_task_list(self, ost_idx_list):
-
-        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
-                                                           self.task_name)
-
-        logging.debug("Loaded Task Information from XML: '%s.%s'" %
-                      (task_xml_info.class_module, task_xml_info.class_name))
-
-        task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
-
-        task_list = list()
-
-        logging.debug("Creating task list...")
-        logging.debug("Length of OST index list: %s" % len(ost_idx_list))
-
-        for ost_idx in ost_idx_list:
-
-            logging.debug("Create task for OST index: %s" % ost_idx)
-
-            task = copy.copy(task_skeleton)
-            task.ost_idx = ost_idx
-
-            task_list.append(task)
-
-        return task_list
-
-
 
