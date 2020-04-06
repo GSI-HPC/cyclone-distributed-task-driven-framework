@@ -34,10 +34,6 @@ class BaseTask(object):
         self._ost_idx = None
 
     @abc.abstractmethod
-    def copy(self):
-        raise NotImplementedError('Must be implemented in subclass!')
-
-    @abc.abstractmethod
     def execute(self):
         raise NotImplementedError('Must be implemented in subclass!')
 

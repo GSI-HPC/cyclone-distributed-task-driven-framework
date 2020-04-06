@@ -75,17 +75,6 @@ class IOTask(BaseTask):
         if not (self.write_file_sync == 'on' or self.write_file_sync == 'off'):
             raise RuntimeError("Value for parameter write_file_sync must be either 'on' or 'off'!")
 
-    def copy(self):
-
-        return IOTask(self.block_size_bytes,
-                      self.total_size_bytes,
-                      self.write_file_sync,
-                      self.target_dir,
-                      self.lfs_bin,
-                      self.lfs_target,
-                      self.db_proxy_target,
-                      self.db_proxy_port)
-
     def execute(self):
 
         try:

@@ -26,9 +26,6 @@ class EmptyTask(BaseTask):
     def __init__(self):
         super(EmptyTask, self).__init__()
 
-    def copy(self):
-        return EmptyTask()
-
     def execute(self):
         pass
 

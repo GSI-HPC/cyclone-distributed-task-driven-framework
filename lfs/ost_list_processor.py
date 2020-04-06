@@ -53,26 +53,10 @@ class OSTListProcessor(Process):
 
         self.local_mode = local_mode
 
-        self.task_skeleton = None
-
         self.run_flag = False
 
     def start(self):
-        self._initialize()
         super(OSTListProcessor, self).start()
-
-    def _initialize(self):
-        self._init_task_skeleton()
-
-    def _init_task_skeleton(self):
-
-        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
-                                                           self.task_name)
-
-        logging.debug("Loaded Task Information from XML: '%s.%s'" %
-                      (task_xml_info.class_module, task_xml_info.class_name))
-
-        self.task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
 
     def run(self):
 
@@ -216,6 +200,11 @@ class OSTListProcessor(Process):
         task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
                                                            self.task_name)
 
+        logging.debug("Loaded Task Information from XML: '%s.%s'" %
+                      (task_xml_info.class_module, task_xml_info.class_name))
+
+        task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
+
         task_list = list()
 
         logging.debug("Creating task list...")
@@ -225,18 +214,8 @@ class OSTListProcessor(Process):
 
             logging.debug("Create task for OST index: %s" % ost_idx)
 
-            start_time = time.time_ns() / 1000
-
-            #task = copy.copy(self.task_skeleton)
-            #task = TaskFactory().create_from_xml_info(task_xml_info)
-
-            task = self.task_skeleton.copy()
+            task = copy.copy(task_skeleton)
             task.ost_idx = ost_idx
-
-            end_time = time.time_ns() / 1000
-            duration = (end_time - start_time)
-
-            #print("DUR [us]: %s" % duration)
 
             task_list.append(task)
 
