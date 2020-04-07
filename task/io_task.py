@@ -34,6 +34,7 @@ from lfs.lfs_utils import LFSUtils
 class IOTask(BaseTask):
 
     def __init__(self,
+                 ost_idx,
                  block_size_bytes,
                  total_size_bytes,
                  write_file_sync,
@@ -45,9 +46,8 @@ class IOTask(BaseTask):
 
         super(IOTask, self).__init__()
 
-        # TODO: We could use a validation method for the class attributes.
+        self.ost_idx = ost_idx
 
-        # Class attributes mapped to the constructor parameters:
         self.block_size_bytes = int(block_size_bytes)
         self.total_size_bytes = int(total_size_bytes)
 
@@ -61,7 +61,7 @@ class IOTask(BaseTask):
         self.db_proxy_target = db_proxy_target
         self.db_proxy_port = db_proxy_port
 
-        # Initialization of other class attributes (not directly mapped to the constructor parameters):
+        # Initialization of other class attributes:
         self.payload_block = str()
         self.payload_rest_block = str()
 

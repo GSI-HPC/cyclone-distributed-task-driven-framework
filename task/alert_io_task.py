@@ -42,6 +42,7 @@ class AlertIOTask(IOTask):
                  mail_sender,
                  mail_receiver,
                  mail_threshold,
+                 ost_idx,
                  block_size_bytes,
                  total_size_bytes,
                  write_file_sync,
@@ -51,7 +52,8 @@ class AlertIOTask(IOTask):
                  db_proxy_target,
                  db_proxy_port):
 
-        super(AlertIOTask, self).__init__(int(block_size_bytes),
+        super(AlertIOTask, self).__init__(ost_idx,
+                                          int(block_size_bytes),
                                           int(total_size_bytes),
                                           write_file_sync,
                                           target_dir,

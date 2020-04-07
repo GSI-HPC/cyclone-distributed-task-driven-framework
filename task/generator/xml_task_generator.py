@@ -126,6 +126,8 @@ class XmlTaskGenerator(Process):
         logging.debug("Creating task list...")
         logging.debug("Length of OST index list: %s" % len(ost_idx_list))
 
+        # Create tasks and set up runtime determined information
+        # e.g. task ID and Lustre specific OST index
         for ost_idx in ost_idx_list:
 
             logging.debug("Create task for OST index: %s" % ost_idx)
