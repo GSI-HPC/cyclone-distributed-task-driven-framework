@@ -26,6 +26,7 @@ import signal
 import sys
 import time
 
+# TODO: refactor OstState/OstStateItem to TaskState/TaskStateItem
 from comm.master_handler import MasterCommHandler
 from conf.master_config_file_reader import MasterConfigFileReader
 from ctrl.ost_status_item import OstState
@@ -231,28 +232,27 @@ def main():
 
                                         do_task_assign = False
 
-                                        # TODO: Rename ost_idx to id
-                                        if task.ost_idx in ost_status_lookup_dict:
+                                        if task.tid in ost_status_lookup_dict:
 
                                             task_resend_threshold = \
-                                                (ost_status_lookup_dict[task.ost_idx].timestamp + task_resend_timeout)
+                                                (ost_status_lookup_dict[task.tid].timestamp + task_resend_timeout)
 
-                                            if ost_status_lookup_dict[task.ost_idx].state == OstState.finished() \
+                                            if ost_status_lookup_dict[task.tid].state == OstState.finished() \
                                                     or last_exec_timestamp >= task_resend_threshold:
 
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[task.ost_idx].state == OstState.assigned() \
+                                            elif ost_status_lookup_dict[task.tid].state == OstState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
                                                 logging.debug("Ignoring task to assign... - "
-                                                              "Waiting for task with OST index to finish: %s"
-                                                              % task.ost_idx)
+                                                              "Waiting for task with TID to finish: %s"
+                                                              % task.tid)
 
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: ", task.ost_idx)
+                                                raise RuntimeError("Undefined state processing task: ", task.tid)
 
                                         else:
                                             do_task_assign = True
@@ -261,8 +261,8 @@ def main():
                                         if do_task_assign:
 
                                             # TODO: change from ost_stuff to task_stuff...
-                                            ost_status_lookup_dict[task.ost_idx] = \
-                                                OstStatusItem(task.ost_idx,
+                                            ost_status_lookup_dict[task.tid] = \
+                                                OstStatusItem(task.tid,
                                                               OstState.assigned(),
                                                               recv_msg.sender,
                                                               int(time.time()))
@@ -277,16 +277,16 @@ def main():
 
                                 elif MessageType.TASK_FINISHED() == recv_msg_type:
 
-                                    ost_idx = recv_msg.ost_idx
+                                    tid = recv_msg.tid
 
-                                    if ost_idx in ost_status_lookup_dict:
+                                    if tid in ost_status_lookup_dict:
 
-                                        if recv_msg.sender == ost_status_lookup_dict[ost_idx].controller:
+                                        if recv_msg.sender == ost_status_lookup_dict[tid].controller:
 
-                                            logging.debug("Retrieved finished OST message: " + ost_idx)
+                                            logging.debug("Retrieved finished message for TID: " + tid)
 
-                                            ost_status_lookup_dict[ost_idx].state = OstState.finished()
-                                            ost_status_lookup_dict[ost_idx].timestamp = int(time.time())
+                                            ost_status_lookup_dict[tid].state = OstState.finished()
+                                            ost_status_lookup_dict[tid].timestamp = int(time.time())
 
                                         else:
                                             logging.warning("Retrieved task finished from different controller!")

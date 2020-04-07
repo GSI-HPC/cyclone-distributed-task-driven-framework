@@ -258,12 +258,12 @@ def main():
 
                                 if not result_queue.is_empty():
 
-                                    ost_idx = result_queue.pop_nowait()
+                                    task_id = result_queue.pop_nowait()
 
-                                    if ost_idx:
+                                    if task_id:
 
-                                        logging.debug("Finished task for OST: %s" % ost_idx)
-                                        send_msg = TaskFinished(comm_handler.fqdn, ost_idx)
+                                        logging.debug("Finished task: %s" % task_id)
+                                        send_msg = TaskFinished(comm_handler.fqdn, task_id)
 
                         if not send_msg:
 
@@ -330,11 +330,11 @@ def main():
 
                                     task = in_msg.to_task()
 
-                                    logging.debug("Retrieved task assign for OST: " + task.ost_idx)
+                                    logging.debug("Retrieved task assign for: " + task.tid)
 
                                     task_queue.push(task)
 
-                                    logging.debug("Pushed task to task queue: %s" % task.ost_idx)
+                                    logging.debug("Pushed task to task queue: %s" % task.tid)
 
                                 elif MessageType.ACKNOWLEDGE() == in_msg_type:
                                     continue

@@ -31,25 +31,25 @@ class BaseTask(object):
         super(BaseTask, self).__init__()
 
         # Lustre specific: Store the OST name for each Task.
-        self._ost_idx = None
+        self._tid = None
 
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError('Must be implemented in subclass!')
 
     @property
-    def ost_idx(self):
-        return self._ost_idx
+    def tid(self):
+        return self._tid
 
-    @ost_idx.setter
-    def ost_idx(self, ost_idx):
+    @tid.setter
+    def tid(self, tid):
 
-        if type(ost_idx) is not str:
-            raise ValueError('Argument ost_idx must be str type!')
+        if type(tid) is not str:
+            raise ValueError('Argument tid must be str type!')
 
-        if not ost_idx:
-            raise ValueError('Argument ost_idx must be set!')
+        if not tid:
+            raise ValueError('Argument tid must be set!')
 
-        self._ost_idx = ost_idx
+        self._tid = tid
 
 

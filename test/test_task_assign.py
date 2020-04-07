@@ -28,7 +28,7 @@ from msg.task_assign import TaskAssign
 def test_empty_task_from_class():
 
     task = EmptyTask()
-    task.ost_idx = "0"
+    task.tid = "0"
     task_assign = TaskAssign(task)
 
     print("test_empty_task_from_class: %s" % task_assign.to_string())
