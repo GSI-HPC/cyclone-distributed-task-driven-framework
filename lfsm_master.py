@@ -129,8 +129,8 @@ def check_all_controller_down(count_active_controller):
     return False
 
 
-def create_task_generator(ost_info_queue,
-                          lock_ost_info_queue,
+def create_task_generator(task_queue,
+                          lock_task_queue,
                           local_mode,
                           config_file_reader):
 
@@ -141,8 +141,8 @@ def create_task_generator(ost_info_queue,
     dynamic_module = importlib.import_module(module_name)
     dynamic_class = getattr(dynamic_module, class_name)
 
-    task_generator = dynamic_class(ost_info_queue,
-                                   lock_ost_info_queue,
+    task_generator = dynamic_class(task_queue,
+                                   lock_task_queue,
                                    local_mode,
                                    config_file)
 
@@ -168,7 +168,7 @@ def main():
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as ost_info_queue:
+                SharedQueue() as task_queue:
 
             if pid_control.lock():
 
@@ -193,11 +193,11 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                lock_ost_info_queue = multiprocessing.Lock()
-                lock_ost_info_queue_timeout = 1
+                lock_task_queue = multiprocessing.Lock()
+                lock_task_queue_timeout = 1
 
-                task_generator = create_task_generator(ost_info_queue,
-                                                       lock_ost_info_queue,
+                task_generator = create_task_generator(task_queue,
+                                                       lock_task_queue,
                                                        args.local_mode,
                                                        config_file_reader)
 
@@ -234,11 +234,11 @@ def main():
 
                                     task = None
 
-                                    with CriticalSection(lock_ost_info_queue,
-                                                         timeout=lock_ost_info_queue_timeout):
+                                    with CriticalSection(lock_task_queue,
+                                                         timeout=lock_task_queue_timeout):
 
-                                        if not ost_info_queue.is_empty():
-                                            task = ost_info_queue.pop_nowait()
+                                        if not task_queue.is_empty():
+                                            task = task_queue.pop_nowait()
 
                                         else:
 

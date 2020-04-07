@@ -33,15 +33,15 @@ from task.task_factory import TaskFactory
 class LustreXmlTaskGenerator(Process):
 
     def __init__(self,
-                 ost_info_queue,
-                 lock_ost_queue,
+                 task_queue,
+                 lock_task_queue,
                  local_mode,
                  config_file):
 
         super(LustreXmlTaskGenerator, self).__init__()
 
-        self.ost_info_queue = ost_info_queue
-        self.lock_ost_queue = lock_ost_queue
+        self.task_queue = task_queue
+        self.lock_task_queue = lock_task_queue
 
         if not os.path.isfile(config_file):
             raise IOError("The config file does not exist or is not a file: %s"
@@ -96,13 +96,13 @@ class LustreXmlTaskGenerator(Process):
 
                 task_list = self._create_task_list(ost_idx_list)
 
-                with CriticalSection(self.lock_ost_queue):
+                with CriticalSection(self.lock_task_queue):
 
-                    if not self.ost_info_queue.is_empty():
-                        self.ost_info_queue.clear()
+                    if not self.task_queue.is_empty():
+                        self.task_queue.clear()
 
                     if task_list:
-                        self.ost_info_queue.fill(task_list)
+                        self.task_queue.fill(task_list)
 
                 time.sleep(self.measure_interval)
 
