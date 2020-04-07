@@ -27,20 +27,20 @@ from task.task_factory import TaskFactory
 
 def test_empty_task():
 
-    task_xml_info = TaskXmlReader.read_task_definition('../Configuration/tasks.xml', 'EmptyTask')
+    task_xml_info = TaskXmlReader.read_task_definition('../Configuration/lustre_tasks.xml', 'EmptyTask')
     task = TaskFactory().create_from_xml_info(task_xml_info)
     task.execute()
 
 
 def test_io_task():
 
-    task_xml_info = TaskXmlReader.read_task_definition('../Configuration/tasks.xml', 'IOTask')
+    task_xml_info = TaskXmlReader.read_task_definition('../Configuration/lustre_tasks.xml', 'IOTask')
     task = TaskFactory().create_from_xml_info(task_xml_info)
 
 
 def test_alert_io_task():
 
-    task_xml_info = TaskXmlReader.read_task_definition('../Configuration/tasks.xml', 'AlertIOTask')
+    task_xml_info = TaskXmlReader.read_task_definition('../Configuration/lustre_tasks.xml', 'AlertIOTask')
     task = TaskFactory().create_from_xml_info(task_xml_info)
 
 

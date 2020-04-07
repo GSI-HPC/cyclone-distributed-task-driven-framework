@@ -20,6 +20,7 @@
 
 import argparse
 import logging
+import importlib
 import multiprocessing
 import os
 import signal
@@ -40,7 +41,7 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from task.generator.xml_task_generator import XmlTaskGenerator
+from task.generator.lustre_xml_task_generator import LustreXmlTaskGenerator
 
 
 TASK_DISTRIBUTION = True
@@ -128,12 +129,32 @@ def check_all_controller_down(count_active_controller):
     return False
 
 
+def create_task_generator(ost_info_queue,
+                          lock_ost_info_queue,
+                          local_mode,
+                          config_file_reader):
+
+    module_name = config_file_reader.task_gen_module
+    class_name = config_file_reader.task_gen_class
+    config_file = config_file_reader.task_gen_config_file
+
+    dynamic_module = importlib.import_module(module_name)
+    dynamic_class = getattr(dynamic_module, class_name)
+
+    task_generator = dynamic_class(ost_info_queue,
+                                   lock_ost_info_queue,
+                                   local_mode,
+                                   config_file)
+
+    return task_generator
+
+
 def main():
 
     error_count = 0
     max_error_count = 100
 
-    ost_list_processor = None
+    task_generator = None
 
     try:
 
@@ -175,12 +196,12 @@ def main():
                 lock_ost_info_queue = multiprocessing.Lock()
                 lock_ost_info_queue_timeout = 1
 
-                ost_list_processor = XmlTaskGenerator(ost_info_queue,
-                                                      lock_ost_info_queue,
-                                                      config_file_reader,
-                                                      args.local_mode)
+                task_generator = create_task_generator(ost_info_queue,
+                                                       lock_ost_info_queue,
+                                                       args.local_mode,
+                                                       config_file_reader)
 
-                ost_list_processor.start()
+                task_generator.start()
 
                 # TODO: Make a class for the master.
                 global TASK_DISTRIBUTION
@@ -221,12 +242,12 @@ def main():
 
                                         else:
 
-                                            if not ost_list_processor.is_alive():
+                                            if not task_generator.is_alive():
 
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                                logging.error("XmlTaskGenerator is not alive!")
+                                                logging.error("LustreXmlTaskGenerator is not alive!")
 
                                     if task:
 
@@ -369,24 +390,24 @@ def main():
 
     try:
 
-        if ost_list_processor and ost_list_processor.is_alive():
+        if task_generator and task_generator.is_alive():
 
-            os.kill(ost_list_processor.pid, signal.SIGTERM)
+            os.kill(task_generator.pid, signal.SIGTERM)
 
             for i in range(0, 10, 1):
 
-                if ost_list_processor.is_alive():
+                if task_generator.is_alive():
 
-                    logging.debug("Waiting for XmlTaskGenerator to finish...")
+                    logging.debug("Waiting for LustreXmlTaskGenerator to finish...")
                     time.sleep(1)
 
                 else:
                     break
 
-            if ost_list_processor.is_alive():
+            if task_generator.is_alive():
 
-                ost_list_processor.terminate()
-                ost_list_processor.join()
+                task_generator.terminate()
+                task_generator.join()
 
     except Exception as e:
 

@@ -81,7 +81,6 @@ class IOTask(BaseTask):
 
             if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                # TODO: Also print hex value
                 logging.debug("Found active OST-IDX: %s" % self.ost_idx)
 
                 self._initialize_payload()
@@ -112,7 +111,6 @@ class IOTask(BaseTask):
                                       write_duration)
             else:
 
-                # TODO: Also print hex value
                 logging.debug("Found non-active OST: %s" % self.ost_idx)
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')

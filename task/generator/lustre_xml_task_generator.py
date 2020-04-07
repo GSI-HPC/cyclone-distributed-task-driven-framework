@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+import configparser
 import logging
 import signal
 import copy
@@ -30,33 +30,47 @@ from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 
 
-class XmlTaskGenerator(Process):
+class LustreXmlTaskGenerator(Process):
 
     def __init__(self,
                  ost_info_queue,
                  lock_ost_queue,
-                 config_file_reader,
-                 local_mode=False):
+                 local_mode,
+                 config_file):
 
-        super(XmlTaskGenerator, self).__init__()
-
-        self.task_file = config_file_reader.task_def_file
-        self.task_name = config_file_reader.task_name
-
-        self.measure_interval = config_file_reader.measure_interval
-        self.lfs_bin = config_file_reader.lfs_bin
-        self.lfs_target = config_file_reader.lfs_target
-        self.ost_select_list = config_file_reader.ost_select_list
+        super(LustreXmlTaskGenerator, self).__init__()
 
         self.ost_info_queue = ost_info_queue
         self.lock_ost_queue = lock_ost_queue
+
+        if not os.path.isfile(config_file):
+            raise IOError("The config file does not exist or is not a file: %s"
+                          % config_file)
+
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        self.task_file = config.get('task', 'task_def_file')
+        self.task_name = config.get('task', 'task_name')
+
+        self.lfs_bin = config.get('lustre', 'lfs_bin')
+        self.target = config.get('lustre', 'target')
+
+        ost_select_list = config.get('lustre', 'ost_select_list')
+
+        if ost_select_list:
+            self.ost_select_list = ost_select_list.replace(' ', '').split(',')
+        else:
+            self.ost_select_list = list()
+
+        self.measure_interval = float(config.get('control', 'measure_interval'))
 
         self.local_mode = local_mode
 
         self.run_flag = False
 
     def start(self):
-        super(XmlTaskGenerator, self).start()
+        super(LustreXmlTaskGenerator, self).start()
 
     def run(self):
 
@@ -65,13 +79,13 @@ class XmlTaskGenerator(Process):
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGTERM, True)
 
-        logging.info("XmlTaskGenerator started!")
+        logging.info("LustreXmlTaskGenerator started!")
 
         while self.run_flag:
 
             try:
 
-                logging.debug("XmlTaskGenerator active!")
+                logging.debug("LustreXmlTaskGenerator active!")
 
                 ost_idx_list = None
 
@@ -96,18 +110,18 @@ class XmlTaskGenerator(Process):
                 logging.error("Caught InterruptedError exception.")
 
             except Exception as e:
-                logging.error("Caught exception in XmlTaskGenerator: %s" % e)
-                logging.info("XmlTaskGenerator exited!")
+                logging.error("Caught exception in LustreXmlTaskGenerator: %s" % e)
+                logging.info("LustreXmlTaskGenerator exited!")
                 os._exit(1)
 
-        logging.info("XmlTaskGenerator finished!")
+        logging.info("LustreXmlTaskGenerator finished!")
         os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
 
         self.run_flag = False
 
-        msg = "XmlTaskGenerator retrieved signal to terminate."
+        msg = "LustreXmlTaskGenerator retrieved signal to terminate."
         logging.debug(msg)
         raise InterruptedError(msg)
 
@@ -146,7 +160,7 @@ class XmlTaskGenerator(Process):
         ost_idx_list = list()
 
         lfs_utils = LFSUtils(self.lfs_bin)
-        ost_item_list = lfs_utils.create_ost_item_list(self.lfs_target)
+        ost_item_list = lfs_utils.create_ost_item_list(self.target)
 
         for ost_item in ost_item_list:
             ost_idx_list.append(ost_item.ost_idx)

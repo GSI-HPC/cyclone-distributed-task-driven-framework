@@ -35,6 +35,7 @@ class TaskFactory:
         dynamic_module = importlib.import_module(xml_info.class_module)
         dynamic_class = getattr(dynamic_module, xml_info.class_name)
 
+        # TODO: getargspec is deprecated...
         arg_spec = inspect.getargspec(dynamic_class.__init__)
 
         arg_spec_args = arg_spec.args

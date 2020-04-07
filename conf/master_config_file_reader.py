@@ -47,18 +47,9 @@ class MasterConfigFileReader:
 
         self.log_filename = config.get('log', 'filename')
 
-        self.task_def_file = config.get('task', 'task_def_file')
-        self.task_name = config.get('task', 'task_name')
-
-        self.measure_interval = float(config.get('task_generator', 'measure_interval'))
-        self.lfs_bin = config.get('task_generator', 'lfs_bin')
-        self.lfs_target = config.get('task_generator', 'lfs_target')
-        tmp_ost_select_list = config.get('task_generator', 'ost_select_list')
-
-        if tmp_ost_select_list:
-            self.ost_select_list = tmp_ost_select_list.replace(' ', '').split(',')
-        else:
-            self.ost_select_list = list()
+        self.task_gen_module = config.get('task_generator', 'module')
+        self.task_gen_class = config.get('task_generator', 'class')
+        self.task_gen_config_file = config.get('task_generator', 'config_file')
 
     def validate(self):
 
@@ -85,19 +76,4 @@ class MasterConfigFileReader:
 
         if not self.poll_timeout:
             raise ConfigValueError("No polling timeout was specified!")
-
-        if not self.lfs_bin:
-            raise ConfigValueError("No LFS binary was specified!")
-
-        if not self.lfs_target:
-            raise ConfigValueError("No Lustre file system target was specified!")
-
-        if not self.measure_interval:
-            raise ConfigValueError("No measure interval was specified!")
-
-        if not self.task_def_file:
-            raise ConfigValueError("No task definition file was specified!")
-
-        if not self.task_name:
-            raise ConfigValueError("No task name for a task execution was specified!")
 
