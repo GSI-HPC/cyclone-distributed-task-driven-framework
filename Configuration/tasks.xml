@@ -11,6 +11,7 @@
 
 		<property>
 
+			<ost_idx></ost_idx>
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
@@ -35,6 +36,7 @@
 			<mail_receiver>hpc-data@gsi.de</mail_receiver>
 			<mail_threshold>3600</mail_threshold>
 
+			<ost_idx></ost_idx>
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
