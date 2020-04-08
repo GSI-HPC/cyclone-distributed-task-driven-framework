@@ -18,7 +18,7 @@
 #
 
 
-class OstState(object):
+class TaskState(object):
 
     @staticmethod
     def assigned():
@@ -29,7 +29,7 @@ class OstState(object):
         return 2
 
 
-class OstStatusItem:
+class TaskStatusItem:
 
     def __init__(self, tid, state, controller, timestamp):
 

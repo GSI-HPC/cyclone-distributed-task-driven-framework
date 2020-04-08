@@ -27,11 +27,10 @@ import signal
 import sys
 import time
 
-# TODO: refactor OstState/OstStateItem to TaskState/TaskStateItem
 from comm.master_handler import MasterCommHandler
 from conf.master_config_file_reader import MasterConfigFileReader
-from ctrl.ost_status_item import OstState
-from ctrl.ost_status_item import OstStatusItem
+from ctrl.ost_status_item import TaskState
+from ctrl.ost_status_item import TaskStatusItem
 from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
 from ctrl.critical_section import CriticalSection
@@ -41,7 +40,6 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from task.generator.lustre_monitoring_task_generator import LustreMonitoringTaskGenerator
 
 
 TASK_DISTRIBUTION = True
@@ -248,12 +246,12 @@ def main():
                                             task_resend_threshold = \
                                                 (ost_status_lookup_dict[task.tid].timestamp + task_resend_timeout)
 
-                                            if ost_status_lookup_dict[task.tid].state == OstState.finished() \
+                                            if ost_status_lookup_dict[task.tid].state == TaskState.finished() \
                                                     or last_exec_timestamp >= task_resend_threshold:
 
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[task.tid].state == OstState.assigned() \
+                                            elif ost_status_lookup_dict[task.tid].state == TaskState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
                                                 logging.debug("Ignoring task to assign... - "
@@ -273,10 +271,10 @@ def main():
 
                                             # TODO: change from ost_stuff to task_stuff...
                                             ost_status_lookup_dict[task.tid] = \
-                                                OstStatusItem(task.tid,
-                                                              OstState.assigned(),
-                                                              recv_msg.sender,
-                                                              int(time.time()))
+                                                TaskStatusItem(task.tid,
+                                                               TaskState.assigned(),
+                                                               recv_msg.sender,
+                                                               int(time.time()))
 
                                             send_msg = TaskAssign(task)
 
@@ -296,7 +294,7 @@ def main():
 
                                             logging.debug("Retrieved finished message for TID: " + tid)
 
-                                            ost_status_lookup_dict[tid].state = OstState.finished()
+                                            ost_status_lookup_dict[tid].state = TaskState.finished()
                                             ost_status_lookup_dict[tid].timestamp = int(time.time())
 
                                         else:

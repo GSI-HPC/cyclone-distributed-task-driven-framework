@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
-# from ctrl.ost_status_item import OstState
+# from ctrl.ost_status_item import TaskState
 #
-# state = OstState.finished()
+# state = TaskState.finished()
 #
-# if state == OstState.assigned():
-#     print OstState.assigned()
+# if state == TaskState.assigned():
+#     print TaskState.assigned()
 # else:
-#     print OstState.finished()
+#     print TaskState.finished()
 
 
 
