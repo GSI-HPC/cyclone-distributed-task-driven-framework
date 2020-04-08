@@ -29,8 +29,8 @@ import time
 
 from comm.master_handler import MasterCommHandler
 from conf.master_config_file_reader import MasterConfigFileReader
-from ctrl.ost_status_item import TaskState
-from ctrl.ost_status_item import TaskStatusItem
+from ctrl.task_status_item import TaskState
+from ctrl.task_status_item import TaskStatusItem
 from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
 from ctrl.critical_section import CriticalSection
@@ -176,7 +176,7 @@ def main():
                 comm_handler.connect()
 
                 controller_heartbeat_dict = dict()
-                ost_status_lookup_dict = dict()
+                task_status_dict = dict()
 
                 controller_timeout = config_file_reader.controller_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
@@ -241,17 +241,17 @@ def main():
 
                                         do_task_assign = False
 
-                                        if task.tid in ost_status_lookup_dict:
+                                        if task.tid in task_status_dict:
 
                                             task_resend_threshold = \
-                                                (ost_status_lookup_dict[task.tid].timestamp + task_resend_timeout)
+                                                (task_status_dict[task.tid].timestamp + task_resend_timeout)
 
-                                            if ost_status_lookup_dict[task.tid].state == TaskState.finished() \
+                                            if task_status_dict[task.tid].state == TaskState.finished() \
                                                     or last_exec_timestamp >= task_resend_threshold:
 
                                                 do_task_assign = True
 
-                                            elif ost_status_lookup_dict[task.tid].state == TaskState.assigned() \
+                                            elif task_status_dict[task.tid].state == TaskState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
                                                 logging.debug("Ignoring task to assign... - "
@@ -269,8 +269,7 @@ def main():
                                         # TODO: Could be a method to be called instead of `do_task_assign = True`
                                         if do_task_assign:
 
-                                            # TODO: change from ost_stuff to task_stuff...
-                                            ost_status_lookup_dict[task.tid] = \
+                                            task_status_dict[task.tid] = \
                                                 TaskStatusItem(task.tid,
                                                                TaskState.assigned(),
                                                                recv_msg.sender,
@@ -288,14 +287,14 @@ def main():
 
                                     tid = recv_msg.tid
 
-                                    if tid in ost_status_lookup_dict:
+                                    if tid in task_status_dict:
 
-                                        if recv_msg.sender == ost_status_lookup_dict[tid].controller:
+                                        if recv_msg.sender == task_status_dict[tid].controller:
 
                                             logging.debug("Retrieved finished message for TID: " + tid)
 
-                                            ost_status_lookup_dict[tid].state = TaskState.finished()
-                                            ost_status_lookup_dict[tid].timestamp = int(time.time())
+                                            task_status_dict[tid].state = TaskState.finished()
+                                            task_status_dict[tid].timestamp = int(time.time())
 
                                         else:
                                             logging.warning("Retrieved task finished from different controller!")
