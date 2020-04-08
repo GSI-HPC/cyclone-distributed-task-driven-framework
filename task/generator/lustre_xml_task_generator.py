@@ -35,7 +35,6 @@ class LustreXmlTaskGenerator(Process):
     def __init__(self,
                  task_queue,
                  lock_task_queue,
-                 local_mode,
                  config_file):
 
         super(LustreXmlTaskGenerator, self).__init__()
@@ -63,9 +62,8 @@ class LustreXmlTaskGenerator(Process):
         else:
             self.ost_select_list = list()
 
-        self.measure_interval = float(config.get('control', 'measure_interval'))
-
-        self.local_mode = local_mode
+        self.measure_interval = config.getfloat('control', 'measure_interval')
+        self.local_mode = config.getboolean('control', 'local_mode')
 
         self.run_flag = False
 

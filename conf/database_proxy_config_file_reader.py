@@ -38,8 +38,8 @@ class DatabaseProxyConfigFileReader:
         self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
-        self.comm_port = int(config.get('comm', 'port'))
-        self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
+        self.comm_port = config.getint('comm', 'port')
+        self.poll_timeout = config.getint('comm', 'poll_timeout') * 1000
 
         self.log_filename = config.get('log', 'filename')
 
@@ -48,8 +48,8 @@ class DatabaseProxyConfigFileReader:
         self.password = config.get('db', 'password')
         self.database = config.get('db', 'database')
         self.table = config.get('db', 'table')
-        self.store_timeout = int(config.get('db', 'store_timeout'))
-        self.store_max_count = int(config.get('db', 'store_max_count'))
+        self.store_timeout = config.getint('db', 'store_timeout')
+        self.store_max_count = config.getint('db', 'store_max_count')
 
         self.validate()
 

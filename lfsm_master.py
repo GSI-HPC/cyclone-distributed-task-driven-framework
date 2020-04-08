@@ -69,13 +69,6 @@ def init_arg_parser():
                         action='store_true',
                         help='Enables debug log messages.')
 
-    parser.add_argument('-L',
-                        '--local',
-                        dest='local_mode',
-                        required=False,
-                        action='store_true',
-                        help='Enables local mode.')
-
     return parser.parse_args()
 
 
@@ -131,7 +124,6 @@ def check_all_controller_down(count_active_controller):
 
 def create_task_generator(task_queue,
                           lock_task_queue,
-                          local_mode,
                           config_file_reader):
 
     module_name = config_file_reader.task_gen_module
@@ -143,7 +135,6 @@ def create_task_generator(task_queue,
 
     task_generator = dynamic_class(task_queue,
                                    lock_task_queue,
-                                   local_mode,
                                    config_file)
 
     return task_generator
@@ -198,7 +189,6 @@ def main():
 
                 task_generator = create_task_generator(task_queue,
                                                        lock_task_queue,
-                                                       args.local_mode,
                                                        config_file_reader)
 
                 task_generator.start()

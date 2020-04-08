@@ -37,13 +37,13 @@ class MasterConfigFileReader:
         self.version = config.get('control', 'version')
         self.pid_file = config.get('control', 'pid_file')
 
-        self.controller_timeout = float(config.get('control', 'controller_timeout'))
-        self.controller_wait_duration = int(config.get('control', 'controller_wait_duration'))
-        self.task_resend_timeout = int(config.get('control', 'task_resend_timeout'))
+        self.controller_timeout = config.getfloat('control', 'controller_timeout')
+        self.controller_wait_duration = config.getint('control', 'controller_wait_duration')
+        self.task_resend_timeout = config.getint('control', 'task_resend_timeout')
 
         self.comm_target = config.get('comm', 'target')
-        self.comm_port = int(config.get('comm', 'port'))
-        self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
+        self.comm_port = config.getint('comm', 'port')
+        self.poll_timeout = config.getint('comm', 'poll_timeout') * 1000
 
         self.log_filename = config.get('log', 'filename')
 

@@ -38,13 +38,13 @@ class ControllerConfigFileReader:
         self.pid_file = config.get('control', 'pid_file')
 
         self.comm_target = config.get('comm', 'target')
-        self.comm_port = int(config.get('comm', 'port'))
-        self.poll_timeout = int(config.get('comm', 'poll_timeout')) * 1000
-        self.request_retry_wait_duration = int(config.get('comm', 'request_retry_wait_duration'))
+        self.comm_port = config.getint('comm', 'port')
+        self.poll_timeout = config.getint('comm', 'poll_timeout') * 1000
+        self.request_retry_wait_duration = config.getint('comm', 'request_retry_wait_duration')
 
         self.log_filename = config.get('log', 'filename')
 
-        self.worker_count = int(config.get('processing', 'worker_count'))
+        self.worker_count = config.getint('processing', 'worker_count')
 
         self.validate()
 
