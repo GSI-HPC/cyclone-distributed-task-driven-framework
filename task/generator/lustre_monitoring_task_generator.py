@@ -30,14 +30,14 @@ from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 
 
-class LustreXmlTaskGenerator(Process):
+class LustreMonitoringTaskGenerator(Process):
 
     def __init__(self,
                  task_queue,
                  lock_task_queue,
                  config_file):
 
-        super(LustreXmlTaskGenerator, self).__init__()
+        super(LustreMonitoringTaskGenerator, self).__init__()
 
         self.task_queue = task_queue
         self.lock_task_queue = lock_task_queue
@@ -68,7 +68,7 @@ class LustreXmlTaskGenerator(Process):
         self.run_flag = False
 
     def start(self):
-        super(LustreXmlTaskGenerator, self).start()
+        super(LustreMonitoringTaskGenerator, self).start()
 
     def run(self):
 
@@ -77,13 +77,13 @@ class LustreXmlTaskGenerator(Process):
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGTERM, True)
 
-        logging.info("LustreXmlTaskGenerator started!")
+        logging.info("LustreMonitoringTaskGenerator started!")
 
         while self.run_flag:
 
             try:
 
-                logging.debug("LustreXmlTaskGenerator active!")
+                logging.debug("LustreMonitoringTaskGenerator active!")
 
                 ost_idx_list = None
 
@@ -108,18 +108,18 @@ class LustreXmlTaskGenerator(Process):
                 logging.error("Caught InterruptedError exception.")
 
             except Exception as e:
-                logging.error("Caught exception in LustreXmlTaskGenerator: %s" % e)
-                logging.info("LustreXmlTaskGenerator exited!")
+                logging.error("Caught exception in LustreMonitoringTaskGenerator: %s" % e)
+                logging.info("LustreMonitoringTaskGenerator exited!")
                 os._exit(1)
 
-        logging.info("LustreXmlTaskGenerator finished!")
+        logging.info("LustreMonitoringTaskGenerator finished!")
         os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
 
         self.run_flag = False
 
-        msg = "LustreXmlTaskGenerator retrieved signal to terminate."
+        msg = "LustreMonitoringTaskGenerator retrieved signal to terminate."
         logging.debug(msg)
         raise InterruptedError(msg)
 
