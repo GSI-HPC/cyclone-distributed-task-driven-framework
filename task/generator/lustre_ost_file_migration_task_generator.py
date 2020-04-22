@@ -21,6 +21,7 @@ import logging
 import random
 import signal
 import time
+import sys
 import os
 
 from multiprocessing import Process
@@ -62,6 +63,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
         ost_targets = config.get('lustre.migration', 'ost_targets')
         self.ost_target_list = ost_targets.strip().split(",")
 
+        # TODO: Process all files file by file in a given directory.
+        self.input_file = config.get('lustre.migration', 'input_file')
+
         self.ost_source_free_dict = dict()
         self.ost_target_free_dict = dict()
 
@@ -84,22 +88,12 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         logging.info(f"{self.__class__.__name__} started!")
 
-        ost_migrate_item_list = LustreOstFileMigrationTaskGenerator.create_ost_migrate_item_list()
-        print(ost_migrate_item_list)
-
         # Do not forget to clear the OST cache/free dict for each initialization run
         self.ost_cache_dict.clear()
         self.ost_source_free_dict.clear()
 
-        # Set up OST caches
-        for ost_migrate_item in ost_migrate_item_list:
+        self.load_input_file(self.input_file)
 
-            if ost_migrate_item.ost not in self.ost_cache_dict:
-                self.ost_cache_dict[ost_migrate_item.ost] = list()
-
-            self.ost_cache_dict[ost_migrate_item.ost].append(ost_migrate_item)
-
-        # Initialize OST source free dict depending on the keys from ost_cache_dict
         for key in self.ost_cache_dict.keys():
             self.ost_source_free_dict[key] = True
 
@@ -205,22 +199,29 @@ class LustreOstFileMigrationTaskGenerator(Process):
         logging.debug(msg)
         raise InterruptedError(msg)
 
-    @staticmethod
-    def create_ost_migrate_item_list():
+    def load_input_file(self, input_file):
 
-        l = list()
+        with open(input_file, "r") as file:
 
-        for i in range(10):
-            l.append(LustreOstFileMigrationTaskGenerator.create_ost_migrate_item())
+            for line in file:
 
-        return l
+                try:
 
-    @staticmethod
-    def create_ost_migrate_item():
+                    ost, filename, xxx = line.strip().split()
 
-        ost = str(random.randint(0, 3))
+                    migrate_item = LustreOstMigrateItem(ost, filename)
 
-        filename = "/home/xxx/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/" \
-            "34343543354353543535353543/343434343664654646456464436/file.tmp/"
+                    if ost not in self.ost_cache_dict:
+                        self.ost_cache_dict[ost] = list()
 
-        return LustreOstMigrateItem(ost, filename)
+                    self.ost_cache_dict[ost].append(migrate_item)
+
+                except Exception as e:
+
+                    logging.warning(f"Skipped line: {line}")
+
+                    # TODO: Preferred way for printing exceptions!
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
+
