@@ -24,6 +24,7 @@ import time
 import os
 
 from multiprocessing import Process
+
 from ctrl.critical_section import CriticalSection
 from lfs.lfs_utils import LFSUtils
 from task.xml.task_xml_reader import TaskXmlReader
@@ -35,6 +36,8 @@ class LustreMonitoringTaskGenerator(Process):
     def __init__(self,
                  task_queue,
                  lock_task_queue,
+                 result_queue,
+                 lock_result_queue,
                  config_file):
 
         super(LustreMonitoringTaskGenerator, self).__init__()
@@ -42,12 +45,11 @@ class LustreMonitoringTaskGenerator(Process):
         self.task_queue = task_queue
         self.lock_task_queue = lock_task_queue
 
-        if not os.path.isfile(config_file):
-            raise IOError("The config file does not exist or is not a file: %s"
-                          % config_file)
+        self.result_queue = result_queue
+        self.lock_result_queue = lock_result_queue
 
         config = configparser.ConfigParser()
-        config.read(config_file)
+        config.read_file(open(config_file))
 
         self.task_file = config.get('task', 'task_def_file')
         self.task_name = config.get('task', 'task_name')

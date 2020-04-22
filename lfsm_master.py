@@ -122,6 +122,8 @@ def check_all_controller_down(count_active_controller):
 
 def create_task_generator(task_queue,
                           lock_task_queue,
+                          result_queue,
+                          lock_result_queue,
                           config_file_reader):
 
     module_name = config_file_reader.task_gen_module
@@ -133,6 +135,8 @@ def create_task_generator(task_queue,
 
     task_generator = dynamic_class(task_queue,
                                    lock_task_queue,
+                                   result_queue,
+                                   lock_result_queue,
                                    config_file)
 
     return task_generator
@@ -157,7 +161,8 @@ def main():
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as task_queue:
+                SharedQueue() as task_queue, \
+                SharedQueue() as result_queue:
 
             if pid_control.lock():
 
@@ -182,11 +187,14 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
+                # TODO: Integrate lock into shared queue
                 lock_task_queue = multiprocessing.Lock()
-                lock_task_queue_timeout = 1
+                lock_result_queue = multiprocessing.Lock()
 
                 task_generator = create_task_generator(task_queue,
                                                        lock_task_queue,
+                                                       result_queue,
+                                                       lock_result_queue,
                                                        config_file_reader)
 
                 task_generator.start()
@@ -222,8 +230,7 @@ def main():
 
                                     task = None
 
-                                    with CriticalSection(lock_task_queue,
-                                                         timeout=lock_task_queue_timeout):
+                                    with CriticalSection(lock_task_queue, timeout=1):
 
                                         if not task_queue.is_empty():
                                             task = task_queue.pop_nowait()
@@ -291,10 +298,14 @@ def main():
 
                                         if recv_msg.sender == task_status_dict[tid].controller:
 
-                                            logging.debug("Retrieved finished message for TID: " + tid)
+                                            logging.debug("Retrieved finished message for TID: %s" % tid)
 
                                             task_status_dict[tid].state = TaskState.finished()
                                             task_status_dict[tid].timestamp = int(time.time())
+
+                                            with CriticalSection(lock_result_queue):
+                                                logging.debug("Pushing TID to result queue: %s" % tid)
+                                                result_queue.push(tid)
 
                                         else:
                                             logging.warning("Retrieved task finished from different controller!")

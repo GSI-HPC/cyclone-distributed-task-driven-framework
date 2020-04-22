@@ -7,7 +7,7 @@ LFSM_PID_DIR=/var/run/lfsm/
 EXE=master
 BIN=/usr/sbin/lfsm-$EXE.py
 CON=$LFSM_CON_DIR/$EXE.conf
-TSK=$LFSM_CON_DIR/lustre_tasks.xml
+TSK=$LFSM_CON_DIR/lustre_monitoring_tasks.xml
 LOG=$LFSM_LOG_DIR/$EXE.log
 PID=$LFSM_PID_DIR/$EXE.pid
 

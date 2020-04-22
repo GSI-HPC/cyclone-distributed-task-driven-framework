@@ -17,40 +17,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 
-import abc
+from task.base_task import BaseTask
 
 
-class BaseTask(object):
-    """Base task class to be implemented so a task can be executed by a worker."""
+class OstMigrateTask(BaseTask):
 
-    def __init__(self):
+    def __init__(self, source_ost, target_ost, filename):
 
-        __metaclass__ = abc.ABCMeta
+        super(OstMigrateTask, self).__init__()
 
-        super(BaseTask, self).__init__()
+        self.source_ost = source_ost
+        self.target_ost = target_ost
+        self.filename = filename
 
-        # TODO: Should have no property and setter method,
-        #       since the attribute is private.
-        self._tid = None
-
-    @abc.abstractmethod
     def execute(self):
-        raise NotImplementedError('Must be implemented in subclass!')
 
-    @property
-    def tid(self):
-        return self._tid
-
-    @tid.setter
-    def tid(self, tid):
-
-        if type(tid) is not str:
-            raise ValueError('Argument tid must be str type!')
-
-        if not tid:
-            raise ValueError('Argument tid must be set!')
-
-        self._tid = tid
-
-
+        try:
+            logging.info(f"{self.source_ost} : {self.target_ost} : {self.filename}")
+        except Exception as e:
+            logging.error(f"Caught exception in {self.__class__.__name__}: {e}")
