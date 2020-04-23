@@ -18,7 +18,6 @@
 #
 import configparser
 import logging
-import random
 import signal
 import time
 import sys
@@ -207,7 +206,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 try:
 
-                    ost, filename, xxx = line.strip().split()
+                    ost, filename = line.strip().split()
 
                     migrate_item = LustreOstMigrateItem(ost, filename)
 

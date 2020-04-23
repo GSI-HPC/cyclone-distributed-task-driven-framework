@@ -154,7 +154,7 @@ class LFSUtils:
             raise RuntimeError("[%s] Undefined stripe count returned for '%s': %i"
                                % (func_name, filename, stripe_count))
 
-    def migrate_file(self, filename, block=False, idx=None, skip=False):
+    def migrate_file(self, filename, idx=None, block=False, skip=True):
         """
         Processor function to process a file.
 

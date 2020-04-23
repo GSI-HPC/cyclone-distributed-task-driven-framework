@@ -20,6 +20,7 @@
 import logging
 
 from task.base_task import BaseTask
+from lfs.lfs_utils import LFSUtils
 
 
 class OstMigrateTask(BaseTask):
@@ -28,6 +29,8 @@ class OstMigrateTask(BaseTask):
 
         super(OstMigrateTask, self).__init__()
 
+        self.lfs_utils = LFSUtils("/usr/bin/lfs")
+
         self.source_ost = source_ost
         self.target_ost = target_ost
         self.filename = filename
@@ -35,6 +38,10 @@ class OstMigrateTask(BaseTask):
     def execute(self):
 
         try:
+
             logging.info(f"{self.source_ost} : {self.target_ost} : {self.filename}")
+
+            self.lfs_utils.migrate_file(self.filename, self.target_ost)
+
         except Exception as e:
             logging.error(f"Caught exception in {self.__class__.__name__}: {e}")
