@@ -20,8 +20,11 @@
 
 import os
 import re
+import sys
 import logging
 import subprocess
+
+from datetime import datetime
 
 
 class LFSOstItem:
@@ -48,13 +51,12 @@ class LFSOstItem:
         self._ost_idx = str(int(ost[3:], 16))
 
 
+# TODO: Make Singleton...?
 class LFSUtils:
 
     def __init__(self, lfs_bin):
 
         self.lfs_bin = lfs_bin
-        self.ost_prefix_len = len('OST')
-        self.ost_active_output = ' active.'
 
         if not os.path.isfile(self.lfs_bin):
             raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
@@ -125,3 +127,80 @@ class LFSUtils:
 
         # TODO Use subprocess.run() with Python3.5
         subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
+
+    def is_file_stripped(self, filename):
+        """
+        Raises
+        ------
+        subprocess.CalledProcessError
+            If execution of 'lfs getstripe' returns an error.
+        """
+
+        args = [self.lfs_bin, 'getstripe', '-c', filename]
+
+        process_result = subprocess.run(args,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        check=True)
+
+        stripe_count = int(process_result.stdout)
+
+        if stripe_count == 1:
+            return False
+        elif stripe_count > 1:
+            return True
+        else:
+            func_name = sys._getframe().f_code.co_name
+            raise RuntimeError("[%s] Undefined stripe count returned for '%s': %i"
+                               % (func_name, filename, stripe_count))
+
+    def migrate_file(self, filename, block=False, idx=None, skip=False):
+        """
+        Processor function to process a file.
+
+        Prints the following messages on STDOUT:
+            * SKIPPED|{filename}
+                - if skip option enabled and file stripe count > 1
+            * SUCCESS|{filename}|{time_time_elapsed}
+                - if migration of file was successful
+            * FAILED|{filename}|{return_code}|{error_message}
+                - if migration of file failed e.g. 'lfs' failed
+        """
+
+        try:
+
+            if not filename:
+                raise RuntimeError('Empty filename!')
+
+            if skip and self.is_file_stripped(filename):
+                logging.info("SKIPPED|%s" % filename)
+            else:
+
+                args = [self.lfs_bin, 'migrate']
+
+                if block:
+                    args.append('--block')
+                else:
+                    args.append('--non-block')
+
+                if idx:
+                    args.append('-o')
+                    args.append(idx)
+
+                args.append(filename)
+
+                start_time = datetime.now()
+                subprocess.run(args, check=True, stderr=subprocess.PIPE)
+                time_elapsed = datetime.now() - start_time
+
+                logging.info("SUCCESS|%s|%s" % (filename, time_elapsed))
+
+        except subprocess.CalledProcessError as error:
+
+            rc = error.returncode
+            stderr = ''
+
+            if error.stderr:
+                stderr = error.stderr.decode('UTF-8')
+
+            logging.info("FAILED|%s|%i|%s" % (filename, rc, stderr))
