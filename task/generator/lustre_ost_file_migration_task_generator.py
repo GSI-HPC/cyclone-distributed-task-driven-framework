@@ -126,10 +126,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                     print("tid: %s" % tid)
 
-                                    # TODO: create migrate task...
                                     item = ost_cache.pop()
 
-                                    # create task
                                     task = OstMigrateTask(ost_idx, target_ost, item.filename)
                                     task.tid = tid
 
