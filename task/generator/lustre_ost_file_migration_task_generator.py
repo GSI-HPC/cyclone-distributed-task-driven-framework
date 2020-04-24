@@ -27,6 +27,7 @@ from multiprocessing import Process
 
 from ctrl.critical_section import CriticalSection
 from task.ost_migrate_task import OstMigrateTask
+from task.empty_task import EmptyTask
 
 
 class LustreOstMigrateItem:
@@ -66,6 +67,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         self.input_file = config.get('lustre.migration', 'input_file')
 
         self.ost_source_free_dict = dict()
+
         self.ost_target_free_dict = dict()
 
         for ost in self.ost_target_list:
@@ -96,65 +98,62 @@ class LustreOstFileMigrationTaskGenerator(Process):
         for key in self.ost_cache_dict.keys():
             self.ost_source_free_dict[key] = True
 
+        ost_target_keys = list(self.ost_target_free_dict.keys())
+        ost_target_keys_len = len(ost_target_keys)
+        ost_target_keys_index = 0
+
         while self.run_flag:
 
             try:
-
-                logging.debug(f"{self.__class__.__name__} active!")
 
                 for ost_idx, ost_cache in self.ost_cache_dict.items():
 
                     ost_cache = self.ost_cache_dict[ost_idx]
 
-                    print(f"ost-cache: {ost_idx} - len(ost_cache): {len(ost_cache)}")
+                    logging.debug(f"OST-Cache: {ost_idx} - Length: {len(ost_cache)}")
 
                     if len(ost_cache):
 
                         if self.ost_source_free_dict[ost_idx]:
 
-                            print("free slot for source ost: %s" % ost_idx)
+                            logging.debug("Free slot for source OST: %s" % ost_idx)
 
-                            for target_ost, free in self.ost_target_free_dict.items():
+                            for i in range(ost_target_keys_index, ost_target_keys_len):
+
+                                target_ost = ost_target_keys[i]
+                                free = self.ost_target_free_dict[target_ost]
 
                                 if free:
 
-                                    print("found free target ost: %s" % target_ost)
+                                    logging.debug("Found free target OST: %s" % target_ost)
 
-                                    # TODO: create compose tid func
-                                    # build task id (tid)
                                     tid = f"{ost_idx}:{target_ost}"
 
-                                    print("tid: %s" % tid)
+                                    logging.debug("New TID: %s" % tid)
 
                                     item = ost_cache.pop()
 
-                                    task = OstMigrateTask(ost_idx, target_ost, item.filename)
+                                    ##task = OstMigrateTask(ost_idx, target_ost, item.filename)
+                                    task = EmptyTask()
                                     task.tid = tid
 
                                     logging.debug(f"Pushing task with TID to task queue: {task.tid}")
-                                    print(f"Pushing task with TID to task queue: {task.tid}")
 
                                     with CriticalSection(self.lock_task_queue):
                                         self.task_queue.push(task)
 
-                                    # update ost_source_dict
                                     self.ost_source_free_dict[ost_idx] = False
-
-                                    # update ost_target_dict
                                     self.ost_target_free_dict[target_ost] = False
 
-                                    # TODO: Do target search separately with
-                                    #       additional Lustre information
+                                    ost_target_keys_index += 1
+
+                                    if ost_target_keys_index == ost_target_keys_len:
+                                        ost_target_keys_index = 0
+
                                     break
-                        else:
-                            logging.debug("no free slot...")
 
                     else:
-                        logging.debug("cache for OST is empty: %s" % ost_idx)
-
-                # Testing purpose...
-                logging.debug("sleeping 1 *******")
-                time.sleep(1)
+                        logging.debug("Cache is empty for OST: %s" % ost_idx)
 
                 while not self.result_queue.is_empty():
 
@@ -167,10 +166,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         # TODO: create decompose tid func + add error handling
                         source_ost, target_ost = finished_tid.split(":")
 
-                        # update ost_source_dict
                         self.ost_source_free_dict[source_ost] = True
-
-                        # update ost_target_dict
                         self.ost_target_free_dict[target_ost] = True
 
                 # Testing purpose...
