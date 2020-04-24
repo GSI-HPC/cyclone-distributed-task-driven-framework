@@ -39,7 +39,11 @@ class OstMigrateTask(BaseTask):
 
         try:
 
-            logging.info(f"{self.source_ost} : {self.target_ost} : {self.filename}")
+            logging.debug("%s: %s|%s|%s" %
+                          self.__class__.__name__,
+                          self.filename,
+                          self.source_ost,
+                          self.target_ost)
 
             self.lfs_utils.migrate_file(self.filename, self.target_ost)
 
