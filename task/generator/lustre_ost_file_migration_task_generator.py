@@ -133,8 +133,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                     item = ost_cache.pop()
 
-                                    ##task = OstMigrateTask(ost_idx, target_ost, item.filename)
-                                    task = EmptyTask()
+                                    task = OstMigrateTask(ost_idx, target_ost, item.filename)
                                     task.tid = tid
 
                                     logging.debug(f"Pushing task with TID to task queue: {task.tid}")
@@ -169,9 +168,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         self.ost_source_free_dict[source_ost] = True
                         self.ost_target_free_dict[target_ost] = True
 
-                # Testing purpose...
-                logging.debug("sleeping 2 *******")
-                time.sleep(1)
+                # TODO: more intelligent sleeping/waiting?
+                time.sleep(0.5)
 
             except InterruptedError as e:
                 logging.error("Caught InterruptedError exception.")
