@@ -189,7 +189,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 logging.error("Caught InterruptedError exception.")
 
             except Exception as e:
-                logging.error(f"Caught exception in {self.__class__.__name__}: {e}")
+
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
                 logging.info(f"{self.__class__.__name__} exited!")
                 os._exit(1)
 

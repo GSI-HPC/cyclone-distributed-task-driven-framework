@@ -117,7 +117,6 @@ class LustreMonitoringTaskGenerator(Process):
 
                 logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
                 logging.info("LustreMonitoringTaskGenerator exited!")
-
                 os._exit(1)
 
         logging.info("LustreMonitoringTaskGenerator finished!")
