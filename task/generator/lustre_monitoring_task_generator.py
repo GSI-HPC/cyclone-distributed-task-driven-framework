@@ -21,6 +21,7 @@ import logging
 import signal
 import copy
 import time
+import sys
 import os
 
 from multiprocessing import Process
@@ -110,8 +111,13 @@ class LustreMonitoringTaskGenerator(Process):
                 logging.error("Caught InterruptedError exception.")
 
             except Exception as e:
-                logging.error("Caught exception in LustreMonitoringTaskGenerator: %s" % e)
+
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
                 logging.info("LustreMonitoringTaskGenerator exited!")
+
                 os._exit(1)
 
         logging.info("LustreMonitoringTaskGenerator finished!")

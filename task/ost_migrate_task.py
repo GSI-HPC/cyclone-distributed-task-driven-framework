@@ -17,10 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
+import os
+import sys
 import logging
 
-from task.base_task import BaseTask
 from lfs.lfs_utils import LFSUtils
+from task.base_task import BaseTask
 
 
 class OstMigrateTask(BaseTask):
@@ -38,14 +41,11 @@ class OstMigrateTask(BaseTask):
     def execute(self):
 
         try:
-
-            logging.debug("%s: %s|%s|%s" %
-                          self.__class__.__name__,
-                          self.filename,
-                          self.source_ost,
-                          self.target_ost)
-
             self.lfs_utils.migrate_file(self.filename, self.target_ost)
 
         except Exception as e:
-            logging.error(f"Caught exception in {self.__class__.__name__}: {e}")
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")

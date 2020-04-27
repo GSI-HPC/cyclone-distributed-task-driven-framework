@@ -18,13 +18,13 @@
 #
 
 
-import multiprocessing
 import argparse
 import logging
-import signal
-import time
-import sys
+import multiprocessing
 import os
+import signal
+import sys
+import time
 
 from worker import Worker
 from worker import WorkerState
@@ -424,8 +424,7 @@ def main():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-        logging.error("Caught exception (type: %s) on last instance: %s - %s (line: %s)"
-                      % (exc_type, str(e), filename, exc_tb.tb_lineno))
+        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
 
         os._exit(1)
 

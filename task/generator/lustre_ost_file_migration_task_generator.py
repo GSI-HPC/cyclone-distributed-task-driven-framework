@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+
 import configparser
 import logging
 import signal
@@ -162,11 +164,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         logging.debug(f"Popped TID from result queue: {finished_tid}")
 
-                        # TODO: create decompose tid func + add error handling
                         source_ost, target_ost = finished_tid.split(":")
 
                         self.ost_source_free_dict[source_ost] = True
                         self.ost_target_free_dict[target_ost] = True
+
+                # TODO: Print each 5 minutes state of caches:
+                # logging.debug(f"OST-Cache: {ost_idx} - Length: {len(ost_cache)}")
 
                 # TODO: more intelligent sleeping/waiting?
                 time.sleep(0.5)
@@ -211,8 +215,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     logging.warning(f"Skipped line: {line}")
 
-                    # TODO: Preferred way for printing exceptions!
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
                     logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
 
