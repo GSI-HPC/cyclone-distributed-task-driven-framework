@@ -104,6 +104,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
         ost_target_keys_len = len(ost_target_keys)
         ost_target_keys_index = 0
 
+        print_caches_threshold = 10
+        print_caches_next_time = int(time.time()) + print_caches_threshold
+
         while self.run_flag:
 
             try:
@@ -111,8 +114,6 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 for ost_idx, ost_cache in self.ost_cache_dict.items():
 
                     ost_cache = self.ost_cache_dict[ost_idx]
-
-                    logging.debug(f"OST-Cache: {ost_idx} - Length: {len(ost_cache)}")
 
                     if len(ost_cache):
 
@@ -135,6 +136,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                     item = ost_cache.pop()
 
+                                    ## task = EmptyTask()    # Testing
                                     task = OstMigrateTask(ost_idx, target_ost, item.filename)
                                     task.tid = tid
 
@@ -169,8 +171,16 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         self.ost_source_free_dict[source_ost] = True
                         self.ost_target_free_dict[target_ost] = True
 
-                # TODO: Print each 5 minutes state of caches:
-                # logging.debug(f"OST-Cache: {ost_idx} - Length: {len(ost_cache)}")
+                last_run_time = int(time.time())
+
+                if last_run_time >= print_caches_next_time:
+
+                    print_caches_next_time = last_run_time + print_caches_threshold
+
+                    logging.info("### Dump - OST Cache Sizes ###")
+
+                    for ost_idx, ost_cache in self.ost_cache_dict.items():
+                        logging.info(f"OST: {ost_idx} - Size: {len(ost_cache)}")
 
                 # TODO: more intelligent sleeping/waiting?
                 time.sleep(0.5)
