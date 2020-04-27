@@ -104,7 +104,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         ost_target_keys_len = len(ost_target_keys)
         ost_target_keys_index = 0
 
-        print_caches_threshold = 300
+        print_caches_threshold = 900
         print_caches_next_time = int(time.time()) + print_caches_threshold
 
         while self.run_flag:
