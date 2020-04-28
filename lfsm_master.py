@@ -242,7 +242,7 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                                logging.error("LustreMonitoringTaskGenerator is not alive!")
+                                                logging.error("Task Generator is not alive!")
 
                                     if task:
 
@@ -396,7 +396,7 @@ def main():
 
                 if task_generator.is_alive():
 
-                    logging.debug("Waiting for LustreMonitoringTaskGenerator to finish...")
+                    logging.debug("Waiting for Task Generator to finish...")
                     time.sleep(1)
 
                 else:
