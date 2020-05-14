@@ -182,7 +182,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     for ost_idx, ost_cache in self.ost_cache_dict.items():
                         logging.info(f"OST: {ost_idx} - Size: {len(ost_cache)}")
 
-                # TODO: more intelligent sleeping/waiting?
+                # TODO: adaptive sleep...
                 time.sleep(0.5)
 
             except InterruptedError as e:
