@@ -233,5 +233,5 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
-            logging.info("Loaded input file: %s" % filename)
+            logging.info("Loaded input file: %s" % input_file)
 
