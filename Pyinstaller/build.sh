@@ -11,7 +11,7 @@ MASTER_EXE=dist/lfsm-master.py
 CONTROLLER_EXE=dist/lfsm-controller.py
 DATABASE_PROXY_EXE=dist/lfsm-database-proxy.py
 
-# !!! Build successfully tested with -> Python version 3.8.2 !!!
+# !!! Build successfully tested with -> Python version 3.6.8 and 3.8.2 !!!
 HIDDEN_IMPORTS="--hidden-import task.ost_migrate_task \
                 --hidden-import task.empty_task \
                 --hidden-import task.io_task \
