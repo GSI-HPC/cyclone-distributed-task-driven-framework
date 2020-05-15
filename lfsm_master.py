@@ -41,7 +41,7 @@ from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
 
-
+VERSION = "1.5.0"
 TASK_DISTRIBUTION = True
 
 
@@ -56,7 +56,7 @@ def init_arg_parser():
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=str('Path to the config file (default: %s)'
+                        help=str('Use this config file (default: %s)'
                                  % default_config_file),
                         default=default_config_file)
 
@@ -65,7 +65,14 @@ def init_arg_parser():
                         dest='enable_debug',
                         required=False,
                         action='store_true',
-                        help='Enables debug log messages.')
+                        help='Enable debug log messages')
+
+    parser.add_argument('-v',
+                        '--version',
+                        dest='print_version',
+                        required=False,
+                        action='store_true',
+                        help='Print version number')
 
     return parser.parse_args()
 
@@ -153,6 +160,10 @@ def main():
 
         args = init_arg_parser()
 
+        if args.print_version:
+            print("Version %s" % VERSION)
+            sys.exit()
+
         config_file_reader = MasterConfigFileReader(args.config_file)
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
@@ -168,7 +179,7 @@ def main():
 
                 logging.info("Started")
                 logging.info("Master PID: %s", pid_control.pid())
-                logging.debug("Version: %s" % config_file_reader.version)
+                logging.info("Version: %s" % VERSION)
 
                 signal.signal(signal.SIGHUP, signal_handler)
                 signal.signal(signal.SIGINT, signal_handler)
@@ -374,7 +385,7 @@ def main():
 
                 logging.error("Another instance might be already running!")
                 logging.info("PID file: %s" % config_file_reader.pid_file)
-                os._exit(1)
+                sys.exit(1)
 
     except Exception as e:
 
@@ -419,9 +430,9 @@ def main():
     logging.info("Finished")
 
     if error_count:
-        os._exit(1)
+        sys.exit(1)
 
-    os._exit(0)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
