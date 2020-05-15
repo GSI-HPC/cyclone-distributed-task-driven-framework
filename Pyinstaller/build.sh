@@ -11,7 +11,12 @@ MASTER_EXE=dist/lfsm-master.py
 CONTROLLER_EXE=dist/lfsm-controller.py
 DATABASE_PROXY_EXE=dist/lfsm-database-proxy.py
 
-HIDDEN_IMPORTS="--hidden-import task.generator.lustre_ost_file_migration_task_generator --hidden-import ost_migrate_task --hidden-import task.empty_task --hidden-import task.io_task --hidden-import task.alert_io_task"
+# !!! Build successfully tested with -> Python version 3.8.2 !!!
+HIDDEN_IMPORTS="--hidden-import task.ost_migrate_task \
+                --hidden-import task.empty_task \
+                --hidden-import task.io_task \
+                --hidden-import task.alert_io_task \
+                --hidden-import task.generator.lustre_ost_file_migration_task_generator"
 
 function build_master {
 
