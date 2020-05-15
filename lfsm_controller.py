@@ -42,6 +42,7 @@ from msg.heartbeat import Heartbeat
 from task.poisen_pill import PoisenPill
 
 
+VERSION = "1.5.0"
 RUN_CONDITION = True
 
 
@@ -66,6 +67,13 @@ def init_arg_parser():
                         required=False,
                         action='store_true',
                         help='Enables debug log messages.')
+
+    parser.add_argument('-v',
+                        '--version',
+                        dest='print_version',
+                        required=False,
+                        action='store_true',
+                        help='Print version number')
 
     return parser.parse_args()
 
@@ -193,6 +201,10 @@ def main():
 
         args = init_arg_parser()
 
+        if args.print_version:
+            print("Version %s" % VERSION)
+            sys.exit()
+
         config_file_reader = ControllerConfigFileReader(args.config_file)
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
@@ -208,7 +220,7 @@ def main():
 
                 logging.info("Started")
                 logging.info("Controller PID: %s", pid_control.pid())
-                logging.debug("Version: %s" % config_file_reader.version)
+                logging.debug("Version: %s" % VERSION)
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -415,21 +427,20 @@ def main():
                         logging.error("Caught exception terminating Worker: " + str(e))
 
             else:
+
                 logging.error("Another instance might be already running!")
                 logging.info("PID file: %s" % config_file_reader.pid_file)
-                os._exit(1)
+                sys.exit(1)
 
     except Exception as e:
 
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
-
-        os._exit(1)
+        logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
+        sys.exit(1)
 
     logging.info('Finished')
-    os._exit(0)
+    sys.exit(0)
 
 
 if __name__ == '__main__':

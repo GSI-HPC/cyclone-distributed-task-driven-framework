@@ -368,15 +368,13 @@ def main():
 
                     except Exception as e:
 
+                        error_count += 1
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
                         logging.error("Caught exception in main loop: %s - "
                                       "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
 
                         stop_task_distribution()
-
-                        error_count += 1
 
                         if error_count == max_error_count:
                             run_flag = False
@@ -389,13 +387,11 @@ def main():
 
     except Exception as e:
 
+        error_count += 1
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
         logging.error("Caught exception in main block: %s - "
                       "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
-
-        error_count += 1
 
     try:
 
@@ -406,26 +402,21 @@ def main():
             for i in range(0, 10, 1):
 
                 if task_generator.is_alive():
-
                     logging.debug("Waiting for Task Generator to finish...")
                     time.sleep(1)
-
                 else:
                     break
 
             if task_generator.is_alive():
-
                 task_generator.terminate()
                 task_generator.join()
 
     except Exception as e:
 
+        error_count += 1
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
-
-        error_count += 1
+        logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
     logging.info("Finished")
 

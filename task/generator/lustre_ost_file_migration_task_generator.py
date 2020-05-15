@@ -89,7 +89,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         signal.signal(signal.SIGTERM, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGTERM, True)
 
-        logging.info(f"{self.__class__.__name__} started!")
+        logging.info("%s started!" % self.__class__.__name__)
 
         # Do not forget to clear the OST cache/free dict for each initialization run
         self.ost_cache_dict.clear()
@@ -136,11 +136,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                     item = ost_cache.pop()
 
-                                    ## task = EmptyTask()    # Testing
+                                    ##task = EmptyTask()    # Testing
                                     task = OstMigrateTask(ost_idx, target_ost, item.filename)
                                     task.tid = tid
 
-                                    logging.debug(f"Pushing task with TID to task queue: {task.tid}")
+                                    logging.debug("Pushing task with TID to task queue: %s" % task.tid)
 
                                     with CriticalSection(self.lock_task_queue):
                                         self.task_queue.push(task)
@@ -164,7 +164,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         finished_tid = self.result_queue.pop()
 
-                        logging.debug(f"Popped TID from result queue: {finished_tid}")
+                        logging.debug("Popped TID from result queue: %s " % finished_tid)
 
                         source_ost, target_ost = finished_tid.split(":")
 
@@ -180,7 +180,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     logging.info("### Dump - OST Cache Sizes ###")
 
                     for ost_idx, ost_cache in self.ost_cache_dict.items():
-                        logging.info(f"OST: {ost_idx} - Size: {len(ost_cache)}")
+                        logging.info("OST: %s - Size: %s" % (ost_idx, len(ost_cache)))
 
                 # TODO: adaptive sleep...
                 time.sleep(0.5)
@@ -193,11 +193,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
-                logging.info(f"{self.__class__.__name__} exited!")
+                logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
+                logging.info("%s exited!" % self.__class__.__name__)
                 os._exit(1)
 
-        logging.info(f"{self.__class__.__name__} finished!")
+        logging.info("%s finished!" % self.__class__.__name__)
         os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
@@ -227,12 +227,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 except Exception as e:
 
-                    logging.warning(f"Skipped line: {line}")
+                    logging.warning("Skipped line: %s" % line)
 
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
-                    logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
-
-            logging.info(f"Loaded input file: {filename}")
+            logging.info("Loaded input file: %s" % filename)
 
