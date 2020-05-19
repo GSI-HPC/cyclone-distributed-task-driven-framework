@@ -23,9 +23,9 @@ function build_master {
 	$(pyinstaller --onefile $HIDDEN_IMPORTS --name lfsm-master.py $SOURCE_DIR/lfsm\_master.py)
 
 	if [ -f "$MASTER_EXE" ]; then
-		echo ">>> Python executable found under: $MASTER_EXE"
+		echo ">>> Python executable found: $TARGET_DIR/$MASTER_EXE"
 	else
-		echo ">>> Python executable not found under: $MASTER_EXE"
+		echo ">>> Python executable not found: $TARGET_DIR/$MASTER_EXE"
 	fi
 
 }
@@ -35,9 +35,9 @@ function build_controller {
 	$(pyinstaller --onefile $HIDDEN_IMPORTS --name lfsm-controller.py $SOURCE_DIR/lfsm_controller.py)
 
 	if [ -f "$CONTROLLER_EXE" ]; then
-		echo ">>> Python executable found under: $CONTROLLER_EXE"
+		echo ">>> Python executable found: $TARGET_DIR/$CONTROLLER_EXE"
 	else
-		echo ">>> Python executable not found under: $CONTROLLER_EXE"
+		echo ">>> Python executable not found: $TARGET_DIR/$CONTROLLER_EXE"
 	fi
 
 }
@@ -47,9 +47,9 @@ function build_database_proxy {
 	$(pyinstaller --onefile --name lfsm-database-proxy.py $SOURCE_DIR/lfsm\_database\_proxy.py)
 
 	if [ -f "$DATABASE_PROXY_EXE" ]; then
-		echo ">>> Python executable found under: $DATABASE_PROXY_EXE"
+		echo ">>> Python executable found: $TARGET_DIR/$DATABASE_PROXY_EXE"
 	else
-		echo ">>> Python executable not found under: $DATABASE_PROXY_EXE"
+		echo ">>> Python executable not found: $TARGET_DIR/$DATABASE_PROXY_EXE"
 	fi
 
 }
