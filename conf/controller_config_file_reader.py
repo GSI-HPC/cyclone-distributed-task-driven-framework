@@ -35,11 +35,11 @@ class ControllerConfigFileReader:
         config.read(config_file)
 
         self.pid_file = config.get('control', 'pid_file')
+        self.request_retry_wait_duration = config.getint('control', 'request_retry_wait_duration')
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = config.getint('comm', 'port')
         self.poll_timeout = config.getint('comm', 'poll_timeout') * 1000
-        self.request_retry_wait_duration = config.getint('comm', 'request_retry_wait_duration')
 
         self.log_filename = config.get('log', 'filename')
 
@@ -52,6 +52,9 @@ class ControllerConfigFileReader:
         if not self.pid_file:
             raise ConfigValueError("No PID file was specified!")
 
+        if not self.request_retry_wait_duration:
+            raise ConfigValueError("No request retry wait duration was specified!")
+
         if not self.comm_target:
             raise ConfigValueError("No communication target was specified!")
 
@@ -60,9 +63,6 @@ class ControllerConfigFileReader:
 
         if not self.poll_timeout:
             raise ConfigValueError("No polling timeout was specified!")
-
-        if not self.request_retry_wait_duration:
-            raise ConfigValueError("No request retry wait duration was specified!")
 
         if self.worker_count < 1 or self.worker_count > 1000:
             raise ConfigValueError("Not supported worker count detected: %s" % self.worker_count)

@@ -371,7 +371,7 @@ def main():
 
                                 if request_retry_count == max_num_request_retries:
 
-                                    logging.debug('Exiting, since maximum retry count is reached!')
+                                    logging.info('Exiting, since maximum retry count is reached!')
                                     comm_handler.disconnect()
                                     RUN_CONDITION = False
 
