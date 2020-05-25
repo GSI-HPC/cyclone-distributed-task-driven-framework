@@ -211,7 +211,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def load_input_file(self, input_file):
 
-        with open(input_file, "r") as file:
+        with open(input_file, mode="r", encoding="UTF-8") as file:
 
             for line in file:
 
