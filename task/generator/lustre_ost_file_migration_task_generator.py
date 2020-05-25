@@ -27,6 +27,7 @@ import os
 
 from multiprocessing import Process
 
+from msg.base_message import BaseMessage
 from ctrl.critical_section import CriticalSection
 from task.ost_migrate_task import OstMigrateTask
 from task.empty_task import EmptyTask
@@ -216,7 +217,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 try:
 
-                    ost, filename = line.strip().split()
+                    stripped_line = line.strip()
+
+                    if BaseMessage.field_separator in stripped_line:
+                        logging.warning("Skipped line: %s" % line)
+                        continue
+
+                    ost, filename = stripped_line.split()
 
                     migrate_item = LustreOstMigrateItem(ost, filename)
 
