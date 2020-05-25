@@ -30,7 +30,8 @@ class BaseTask(object):
 
         super(BaseTask, self).__init__()
 
-        # Lustre specific: Store the OST name for each Task.
+        # TODO: Should have no property and setter method,
+        #       since the attribute is private.
         self._tid = None
 
     @abc.abstractmethod

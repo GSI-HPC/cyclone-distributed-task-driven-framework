@@ -34,7 +34,6 @@ class MasterConfigFileReader:
         config = configparser.ConfigParser()
         config.read(config_file)
 
-        self.version = config.get('control', 'version')
         self.pid_file = config.get('control', 'pid_file')
 
         self.controller_timeout = config.getfloat('control', 'controller_timeout')

@@ -11,16 +11,21 @@ MASTER_EXE=dist/lfsm-master.py
 CONTROLLER_EXE=dist/lfsm-controller.py
 DATABASE_PROXY_EXE=dist/lfsm-database-proxy.py
 
-HIDDEN_IMPORTS="--hidden-import task.empty_task --hidden-import task.io_task --hidden-import task.alert_io_task"
+# !!! Build successfully tested with -> Python version 3.6.8 and 3.8.2 !!!
+HIDDEN_IMPORTS="--hidden-import task.ost_migrate_task \
+                --hidden-import task.empty_task \
+                --hidden-import task.io_task \
+                --hidden-import task.alert_io_task \
+                --hidden-import task.generator.lustre_ost_file_migration_task_generator"
 
 function build_master {
 
 	$(pyinstaller --onefile $HIDDEN_IMPORTS --name lfsm-master.py $SOURCE_DIR/lfsm\_master.py)
 
 	if [ -f "$MASTER_EXE" ]; then
-		echo ">>> Python executable found under: $MASTER_EXE"
+		echo ">>> Python executable found: $TARGET_DIR/$MASTER_EXE"
 	else
-		echo ">>> Python executable not found under: $MASTER_EXE"
+		echo ">>> Python executable not found: $TARGET_DIR/$MASTER_EXE"
 	fi
 
 }
@@ -30,9 +35,9 @@ function build_controller {
 	$(pyinstaller --onefile $HIDDEN_IMPORTS --name lfsm-controller.py $SOURCE_DIR/lfsm_controller.py)
 
 	if [ -f "$CONTROLLER_EXE" ]; then
-		echo ">>> Python executable found under: $CONTROLLER_EXE"
+		echo ">>> Python executable found: $TARGET_DIR/$CONTROLLER_EXE"
 	else
-		echo ">>> Python executable not found under: $CONTROLLER_EXE"
+		echo ">>> Python executable not found: $TARGET_DIR/$CONTROLLER_EXE"
 	fi
 
 }
@@ -42,9 +47,9 @@ function build_database_proxy {
 	$(pyinstaller --onefile --name lfsm-database-proxy.py $SOURCE_DIR/lfsm\_database\_proxy.py)
 
 	if [ -f "$DATABASE_PROXY_EXE" ]; then
-		echo ">>> Python executable found under: $DATABASE_PROXY_EXE"
+		echo ">>> Python executable found: $TARGET_DIR/$DATABASE_PROXY_EXE"
 	else
-		echo ">>> Python executable not found under: $DATABASE_PROXY_EXE"
+		echo ">>> Python executable not found: $TARGET_DIR/$DATABASE_PROXY_EXE"
 	fi
 
 }

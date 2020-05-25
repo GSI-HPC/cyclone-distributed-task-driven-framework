@@ -19,8 +19,8 @@
 
 
 import argparse
-import logging
 import importlib
+import logging
 import multiprocessing
 import os
 import signal
@@ -41,7 +41,7 @@ from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
 
-
+VERSION = "1.5.0"
 TASK_DISTRIBUTION = True
 
 
@@ -56,7 +56,7 @@ def init_arg_parser():
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=str('Path to the config file (default: %s)'
+                        help=str('Use this config file (default: %s)'
                                  % default_config_file),
                         default=default_config_file)
 
@@ -65,7 +65,14 @@ def init_arg_parser():
                         dest='enable_debug',
                         required=False,
                         action='store_true',
-                        help='Enables debug log messages.')
+                        help='Enable debug log messages')
+
+    parser.add_argument('-v',
+                        '--version',
+                        dest='print_version',
+                        required=False,
+                        action='store_true',
+                        help='Print version number')
 
     return parser.parse_args()
 
@@ -122,6 +129,8 @@ def check_all_controller_down(count_active_controller):
 
 def create_task_generator(task_queue,
                           lock_task_queue,
+                          result_queue,
+                          lock_result_queue,
                           config_file_reader):
 
     module_name = config_file_reader.task_gen_module
@@ -133,6 +142,8 @@ def create_task_generator(task_queue,
 
     task_generator = dynamic_class(task_queue,
                                    lock_task_queue,
+                                   result_queue,
+                                   lock_result_queue,
                                    config_file)
 
     return task_generator
@@ -149,6 +160,10 @@ def main():
 
         args = init_arg_parser()
 
+        if args.print_version:
+            print("Version %s" % VERSION)
+            sys.exit()
+
         config_file_reader = MasterConfigFileReader(args.config_file)
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
@@ -157,13 +172,14 @@ def main():
                 MasterCommHandler(config_file_reader.comm_target,
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
-                SharedQueue() as task_queue:
+                SharedQueue() as task_queue, \
+                SharedQueue() as result_queue:
 
             if pid_control.lock():
 
                 logging.info("Started")
                 logging.info("Master PID: %s", pid_control.pid())
-                logging.debug("Version: %s" % config_file_reader.version)
+                logging.info("Version: %s" % VERSION)
 
                 signal.signal(signal.SIGHUP, signal_handler)
                 signal.signal(signal.SIGINT, signal_handler)
@@ -182,11 +198,14 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
+                # TODO: Integrate lock into shared queue
                 lock_task_queue = multiprocessing.Lock()
-                lock_task_queue_timeout = 1
+                lock_result_queue = multiprocessing.Lock()
 
                 task_generator = create_task_generator(task_queue,
                                                        lock_task_queue,
+                                                       result_queue,
+                                                       lock_result_queue,
                                                        config_file_reader)
 
                 task_generator.start()
@@ -222,8 +241,7 @@ def main():
 
                                     task = None
 
-                                    with CriticalSection(lock_task_queue,
-                                                         timeout=lock_task_queue_timeout):
+                                    with CriticalSection(lock_task_queue, timeout=1):
 
                                         if not task_queue.is_empty():
                                             task = task_queue.pop_nowait()
@@ -235,7 +253,7 @@ def main():
                                                 TASK_DISTRIBUTION = False
                                                 controller_wait_duration = 0
 
-                                                logging.error("LustreMonitoringTaskGenerator is not alive!")
+                                                logging.error("Task Generator is not alive!")
 
                                     if task:
 
@@ -291,10 +309,14 @@ def main():
 
                                         if recv_msg.sender == task_status_dict[tid].controller:
 
-                                            logging.debug("Retrieved finished message for TID: " + tid)
+                                            logging.debug("Retrieved finished message for TID: %s" % tid)
 
                                             task_status_dict[tid].state = TaskState.finished()
                                             task_status_dict[tid].timestamp = int(time.time())
+
+                                            with CriticalSection(lock_result_queue):
+                                                logging.debug("Pushing TID to result queue: %s" % tid)
+                                                result_queue.push(tid)
 
                                         else:
                                             logging.warning("Retrieved task finished from different controller!")
@@ -346,15 +368,13 @@ def main():
 
                     except Exception as e:
 
+                        error_count += 1
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
                         logging.error("Caught exception in main loop: %s - "
                                       "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
 
                         stop_task_distribution()
-
-                        error_count += 1
 
                         if error_count == max_error_count:
                             run_flag = False
@@ -363,17 +383,15 @@ def main():
 
                 logging.error("Another instance might be already running!")
                 logging.info("PID file: %s" % config_file_reader.pid_file)
-                os._exit(1)
+                sys.exit(1)
 
     except Exception as e:
 
+        error_count += 1
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
         logging.error("Caught exception in main block: %s - "
                       "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
-
-        error_count += 1
 
     try:
 
@@ -384,34 +402,28 @@ def main():
             for i in range(0, 10, 1):
 
                 if task_generator.is_alive():
-
-                    logging.debug("Waiting for LustreMonitoringTaskGenerator to finish...")
+                    logging.debug("Waiting for Task Generator to finish...")
                     time.sleep(1)
-
                 else:
                     break
 
             if task_generator.is_alive():
-
                 task_generator.terminate()
                 task_generator.join()
 
     except Exception as e:
 
+        error_count += 1
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-        logging.error("Caught exception (type: %s) on last instance: %s - %s (line: %s)"
-                      % (exc_type, str(e), filename, exc_tb.tb_lineno))
-
-        error_count += 1
+        logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
     logging.info("Finished")
 
     if error_count:
-        os._exit(1)
+        sys.exit(1)
 
-    os._exit(0)
+    sys.exit(0)
 
 
 if __name__ == '__main__':
