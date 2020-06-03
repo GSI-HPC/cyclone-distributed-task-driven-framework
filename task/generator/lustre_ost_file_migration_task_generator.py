@@ -85,118 +85,120 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def run(self):
 
-        self.run_flag = True
+        try:
 
-        signal.signal(signal.SIGTERM, self._signal_handler_terminate)
-        signal.siginterrupt(signal.SIGTERM, True)
+            self.run_flag = True
 
-        logging.info("%s started!" % self.__class__.__name__)
+            signal.signal(signal.SIGTERM, self._signal_handler_terminate)
+            signal.siginterrupt(signal.SIGTERM, True)
 
-        # Do not forget to clear the OST cache/free dict for each initialization run
-        self.ost_cache_dict.clear()
-        self.ost_source_free_dict.clear()
+            logging.info("%s started!" % self.__class__.__name__)
 
-        self.load_input_file(self.input_file)
+            # Do not forget to clear the OST cache/free dict for each initialization run
+            self.ost_cache_dict.clear()
+            self.ost_source_free_dict.clear()
 
-        for key in self.ost_cache_dict.keys():
-            self.ost_source_free_dict[key] = True
+            self._load_input_file(self.input_file)
 
-        ost_target_keys = list(self.ost_target_free_dict.keys())
-        ost_target_keys_len = len(ost_target_keys)
-        ost_target_keys_index = 0
+            for key in self.ost_cache_dict.keys():
+                self.ost_source_free_dict[key] = True
 
-        print_caches_threshold = 900
-        print_caches_next_time = int(time.time()) + print_caches_threshold
+            ost_target_keys = list(self.ost_target_free_dict.keys())
+            ost_target_keys_len = len(ost_target_keys)
+            ost_target_keys_index = 0
 
-        while self.run_flag:
+            print_caches_threshold = 900
+            print_caches_next_time = int(time.time()) + print_caches_threshold
 
-            try:
+            while self.run_flag:
 
-                for ost_idx, ost_cache in self.ost_cache_dict.items():
-
-                    ost_cache = self.ost_cache_dict[ost_idx]
-
-                    if len(ost_cache):
-
-                        if self.ost_source_free_dict[ost_idx]:
-
-                            logging.debug("Free slot for source OST: %s" % ost_idx)
-
-                            for i in range(ost_target_keys_index, ost_target_keys_len):
-
-                                target_ost = ost_target_keys[i]
-                                free = self.ost_target_free_dict[target_ost]
-
-                                if free:
-
-                                    logging.debug("Found free target OST: %s" % target_ost)
-
-                                    tid = f"{ost_idx}:{target_ost}"
-
-                                    logging.debug("New TID: %s" % tid)
-
-                                    item = ost_cache.pop()
-
-                                    ##task = EmptyTask()    # Testing
-                                    task = OstMigrateTask(ost_idx, target_ost, item.filename)
-                                    task.tid = tid
-
-                                    logging.debug("Pushing task with TID to task queue: %s" % task.tid)
-
-                                    with CriticalSection(self.lock_task_queue):
-                                        self.task_queue.push(task)
-
-                                    self.ost_source_free_dict[ost_idx] = False
-                                    self.ost_target_free_dict[target_ost] = False
-
-                                    ost_target_keys_index += 1
-
-                                    if ost_target_keys_index == ost_target_keys_len:
-                                        ost_target_keys_index = 0
-
-                                    break
-
-                    else:
-                        logging.debug("Cache is empty for OST: %s" % ost_idx)
-
-                while not self.result_queue.is_empty():
-
-                    with CriticalSection(self.lock_result_queue):
-
-                        finished_tid = self.result_queue.pop()
-
-                        logging.debug("Popped TID from result queue: %s " % finished_tid)
-
-                        source_ost, target_ost = finished_tid.split(":")
-
-                        self.ost_source_free_dict[source_ost] = True
-                        self.ost_target_free_dict[target_ost] = True
-
-                last_run_time = int(time.time())
-
-                if last_run_time >= print_caches_next_time:
-
-                    print_caches_next_time = last_run_time + print_caches_threshold
-
-                    logging.info("### Dump - OST Cache Sizes ###")
+                try:
 
                     for ost_idx, ost_cache in self.ost_cache_dict.items():
-                        logging.info("OST: %s - Size: %s" % (ost_idx, len(ost_cache)))
 
-                # TODO: adaptive sleep... ???
-                time.sleep(0.01)
+                        ost_cache = self.ost_cache_dict[ost_idx]
 
-            except InterruptedError as e:
-                logging.error("Caught InterruptedError exception.")
+                        if len(ost_cache):
 
-            except Exception as e:
+                            if self.ost_source_free_dict[ost_idx]:
 
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                                logging.debug("Free slot for source OST: %s" % ost_idx)
 
-                logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
-                logging.info("%s exited!" % self.__class__.__name__)
-                os._exit(1)
+                                for i in range(ost_target_keys_index, ost_target_keys_len):
+
+                                    target_ost = ost_target_keys[i]
+                                    free = self.ost_target_free_dict[target_ost]
+
+                                    if free:
+
+                                        logging.debug("Found free target OST: %s" % target_ost)
+
+                                        tid = f"{ost_idx}:{target_ost}"
+
+                                        logging.debug("New TID: %s" % tid)
+
+                                        item = ost_cache.pop()
+
+                                        ##task = EmptyTask()    # Testing
+                                        task = OstMigrateTask(ost_idx, target_ost, item.filename)
+                                        task.tid = tid
+
+                                        logging.debug("Pushing task with TID to task queue: %s" % task.tid)
+
+                                        with CriticalSection(self.lock_task_queue):
+                                            self.task_queue.push(task)
+
+                                        self.ost_source_free_dict[ost_idx] = False
+                                        self.ost_target_free_dict[target_ost] = False
+
+                                        ost_target_keys_index += 1
+
+                                        if ost_target_keys_index == ost_target_keys_len:
+                                            ost_target_keys_index = 0
+
+                                        break
+
+                        else:
+                            logging.debug("Cache is empty for OST: %s" % ost_idx)
+
+                    while not self.result_queue.is_empty():
+
+                        with CriticalSection(self.lock_result_queue):
+
+                            finished_tid = self.result_queue.pop()
+
+                            logging.debug("Popped TID from result queue: %s " % finished_tid)
+
+                            source_ost, target_ost = finished_tid.split(":")
+
+                            self.ost_source_free_dict[source_ost] = True
+                            self.ost_target_free_dict[target_ost] = True
+
+                    last_run_time = int(time.time())
+
+                    if last_run_time >= print_caches_next_time:
+
+                        print_caches_next_time = last_run_time + print_caches_threshold
+
+                        logging.info("### Dump - OST Cache Sizes ###")
+
+                        for ost_idx, ost_cache in self.ost_cache_dict.items():
+                            logging.info("OST: %s - Size: %s" % (ost_idx, len(ost_cache)))
+
+                    # TODO: adaptive sleep... ???
+                    time.sleep(0.01)
+
+                except InterruptedError as e:
+                    logging.error("Caught InterruptedError exception.")
+
+        except Exception as e:
+
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+
+            logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
+            logging.info("%s exited!" % self.__class__.__name__)
+            os._exit(1)
 
         logging.info("%s finished!" % self.__class__.__name__)
         os._exit(0)
@@ -209,9 +211,15 @@ class LustreOstFileMigrationTaskGenerator(Process):
         logging.debug(msg)
         raise InterruptedError(msg)
 
-    def load_input_file(self, input_file):
+    def _process_input_files(self, ):
+        pass
+
+    def _load_input_file(self, input_file):
 
         with open(input_file, mode="r", encoding="UTF-8") as file:
+
+            loaded_counter = 0
+            skipped_counter = 0
 
             for line in file:
 
@@ -221,6 +229,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     if BaseMessage.field_separator in stripped_line:
                         logging.warning("Skipped line: %s" % line)
+                        skipped_counter += 1
                         continue
 
                     ost, filename = stripped_line.split()
@@ -231,14 +240,17 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         self.ost_cache_dict[ost] = list()
 
                     self.ost_cache_dict[ost].append(migrate_item)
+                    loaded_counter += 1
 
                 except Exception as e:
 
                     logging.warning("Skipped line: %s" % line)
+                    skipped_counter += 1
 
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
-            logging.info("Loaded input file: %s" % input_file)
+            logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
+                         % (input_file, loaded_counter, skipped_counter))
 
