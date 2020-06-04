@@ -66,11 +66,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
         ost_targets = config.get('lustre.migration', 'ost_targets')
         self.ost_target_list = ost_targets.strip().split(",")
 
-        # TODO: Process all files file by file in a given directory.
-        self.input_file = config.get('lustre.migration', 'input_file')
+        self.input_dir = config.get('lustre.migration', 'input_dir')
 
         self.ost_source_free_dict = dict()
-
         self.ost_target_free_dict = dict()
 
         for ost in self.ost_target_list:
@@ -94,21 +92,22 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             logging.info("%s started!" % self.__class__.__name__)
 
-            # Do not forget to clear the OST cache/free dict for each initialization run
+            # TODO: Do not forget to clear the OST cache/free dict for each initialization run
             self.ost_cache_dict.clear()
             self.ost_source_free_dict.clear()
 
-            self._load_input_file(self.input_file)
-
-            for key in self.ost_cache_dict.keys():
-                self.ost_source_free_dict[key] = True
+            self._process_input_files()
+            self._update_ost_source_free_dict()
 
             ost_target_keys = list(self.ost_target_free_dict.keys())
             ost_target_keys_len = len(ost_target_keys)
             ost_target_keys_index = 0
 
-            print_caches_threshold = 900
-            print_caches_next_time = int(time.time()) + print_caches_threshold
+            threshold_print_caches = 10
+            next_time_print_caches = int(time.time()) + threshold_print_caches
+
+            threshold_reload_files = 15
+            next_time_reload_files = int(time.time()) + threshold_reload_files
 
             while self.run_flag:
 
@@ -139,8 +138,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         item = ost_cache.pop()
 
-                                        ##task = EmptyTask()    # Testing
-                                        task = OstMigrateTask(ost_idx, target_ost, item.filename)
+                                        task = EmptyTask()    # Testing
+                                        ##task = OstMigrateTask(ost_idx, target_ost, item.filename)
                                         task.tid = tid
 
                                         logging.debug("Pushing task with TID to task queue: %s" % task.tid)
@@ -176,11 +175,20 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     last_run_time = int(time.time())
 
-                    if last_run_time >= print_caches_next_time:
+                    if last_run_time >= next_time_reload_files:
 
-                        print_caches_next_time = last_run_time + print_caches_threshold
+                        logging.info("###### Loading Input Files ######")
 
-                        logging.info("###### Dump - OST Cache Sizes ######")
+                        next_time_reload_files = last_run_time + threshold_reload_files
+
+                        self._process_input_files()
+                        self._update_ost_source_free_dict()
+
+                    if last_run_time >= next_time_print_caches:
+
+                        logging.info("###### OST Cache Sizes ######")
+
+                        next_time_print_caches = last_run_time + threshold_print_caches
 
                         for ost_idx in sorted(self.ost_cache_dict.keys()):
                             logging.info("OST: %s - Size: %s"
@@ -212,8 +220,19 @@ class LustreOstFileMigrationTaskGenerator(Process):
         logging.debug(msg)
         raise InterruptedError(msg)
 
-    def _process_input_files(self, ):
-        pass
+    def _process_input_files(self):
+
+        files = os.listdir(self.input_dir)
+
+        for f in files:
+
+            if f.endswith(".input"):
+
+                file_path = self.input_dir + os.path.sep + f
+
+                self._load_input_file(file_path)
+
+                os.renames(file_path, file_path + ".done")
 
     def _load_input_file(self, input_file):
 
@@ -254,4 +273,16 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
                          % (input_file, loaded_counter, skipped_counter))
+
+    def _update_ost_source_free_dict(self):
+
+        for ost_idx in self.ost_cache_dict.keys():
+
+            if len(self.ost_cache_dict[ost_idx]):
+
+                if ost_idx in self.ost_source_free_dict:
+                    # TODO: Cleanup... ost_source_free_dict==True and len(ost_cache_dict[ost_idx])==0
+                    pass
+                else:
+                    self.ost_source_free_dict[ost_idx] = True
 
