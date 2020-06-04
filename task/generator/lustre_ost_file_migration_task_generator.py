@@ -103,10 +103,10 @@ class LustreOstFileMigrationTaskGenerator(Process):
             ost_target_keys_len = len(ost_target_keys)
             ost_target_keys_index = 0
 
-            threshold_print_caches = 10
+            threshold_print_caches = 900
             next_time_print_caches = int(time.time()) + threshold_print_caches
 
-            threshold_reload_files = 15
+            threshold_reload_files = 1800
             next_time_reload_files = int(time.time()) + threshold_reload_files
 
             while self.run_flag:
@@ -138,8 +138,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         item = ost_cache.pop()
 
-                                        task = EmptyTask()    # Testing
-                                        ##task = OstMigrateTask(ost_idx, target_ost, item.filename)
+                                        ##task = EmptyTask()    # Testing
+                                        task = OstMigrateTask(ost_idx, target_ost, item.filename)
                                         task.tid = tid
 
                                         logging.debug("Pushing task with TID to task queue: %s" % task.tid)
