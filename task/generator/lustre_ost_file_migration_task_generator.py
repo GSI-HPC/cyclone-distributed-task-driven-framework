@@ -186,7 +186,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                             logging.info("OST: %s - Size: %s" % (ost_idx, len(ost_cache)))
 
                     # TODO: adaptive sleep... ???
-                    time.sleep(0.01)
+                    time.sleep(0.001)
 
                 except InterruptedError as e:
                     logging.error("Caught InterruptedError exception.")
