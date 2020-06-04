@@ -180,10 +180,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         print_caches_next_time = last_run_time + print_caches_threshold
 
-                        logging.info("### Dump - OST Cache Sizes ###")
+                        logging.info("###### Dump - OST Cache Sizes ######")
 
-                        for ost_idx, ost_cache in self.ost_cache_dict.items():
-                            logging.info("OST: %s - Size: %s" % (ost_idx, len(ost_cache)))
+                        for ost_idx in sorted(self.ost_cache_dict.keys()):
+                            logging.info("OST: %s - Size: %s"
+                                         % (ost_idx, len(self.ost_cache_dict[ost_idx])))
 
                     # TODO: adaptive sleep... ???
                     time.sleep(0.001)
