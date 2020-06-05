@@ -40,8 +40,9 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
+from version import VERSION
 
-VERSION = "1.5.1"
+
 TASK_DISTRIBUTION = True
 
 
