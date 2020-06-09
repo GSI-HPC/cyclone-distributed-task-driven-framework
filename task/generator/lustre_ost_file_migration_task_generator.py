@@ -272,9 +272,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def _update_ost_source_free_dict(self):
 
-        for ost_idx in self.ost_source_cache_dict.keys():
+        for ost_idx, ost_cache in self.ost_source_cache_dict.items():
 
-            if len(self.ost_source_cache_dict[ost_idx]):
+            if len(ost_cache):
 
                 if ost_idx in self.ost_source_free_dict:
                     # TODO: Cleanup... ost_source_free_dict==True and len(ost_cache_dict[ost_idx])==0
