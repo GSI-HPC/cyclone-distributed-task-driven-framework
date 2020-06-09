@@ -115,8 +115,6 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     for ost_idx, ost_cache in self.ost_cache_dict.items():
 
-                        ost_cache = self.ost_cache_dict[ost_idx]
-
                         if len(ost_cache):
 
                             if self.ost_source_free_dict[ost_idx]:
@@ -132,15 +130,14 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         logging.debug("Found free target OST: %s" % target_ost)
 
-                                        tid = f"{ost_idx}:{target_ost}"
-
-                                        logging.debug("New TID: %s" % tid)
-
                                         item = ost_cache.pop()
 
-                                        ##task = EmptyTask()    # Testing
+                                        # Local testing without Lustre
+                                        ##task = EmptyTask()
+
                                         task = OstMigrateTask(ost_idx, target_ost, item.filename)
-                                        task.tid = tid
+
+                                        task.tid = f"{ost_idx}:{target_ost}"
 
                                         logging.debug("Pushing task with TID to task queue: %s" % task.tid)
 
