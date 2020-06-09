@@ -74,7 +74,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         for ost in self.ost_target_list:
             self.ost_target_free_dict[ost] = True
 
-        self.ost_cache_dict = dict()
+        self.ost_source_cache_dict = dict()
 
         self.run_flag = False
 
@@ -92,8 +92,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             logging.info("%s started!" % self.__class__.__name__)
 
-            # TODO: Do not forget to clear the OST cache/free dict for each initialization run
-            self.ost_cache_dict.clear()
+            self.ost_source_cache_dict.clear()
             self.ost_source_free_dict.clear()
 
             self._process_input_files()
@@ -113,7 +112,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 try:
 
-                    for ost_idx, ost_cache in self.ost_cache_dict.items():
+                    for ost_idx, ost_cache in self.ost_source_cache_dict.items():
 
                         if len(ost_cache):
 
@@ -187,9 +186,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         next_time_print_caches = last_run_time + threshold_print_caches
 
-                        for ost_idx in sorted(self.ost_cache_dict.keys()):
+                        for ost_idx in sorted(self.ost_source_cache_dict.keys()):
                             logging.info("OST: %s - Size: %s"
-                                         % (ost_idx, len(self.ost_cache_dict[ost_idx])))
+                                         % (ost_idx, len(self.ost_source_cache_dict[ost_idx])))
 
                     # TODO: adaptive sleep... ???
                     time.sleep(0.001)
@@ -253,10 +252,10 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     migrate_item = LustreOstMigrateItem(ost, filename)
 
-                    if ost not in self.ost_cache_dict:
-                        self.ost_cache_dict[ost] = list()
+                    if ost not in self.ost_source_cache_dict:
+                        self.ost_source_cache_dict[ost] = list()
 
-                    self.ost_cache_dict[ost].append(migrate_item)
+                    self.ost_source_cache_dict[ost].append(migrate_item)
                     loaded_counter += 1
 
                 except Exception as e:
@@ -273,9 +272,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def _update_ost_source_free_dict(self):
 
-        for ost_idx in self.ost_cache_dict.keys():
+        for ost_idx in self.ost_source_cache_dict.keys():
 
-            if len(self.ost_cache_dict[ost_idx]):
+            if len(self.ost_source_cache_dict[ost_idx]):
 
                 if ost_idx in self.ost_source_free_dict:
                     # TODO: Cleanup... ost_source_free_dict==True and len(ost_cache_dict[ost_idx])==0
