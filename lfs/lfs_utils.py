@@ -191,9 +191,9 @@ class LFSUtils:
 
                 start_time = datetime.now()
                 subprocess.run(args, check=True, stderr=subprocess.PIPE)
-                time_elapsed = datetime.now() - start_time
+                elapsed_time = datetime.now() - start_time
 
-                logging.info("SUCCESS|%s|%s" % (filename, time_elapsed))
+                logging.info("SUCCESS|%s|%s" % (filename, elapsed_time))
 
         except subprocess.CalledProcessError as error:
 
