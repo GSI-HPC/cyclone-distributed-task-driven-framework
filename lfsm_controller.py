@@ -40,7 +40,7 @@ from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.heartbeat import Heartbeat
 from task.poisen_pill import PoisenPill
-from version import VERSION
+from globals import VERSION
 
 
 RUN_CONDITION = True

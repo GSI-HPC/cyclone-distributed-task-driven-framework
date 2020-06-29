@@ -40,7 +40,7 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from version import VERSION
+from globals import VERSION
 
 
 TASK_DISTRIBUTION = True
@@ -242,19 +242,24 @@ def main():
 
                                     task = None
 
-                                    with CriticalSection(lock_task_queue, timeout=1):
+                                    # Check if critical section is locked,
+                                    # since the timeout might interrupt the blocking wait.
+                                    with CriticalSection(lock_task_queue, timeout=1) \
+                                            as critical_section:
 
-                                        if not task_queue.is_empty():
-                                            task = task_queue.pop_nowait()
+                                        if critical_section.is_locked():
 
-                                        else:
+                                            if not task_queue.is_empty():
+                                                task = task_queue.pop_nowait()
 
-                                            if not task_generator.is_alive():
+                                            else:
 
-                                                TASK_DISTRIBUTION = False
-                                                controller_wait_duration = 0
+                                                if not task_generator.is_alive():
 
-                                                logging.error("Task Generator is not alive!")
+                                                    TASK_DISTRIBUTION = False
+                                                    controller_wait_duration = 0
+
+                                                    logging.error("Task Generator is not alive!")
 
                                     if task:
 
@@ -316,6 +321,7 @@ def main():
                                             task_status_dict[tid].timestamp = int(time.time())
 
                                             with CriticalSection(lock_result_queue):
+
                                                 logging.debug("Pushing TID to result queue: %s" % tid)
                                                 result_queue.push(tid)
 

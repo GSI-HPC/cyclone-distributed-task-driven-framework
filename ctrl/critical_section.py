@@ -25,11 +25,19 @@ class CriticalSection:
         self._lock = lock
         self._block = block
         self._timeout = timeout
+        self._lock_acquired = False
 
     def __enter__(self):
 
-        self._lock.acquire(self._block, self._timeout)
+        self._lock_acquired = self._lock.acquire(self._block, self._timeout)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._lock.release()
+
+        if self._lock_acquired:
+
+            self._lock.release()
+            self._lock_acquired = False
+
+    def is_locked(self):
+        return self._lock_acquired
