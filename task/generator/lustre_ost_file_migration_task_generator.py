@@ -21,14 +21,19 @@
 import configparser
 import logging
 import signal
+import random
 import time
 import sys
 import os
 
+from datetime import datetime
+from enum import Enum, unique
 from multiprocessing import Process
 
-from msg.base_message import BaseMessage
 from ctrl.critical_section import CriticalSection
+from globals import LOCAL_MODE
+from lfs.lfs_utils import LFSUtils
+from msg.base_message import BaseMessage
 from task.ost_migrate_task import OstMigrateTask
 from task.empty_task import EmptyTask
 
@@ -39,6 +44,14 @@ class LustreOstMigrateItem:
 
         self.ost = ost
         self.filename = filename
+
+
+@unique
+class OSTCacheState(Enum):
+
+    BLOCKED = 1
+    LOCKED = 2
+    READY = 3
 
 
 class LustreOstFileMigrationTaskGenerator(Process):
@@ -61,20 +74,24 @@ class LustreOstFileMigrationTaskGenerator(Process):
         config = configparser.ConfigParser()
         config.read_file(open(config_file))
 
-        self.target = config.get('lustre', 'target')
+        if not LOCAL_MODE:
+            self.lfs_utils = LFSUtils("/usr/bin/lfs")
+            self.lfs_path = config.get('lustre', 'fs_path')
 
         ost_targets = config.get('lustre.migration', 'ost_targets')
         self.ost_target_list = ost_targets.strip().split(",")
 
         self.input_dir = config.get('lustre.migration', 'input_dir')
 
-        self.ost_source_free_dict = dict()
-        self.ost_target_free_dict = dict()
-
-        for ost in self.ost_target_list:
-            self.ost_target_free_dict[ost] = True
+        self.ost_fill_threshold = config.getint('lustre.migration', 'ost_fill_threshold')
 
         self.ost_source_cache_dict = dict()
+
+        # TODO: Create class for managing state and capacity for OSTs.
+        self.ost_source_state_dict = dict()
+        self.ost_target_state_dict = dict()
+
+        self.ost_fill_level_dict = dict()
 
         self.run_flag = False
 
@@ -92,69 +109,53 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             logging.info("%s started!" % self.__class__.__name__)
 
-            self.ost_source_cache_dict.clear()
-            self.ost_source_free_dict.clear()
-
             self._process_input_files()
-            self._update_ost_source_free_dict()
+            self._update_ost_fill_level_dict()
+            self._reallocate_ost_source_caches()
 
-            ost_target_keys = list(self.ost_target_free_dict.keys())
-            ost_target_keys_len = len(ost_target_keys)
-            ost_target_keys_index = 0
+            self._init_ost_target_cache_state_dict()
 
-            threshold_print_caches = 900
+            threshold_print_caches = 5
             next_time_print_caches = int(time.time()) + threshold_print_caches
 
-            threshold_reload_files = 1800
+            threshold_reload_files = 45
             next_time_reload_files = int(time.time()) + threshold_reload_files
+
+            threshold_update_fill_level = 30
+            next_time_update_fill_level = int(time.time()) + threshold_update_fill_level
 
             while self.run_flag:
 
                 try:
 
-                    for ost_idx, ost_cache in self.ost_source_cache_dict.items():
+                    for source_ost, ost_cache in self.ost_source_cache_dict.items():
 
-                        if len(ost_cache):
+                        if self.ost_source_state_dict[source_ost] == OSTCacheState.READY:
 
-                            if self.ost_source_free_dict[ost_idx]:
+                            if len(ost_cache):
 
-                                logging.debug("Free slot for source OST: %s" % ost_idx)
+                                for target_ost, target_state in self.ost_target_state_dict.items():
 
-                                for i in range(ost_target_keys_index, ost_target_keys_len):
-
-                                    target_ost = ost_target_keys[i]
-                                    free = self.ost_target_free_dict[target_ost]
-
-                                    if free:
-
-                                        logging.debug("Found free target OST: %s" % target_ost)
+                                    if target_state == OSTCacheState.READY:
 
                                         item = ost_cache.pop()
 
-                                        # Local testing without Lustre
-                                        ##task = EmptyTask()
+                                        if LOCAL_MODE:
+                                            task = EmptyTask()
+                                        else:
+                                            task = OstMigrateTask(source_ost, target_ost, item.filename)
 
-                                        task = OstMigrateTask(ost_idx, target_ost, item.filename)
-
-                                        task.tid = f"{ost_idx}:{target_ost}"
+                                        task.tid = f"{source_ost}:{target_ost}"
 
                                         logging.debug("Pushing task with TID to task queue: %s" % task.tid)
 
                                         with CriticalSection(self.lock_task_queue):
                                             self.task_queue.push(task)
 
-                                        self.ost_source_free_dict[ost_idx] = False
-                                        self.ost_target_free_dict[target_ost] = False
-
-                                        ost_target_keys_index += 1
-
-                                        if ost_target_keys_index == ost_target_keys_len:
-                                            ost_target_keys_index = 0
+                                        self.ost_source_state_dict[source_ost] = OSTCacheState.BLOCKED
+                                        self.ost_target_state_dict[target_ost] = OSTCacheState.BLOCKED
 
                                         break
-
-                        else:
-                            logging.debug("Cache is empty for OST: %s" % ost_idx)
 
                     while not self.result_queue.is_empty():
 
@@ -166,32 +167,55 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                             source_ost, target_ost = finished_tid.split(":")
 
-                            self.ost_source_free_dict[source_ost] = True
-                            self.ost_target_free_dict[target_ost] = True
+                            if self.ost_source_state_dict[source_ost] == OSTCacheState.BLOCKED:
+                                self.ost_source_state_dict[source_ost] = OSTCacheState.READY
+
+                            if self.ost_target_state_dict[target_ost] == OSTCacheState.BLOCKED:
+                                self.ost_target_state_dict[target_ost] = OSTCacheState.READY
 
                     last_run_time = int(time.time())
 
                     if last_run_time >= next_time_reload_files:
 
-                        logging.info("###### Loading Input Files ######")
-
                         next_time_reload_files = last_run_time + threshold_reload_files
 
+                        # TODO: just print if input files were loaded.
+                        logging.info("###### Loading Input Files ######")
+
                         self._process_input_files()
-                        self._update_ost_source_free_dict()
+                        self._reallocate_ost_source_caches()
 
                     if last_run_time >= next_time_print_caches:
 
-                        logging.info("###### OST Cache Sizes ######")
-
                         next_time_print_caches = last_run_time + threshold_print_caches
 
-                        for ost_idx in sorted(self.ost_source_cache_dict.keys()):
+                        logging.info("###### OST Cache Sizes ######")
+
+                        for source_ost in sorted(self.ost_source_cache_dict.keys()):
                             logging.info("OST: %s - Size: %s"
-                                         % (ost_idx, len(self.ost_source_cache_dict[ost_idx])))
+                                         % (source_ost, len(self.ost_source_cache_dict[source_ost])))
+
+                    if last_run_time >= next_time_update_fill_level:
+
+                        next_time_update_fill_level = last_run_time + threshold_update_fill_level
+
+                        logging.info("###### OST Fill Level Update ######")
+
+                        start_time = datetime.now()
+                        self._update_ost_fill_level_dict()
+                        elapsed_time = datetime.now() - start_time
+
+                        logging.info("Elapsed time: %s - Number of OSTs: %s"
+                                     % (elapsed_time, len(self.ost_fill_level_dict)))
+
+                        if logging.root.level <= logging.DEBUG:
+
+                            for ost, fill_level in self.ost_fill_level_dict.items():
+                                logging.debug("OST: %s - Fill Level: %s" % (ost, fill_level))
 
                     # TODO: adaptive sleep... ???
-                    time.sleep(0.001)
+                    ##time.sleep(0.001)
+                    time.sleep(1.001)
 
                 except InterruptedError as e:
                     logging.error("Caught InterruptedError exception.")
@@ -270,15 +294,94 @@ class LustreOstFileMigrationTaskGenerator(Process):
             logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
                          % (input_file, loaded_counter, skipped_counter))
 
-    def _update_ost_source_free_dict(self):
+    def _reallocate_ost_source_caches(self):
 
-        for ost_idx, ost_cache in self.ost_source_cache_dict.items():
+        # Iterate over copy of the keys to prevent:
+        # "RuntimeError: dictionary changed size during iteration"
+        keys_copy_list = list(self.ost_source_cache_dict.keys())
+
+        for ost in keys_copy_list:
+
+            ost_cache = self.ost_source_cache_dict[ost]
 
             if len(ost_cache):
 
-                if ost_idx in self.ost_source_free_dict:
-                    # TODO: Cleanup... ost_source_free_dict==True and len(ost_cache_dict[ost_idx])==0
+                if ost in self.ost_source_state_dict:
                     pass
                 else:
-                    self.ost_source_free_dict[ost_idx] = True
+                    # Add new source OST to ost_source_free_dict.
+                    self._update_ost_source_cache_state(ost)
+            else:
+
+                # Do not delete OST source data structure that is still in use.
+                if self.ost_source_state_dict[ost] != OSTCacheState.BLOCKED:
+
+                    del self.ost_source_state_dict[ost]
+                    del self.ost_source_cache_dict[ost]
+
+    def _init_ost_target_cache_state_dict(self):
+
+        for ost in self.ost_target_list:
+            self._update_ost_target_cache_state(ost)
+
+    def _update_ost_fill_level_dict(self):
+
+        if LOCAL_MODE:
+
+            self.ost_fill_level_dict.clear()
+
+            for i in range(10):
+
+                ost_idx = str(i)
+                fill_level = random.randint(40, 60)
+
+                self.ost_fill_level_dict[ost_idx] = fill_level
+
+        else:
+            self.ost_fill_level_dict = \
+                self.lfs_utils.retrieve_ost_fill_level(self.lustre_fs_path)
+
+    def _update_ost_source_cache_state(self, ost):
+
+        if ost in self.ost_fill_level_dict:
+
+            fill_level = self.ost_fill_level_dict[ost]
+
+            if fill_level > self.ost_fill_threshold:
+
+                if ost in self.ost_source_state_dict:
+
+                    if self.ost_source_state_dict[ost] == OSTCacheState.LOCKED:
+                        self.ost_source_state_dict[ost] = OSTCacheState.READY
+
+                else:
+                    self.ost_source_state_dict[ost] = OSTCacheState.READY
+
+            else:
+                self.ost_source_state_dict[ost] = OSTCacheState.LOCKED
+
+        else:
+            raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
+
+    def _update_ost_target_cache_state(self, ost):
+
+        if ost in self.ost_fill_level_dict:
+
+            fill_level = self.ost_fill_level_dict[ost]
+
+            if fill_level < self.ost_fill_threshold:
+
+                if ost in self.ost_target_state_dict:
+
+                    if self.ost_target_state_dict[ost] == OSTCacheState.LOCKED:
+                        self.ost_target_state_dict[ost] = OSTCacheState.READY
+
+                else:
+                    self.ost_target_state_dict[ost] = OSTCacheState.READY
+
+            else:
+                self.ost_target_state_dict[ost] = OSTCacheState.LOCKED
+
+        else:
+            raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
