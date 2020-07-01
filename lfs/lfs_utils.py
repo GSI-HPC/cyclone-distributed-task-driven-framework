@@ -204,3 +204,35 @@ class LFSUtils:
                 stderr = error.stderr.decode('UTF-8')
 
             logging.info("FAILED|%s|%i|%s" % (filename, rc, stderr))
+
+    def retrieve_ost_fill_level(self, fs_path):
+
+        if not fs_path:
+            raise RuntimeError("Lustre file system path is not set!")
+
+        regex = "(\d{1,3})%.*\[OST:([0-9]{1,4})\]"
+
+        pattern = re.compile(regex)
+
+        args = ['sudo', self.lfs_bin, 'df', fs_path]
+
+        ost_fill_level_dict = dict()
+
+        output = subprocess.check_output(args).decode('UTF-8')
+
+        for line in output.strip().split('\n'):
+
+            match = pattern.search(line.strip())
+
+            if match:
+
+                fill_level = int(match.group(1))
+                ost_idx = match.group(2)
+
+                ost_fill_level_dict[ost_idx] = fill_level
+
+        if not len(ost_fill_level_dict):
+            raise RuntimeError("Lustre OST fill levels are empty!")
+
+        return ost_fill_level_dict
+
