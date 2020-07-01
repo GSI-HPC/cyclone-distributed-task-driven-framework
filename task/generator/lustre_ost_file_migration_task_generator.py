@@ -376,7 +376,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         else:
             self.ost_fill_level_dict = \
-                self.lfs_utils.retrieve_ost_fill_level(self.lustre_fs_path)
+                self.lfs_utils.retrieve_ost_fill_level(self.lfs_path)
 
     def _update_ost_source_state_dict(self, ost):
         self._update_ost_state_dict(ost, self.ost_source_state_dict, operator.gt)
