@@ -19,6 +19,7 @@
 
 
 import configparser
+import operator
 import logging
 import signal
 import random
@@ -47,11 +48,12 @@ class LustreOstMigrateItem:
 
 
 @unique
-class OSTCacheState(Enum):
+class OSTState(Enum):
 
-    BLOCKED = 1
+    READY = 1
     LOCKED = 2
-    READY = 3
+    BLOCKED = 3
+    PENDING_LOCK = 4
 
 
 class LustreOstFileMigrationTaskGenerator(Process):
@@ -111,9 +113,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             self._process_input_files()
             self._update_ost_fill_level_dict()
-            self._reallocate_ost_source_caches()
-
-            self._init_ost_target_cache_state_dict()
+            self._allocate_ost_source_caches()
+            self._init_ost_target_state_dict()
 
             threshold_print_caches = 5
             next_time_print_caches = int(time.time()) + threshold_print_caches
@@ -130,13 +131,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     for source_ost, ost_cache in self.ost_source_cache_dict.items():
 
-                        if self.ost_source_state_dict[source_ost] == OSTCacheState.READY:
+                        if self.ost_source_state_dict[source_ost] == OSTState.READY:
 
                             if len(ost_cache):
 
                                 for target_ost, target_state in self.ost_target_state_dict.items():
 
-                                    if target_state == OSTCacheState.READY:
+                                    if target_state == OSTState.READY:
 
                                         item = ost_cache.pop()
 
@@ -152,8 +153,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
                                         with CriticalSection(self.lock_task_queue):
                                             self.task_queue.push(task)
 
-                                        self.ost_source_state_dict[source_ost] = OSTCacheState.BLOCKED
-                                        self.ost_target_state_dict[target_ost] = OSTCacheState.BLOCKED
+                                        self.ost_source_state_dict[source_ost] = OSTState.BLOCKED
+                                        self.ost_target_state_dict[target_ost] = OSTState.BLOCKED
 
                                         break
 
@@ -167,11 +168,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                             source_ost, target_ost = finished_tid.split(":")
 
-                            if self.ost_source_state_dict[source_ost] == OSTCacheState.BLOCKED:
-                                self.ost_source_state_dict[source_ost] = OSTCacheState.READY
-
-                            if self.ost_target_state_dict[target_ost] == OSTCacheState.BLOCKED:
-                                self.ost_target_state_dict[target_ost] = OSTCacheState.READY
+                            self._update_ost_state_dict(source_ost, self.ost_source_state_dict)
+                            self._update_ost_state_dict(target_ost, self.ost_target_state_dict)
 
                     last_run_time = int(time.time())
 
@@ -179,11 +177,14 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         next_time_reload_files = last_run_time + threshold_reload_files
 
-                        # TODO: just print if input files were loaded.
                         logging.info("###### Loading Input Files ######")
 
-                        self._process_input_files()
-                        self._reallocate_ost_source_caches()
+                        file_counter = self._process_input_files()
+
+                        if file_counter:
+                            self._allocate_ost_source_caches()
+
+                        logging.info("Count of processed input files: %s" % file_counter)
 
                     if last_run_time >= next_time_print_caches:
 
@@ -191,9 +192,16 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         logging.info("###### OST Cache Sizes ######")
 
-                        for source_ost in sorted(self.ost_source_cache_dict.keys()):
-                            logging.info("OST: %s - Size: %s"
-                                         % (source_ost, len(self.ost_source_cache_dict[source_ost])))
+                        ost_caches_keys = self.ost_source_cache_dict.keys()
+
+                        if len(ost_caches_keys):
+
+                            for source_ost in sorted(ost_caches_keys):
+                                logging.info("OST: %s - Size: %s"
+                                             % (source_ost, len(self.ost_source_cache_dict[source_ost])))
+
+                        else:
+                            logging.info("No OST caches available!")
 
                     if last_run_time >= next_time_update_fill_level:
 
@@ -212,6 +220,12 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
                                 logging.debug("OST: %s - Fill Level: %s" % (ost, fill_level))
+
+                        for ost in self.ost_source_state_dict.keys():
+                            self._update_ost_source_state_dict(ost)
+
+                        for ost in self.ost_target_state_dict.keys():
+                            self._update_ost_target_state_dict(ost)
 
                     # TODO: adaptive sleep... ???
                     ##time.sleep(0.001)
@@ -241,6 +255,19 @@ class LustreOstFileMigrationTaskGenerator(Process):
         raise InterruptedError(msg)
 
     def _process_input_files(self):
+        """Processes new input files
+
+        All input files in the specific input directory are processed
+        by the self._load_input_file(file_path) class method.
+        Files to process have the '.input' file extension.
+        After being processed the file gets the '.done' extension appended.
+
+            :return: counter of processed files
+            :rtype: int
+
+        """
+
+        file_counter = 0
 
         files = os.listdir(self.input_dir)
 
@@ -254,9 +281,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 os.renames(file_path, file_path + ".done")
 
-    def _load_input_file(self, input_file):
+                file_counter += 1
 
-        with open(input_file, mode="r", encoding="UTF-8") as file:
+        return file_counter
+
+    def _load_input_file(self, file_path):
+
+        with open(file_path, mode="r", encoding="UTF-8") as file:
 
             loaded_counter = 0
             skipped_counter = 0
@@ -292,37 +323,43 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
             logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
-                         % (input_file, loaded_counter, skipped_counter))
+                         % (file_path, loaded_counter, skipped_counter))
 
-    def _reallocate_ost_source_caches(self):
+    def _allocate_ost_source_caches(self):
 
-        # Iterate over copy of the keys to prevent:
-        # "RuntimeError: dictionary changed size during iteration"
-        keys_copy_list = list(self.ost_source_cache_dict.keys())
+        del_ost_source_list = None
 
-        for ost in keys_copy_list:
+        for ost, cache in self.ost_source_cache_dict.items():
 
-            ost_cache = self.ost_source_cache_dict[ost]
-
-            if len(ost_cache):
+            if len(cache):
 
                 if ost in self.ost_source_state_dict:
                     pass
                 else:
-                    # Add new source OST to ost_source_free_dict.
-                    self._update_ost_source_cache_state(ost)
+                    # Add new source OST to ost_source_state_dict.
+                    self._update_ost_source_state_dict(ost)
+
             else:
 
-                # Do not delete OST source data structure that is still in use.
-                if self.ost_source_state_dict[ost] != OSTCacheState.BLOCKED:
+                if self.ost_source_state_dict[ost] == OSTState.READY \
+                        or self.ost_source_state_dict[ost] == OSTState.LOCKED:
 
-                    del self.ost_source_state_dict[ost]
-                    del self.ost_source_cache_dict[ost]
+                    if not del_ost_source_list:
+                        del_ost_source_list = list()
 
-    def _init_ost_target_cache_state_dict(self):
+                    del_ost_source_list.append(ost)
+
+        if del_ost_source_list:
+
+            for ost in del_ost_source_list:
+
+                del self.ost_source_cache_dict[ost]
+                del self.ost_source_state_dict[ost]
+
+    def _init_ost_target_state_dict(self):
 
         for ost in self.ost_target_list:
-            self._update_ost_target_cache_state(ost)
+            self._update_ost_target_state_dict(ost)
 
     def _update_ost_fill_level_dict(self):
 
@@ -341,47 +378,50 @@ class LustreOstFileMigrationTaskGenerator(Process):
             self.ost_fill_level_dict = \
                 self.lfs_utils.retrieve_ost_fill_level(self.lustre_fs_path)
 
-    def _update_ost_source_cache_state(self, ost):
+    def _update_ost_source_state_dict(self, ost):
+        self._update_ost_state_dict(ost, self.ost_source_state_dict, operator.gt)
 
-        if ost in self.ost_fill_level_dict:
+    def _update_ost_target_state_dict(self, ost):
+        self._update_ost_state_dict(ost, self.ost_target_state_dict, operator.lt)
 
-            fill_level = self.ost_fill_level_dict[ost]
+    def _update_ost_state_dict(self, ost, ost_state_dict, op=None):
 
-            if fill_level > self.ost_fill_threshold:
+        if op:
 
-                if ost in self.ost_source_state_dict:
+            if ost in self.ost_fill_level_dict:
 
-                    if self.ost_source_state_dict[ost] == OSTCacheState.LOCKED:
-                        self.ost_source_state_dict[ost] = OSTCacheState.READY
+                fill_level = self.ost_fill_level_dict[ost]
 
-                else:
-                    self.ost_source_state_dict[ost] = OSTCacheState.READY
+                if op(fill_level, self.ost_fill_threshold):
 
-            else:
-                self.ost_source_state_dict[ost] = OSTCacheState.LOCKED
+                    if ost in ost_state_dict:
 
-        else:
-            raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
+                        if ost_state_dict[ost] == OSTState.LOCKED:
+                            ost_state_dict[ost] = OSTState.READY
 
-    def _update_ost_target_cache_state(self, ost):
-
-        if ost in self.ost_fill_level_dict:
-
-            fill_level = self.ost_fill_level_dict[ost]
-
-            if fill_level < self.ost_fill_threshold:
-
-                if ost in self.ost_target_state_dict:
-
-                    if self.ost_target_state_dict[ost] == OSTCacheState.LOCKED:
-                        self.ost_target_state_dict[ost] = OSTCacheState.READY
+                    else:
+                        ost_state_dict[ost] = OSTState.READY
 
                 else:
-                    self.ost_target_state_dict[ost] = OSTCacheState.READY
+
+                    if ost in ost_state_dict:
+
+                        if ost_state_dict[ost] == OSTState.READY:
+                            ost_state_dict[ost] = OSTState.LOCKED
+                        elif ost_state_dict[ost] == OSTState.BLOCKED:
+                            ost_state_dict[ost] = OSTState.PENDING_LOCK
+
+                    else:
+                        ost_state_dict[ost] = OSTState.LOCKED
 
             else:
-                self.ost_target_state_dict[ost] = OSTCacheState.LOCKED
+                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
         else:
-            raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
+            if ost_state_dict[ost] == OSTState.BLOCKED:
+                ost_state_dict[ost] = OSTState.READY
+            elif ost_state_dict[ost] == OSTState.PENDING_LOCK:
+                ost_state_dict[ost] = OSTState.LOCKED
+            else:
+                raise RuntimeError("Inconsistency in OST state dictionaries found!")
