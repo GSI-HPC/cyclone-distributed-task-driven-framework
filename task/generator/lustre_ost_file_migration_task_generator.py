@@ -219,8 +219,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                             logging.info("No OST caches available!")
 
                     # TODO: adaptive sleep... ???
-                    ##time.sleep(0.001)
-                    time.sleep(1.001)
+                    time.sleep(0.001)
 
                 except InterruptedError:
                     logging.error("Caught InterruptedError exception.")
