@@ -97,9 +97,6 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         self.run_flag = False
 
-    def start(self):
-        super(LustreOstFileMigrationTaskGenerator, self).start()
-
     def run(self):
 
         try:
@@ -111,10 +108,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             logging.info("%s started!" % self.__class__.__name__)
 
-            self._process_input_files()
             self._update_ost_fill_level_dict()
-            self._allocate_ost_source_caches()
             self._init_ost_target_state_dict()
+            self._process_input_files()
 
             threshold_print_caches = 5
             next_time_print_caches = int(time.time()) + threshold_print_caches
@@ -179,12 +175,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         logging.info("###### Loading Input Files ######")
 
-                        file_counter = self._process_input_files()
-
-                        if file_counter:
-                            self._allocate_ost_source_caches()
-
-                        logging.info("Count of processed input files: %s" % file_counter)
+                        self._process_input_files()
 
                     if last_run_time >= next_time_print_caches:
 
@@ -231,22 +222,30 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     ##time.sleep(0.001)
                     time.sleep(1.001)
 
-                except InterruptedError as e:
+                except InterruptedError:
                     logging.error("Caught InterruptedError exception.")
 
-        except Exception as e:
+        except Exception:
 
-            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exc_info = sys.exc_info()
+            exc_value = exc_info[1]
+            exc_tb = exc_info[2]
+
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
+            logging.error("Exception in %s (line: %s): %s"
+                          % (filename, exc_tb.tb_lineno, exc_value))
+
             logging.info("%s exited!" % self.__class__.__name__)
-            os._exit(1)
+
+            sys.exit(1)
 
         logging.info("%s finished!" % self.__class__.__name__)
-        os._exit(0)
+
+        sys.exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
+        # pylint: disable=unused-argument
 
         self.run_flag = False
 
@@ -255,27 +254,16 @@ class LustreOstFileMigrationTaskGenerator(Process):
         raise InterruptedError(msg)
 
     def _process_input_files(self):
-        """Processes new input files
-
-        All input files in the specific input directory are processed
-        by the self._load_input_file(file_path) class method.
-        Files to process have the '.input' file extension.
-        After being processed the file gets the '.done' extension appended.
-
-            :return: counter of processed files
-            :rtype: int
-
-        """
 
         file_counter = 0
 
         files = os.listdir(self.input_dir)
 
-        for f in files:
+        for file in files:
 
-            if f.endswith(".input"):
+            if file.endswith(".input"):
 
-                file_path = self.input_dir + os.path.sep + f
+                file_path = self.input_dir + os.path.sep + file
 
                 self._load_input_file(file_path)
 
@@ -283,7 +271,10 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 file_counter += 1
 
-        return file_counter
+        if file_counter:
+            self._allocate_ost_source_caches()
+
+        logging.info("Count of processed input files: %s" % file_counter)
 
     def _load_input_file(self, file_path):
 
@@ -294,33 +285,28 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             for line in file:
 
+                stripped_line = line.strip()
+
+                if BaseMessage.field_separator in stripped_line:
+                    logging.warning("Skipped line: %s" % line)
+                    skipped_counter += 1
+                    continue
+
                 try:
 
-                    stripped_line = line.strip()
-
-                    if BaseMessage.field_separator in stripped_line:
-                        logging.warning("Skipped line: %s" % line)
-                        skipped_counter += 1
-                        continue
-
                     ost, filename = stripped_line.split()
-
                     migrate_item = LustreOstMigrateItem(ost, filename)
 
                     if ost not in self.ost_source_cache_dict:
                         self.ost_source_cache_dict[ost] = list()
 
                     self.ost_source_cache_dict[ost].append(migrate_item)
+
                     loaded_counter += 1
 
-                except Exception as e:
-
-                    logging.warning("Skipped line: %s" % line)
+                except ValueError as error:
+                    logging.warning("Skipped line: %s (%s)" % (line, error))
                     skipped_counter += 1
-
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
 
             logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
                          % (file_path, loaded_counter, skipped_counter))
@@ -333,10 +319,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             if len(cache):
 
-                if ost in self.ost_source_state_dict:
-                    pass
-                else:
-                    # Add new source OST to ost_source_state_dict.
+                if not (ost in self.ost_source_state_dict):
                     self._update_ost_source_state_dict(ost)
 
             else:
@@ -384,38 +367,37 @@ class LustreOstFileMigrationTaskGenerator(Process):
     def _update_ost_target_state_dict(self, ost):
         self._update_ost_state_dict(ost, self.ost_target_state_dict, operator.lt)
 
-    def _update_ost_state_dict(self, ost, ost_state_dict, op=None):
+    def _update_ost_state_dict(self, ost, ost_state_dict, operator_func=None):
 
-        if op:
+        if operator_func:
 
-            if ost in self.ost_fill_level_dict:
+            if not (ost in self.ost_fill_level_dict):
+                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
-                fill_level = self.ost_fill_level_dict[ost]
+            fill_level = self.ost_fill_level_dict[ost]
 
-                if op(fill_level, self.ost_fill_threshold):
+            # operator_func = operator.lt or operator.gt
+            if operator_func(fill_level, self.ost_fill_threshold):
 
-                    if ost in ost_state_dict:
+                if ost in ost_state_dict:
 
-                        if ost_state_dict[ost] == OSTState.LOCKED:
-                            ost_state_dict[ost] = OSTState.READY
-
-                    else:
+                    if ost_state_dict[ost] == OSTState.LOCKED:
                         ost_state_dict[ost] = OSTState.READY
 
                 else:
-
-                    if ost in ost_state_dict:
-
-                        if ost_state_dict[ost] == OSTState.READY:
-                            ost_state_dict[ost] = OSTState.LOCKED
-                        elif ost_state_dict[ost] == OSTState.BLOCKED:
-                            ost_state_dict[ost] = OSTState.PENDING_LOCK
-
-                    else:
-                        ost_state_dict[ost] = OSTState.LOCKED
+                    ost_state_dict[ost] = OSTState.READY
 
             else:
-                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
+
+                if ost in ost_state_dict:
+
+                    if ost_state_dict[ost] == OSTState.READY:
+                        ost_state_dict[ost] = OSTState.LOCKED
+                    elif ost_state_dict[ost] == OSTState.BLOCKED:
+                        ost_state_dict[ost] = OSTState.PENDING_LOCK
+
+                else:
+                    ost_state_dict[ost] = OSTState.LOCKED
 
         else:
 
