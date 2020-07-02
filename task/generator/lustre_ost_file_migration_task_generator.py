@@ -112,14 +112,14 @@ class LustreOstFileMigrationTaskGenerator(Process):
             self._init_ost_target_state_dict()
             self._process_input_files()
 
-            threshold_print_caches = 5
-            next_time_print_caches = int(time.time()) + threshold_print_caches
+            threshold_update_fill_level = 900
+            next_time_update_fill_level = int(time.time()) + threshold_update_fill_level
 
-            threshold_reload_files = 45
+            threshold_reload_files = 900
             next_time_reload_files = int(time.time()) + threshold_reload_files
 
-            threshold_update_fill_level = 30
-            next_time_update_fill_level = int(time.time()) + threshold_update_fill_level
+            threshold_print_caches = 900
+            next_time_print_caches = int(time.time()) + threshold_print_caches
 
             while self.run_flag:
 
@@ -169,6 +169,30 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     last_run_time = int(time.time())
 
+                    if last_run_time >= next_time_update_fill_level:
+
+                        next_time_update_fill_level = last_run_time + threshold_update_fill_level
+
+                        logging.info("###### OST Fill Level Update ######")
+
+                        start_time = datetime.now()
+                        self._update_ost_fill_level_dict()
+                        elapsed_time = datetime.now() - start_time
+
+                        logging.info("Elapsed time: %s - Number of OSTs: %s"
+                                     % (elapsed_time, len(self.ost_fill_level_dict)))
+
+                        if logging.root.level <= logging.DEBUG:
+
+                            for ost, fill_level in self.ost_fill_level_dict.items():
+                                logging.debug("OST: %s - Fill Level: %s" % (ost, fill_level))
+
+                        for ost in self.ost_source_state_dict.keys():
+                            self._update_ost_source_state_dict(ost)
+
+                        for ost in self.ost_target_state_dict.keys():
+                            self._update_ost_target_state_dict(ost)
+
                     if last_run_time >= next_time_reload_files:
 
                         next_time_reload_files = last_run_time + threshold_reload_files
@@ -193,30 +217,6 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         else:
                             logging.info("No OST caches available!")
-
-                    if last_run_time >= next_time_update_fill_level:
-
-                        next_time_update_fill_level = last_run_time + threshold_update_fill_level
-
-                        logging.info("###### OST Fill Level Update ######")
-
-                        start_time = datetime.now()
-                        self._update_ost_fill_level_dict()
-                        elapsed_time = datetime.now() - start_time
-
-                        logging.info("Elapsed time: %s - Number of OSTs: %s"
-                                     % (elapsed_time, len(self.ost_fill_level_dict)))
-
-                        if logging.root.level <= logging.DEBUG:
-
-                            for ost, fill_level in self.ost_fill_level_dict.items():
-                                logging.debug("OST: %s - Fill Level: %s" % (ost, fill_level))
-
-                        for ost in self.ost_source_state_dict.keys():
-                            self._update_ost_source_state_dict(ost)
-
-                        for ost in self.ost_target_state_dict.keys():
-                            self._update_ost_target_state_dict(ost)
 
                     # TODO: adaptive sleep... ???
                     ##time.sleep(0.001)
