@@ -207,11 +207,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         logging.info("###### OST Cache Sizes ######")
 
-                        ost_caches_keys = self.ost_source_cache_dict.keys()
+                        ost_cache_ids = self.ost_source_cache_dict.keys()
 
-                        if len(ost_caches_keys):
+                        if len(ost_cache_ids):
 
-                            for source_ost in sorted(ost_caches_keys):
+                            for source_ost in sorted(ost_cache_ids, key=int):
                                 logging.info("OST: %s - Size: %s"
                                              % (source_ost, len(self.ost_source_cache_dict[source_ost])))
 
