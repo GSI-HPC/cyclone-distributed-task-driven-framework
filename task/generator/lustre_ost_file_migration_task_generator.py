@@ -77,6 +77,10 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         self.local_mode = config.getboolean('control', 'local_mode')
 
+        self.threshold_update_fill_level = config.getint('control.threshold', 'update_fill_level')
+        self.threshold_reload_files = config.getint('control.threshold', 'reload_files')
+        self.threshold_print_caches = config.getint('control.threshold', 'print_caches')
+
         if not self.local_mode:
 
             self.lfs_utils = LFSUtils("/usr/bin/lfs")
@@ -113,14 +117,9 @@ class LustreOstFileMigrationTaskGenerator(Process):
             self._init_ost_target_state_dict()
             self._process_input_files()
 
-            threshold_update_fill_level = 900
-            next_time_update_fill_level = int(time.time()) + threshold_update_fill_level
-
-            threshold_reload_files = 900
-            next_time_reload_files = int(time.time()) + threshold_reload_files
-
-            threshold_print_caches = 900
-            next_time_print_caches = int(time.time()) + threshold_print_caches
+            next_time_update_fill_level = int(time.time()) + self.threshold_update_fill_level
+            next_time_reload_files = int(time.time()) + self.threshold_reload_files
+            next_time_print_caches = int(time.time()) + self.threshold_print_caches
 
             while self.run_flag:
 
@@ -142,11 +141,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
                                         if self.local_mode:
                                             task = EmptyTask()
                                         else:
-                                            task = OstMigrateTask(source_ost, target_ost, item.filename)
+                                            task = OstMigrateTask(
+                                                source_ost, target_ost, item.filename)
 
                                         task.tid = f"{source_ost}:{target_ost}"
 
-                                        logging.debug("Pushing task with TID to task queue: %s" % task.tid)
+                                        logging.debug("Pushing task with TID to task queue: %s"
+                                                      % task.tid)
 
                                         with CriticalSection(self.lock_task_queue):
                                             self.task_queue.push(task)
@@ -173,7 +174,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     if last_run_time >= next_time_update_fill_level:
 
-                        next_time_update_fill_level = last_run_time + threshold_update_fill_level
+                        next_time_update_fill_level = \
+                            last_run_time + self.threshold_update_fill_level
 
                         logging.info("###### OST Fill Level Update ######")
 
@@ -197,7 +199,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     if last_run_time >= next_time_reload_files:
 
-                        next_time_reload_files = last_run_time + threshold_reload_files
+                        next_time_reload_files = last_run_time + self.threshold_reload_files
 
                         logging.info("###### Loading Input Files ######")
 
@@ -205,7 +207,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     if last_run_time >= next_time_print_caches:
 
-                        next_time_print_caches = last_run_time + threshold_print_caches
+                        next_time_print_caches = last_run_time + self.threshold_print_caches
 
                         logging.info("###### OST Cache Sizes ######")
 
@@ -320,7 +322,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             if len(cache):
 
-                if not (ost in self.ost_source_state_dict):
+                if ost not in self.ost_source_state_dict:
                     self._update_ost_source_state_dict(ost)
 
     def _deallocate_empty_ost_caches(self):
@@ -378,7 +380,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         if operator_func:
 
-            if not (ost in self.ost_fill_level_dict):
+            if ost not in self.ost_fill_level_dict:
                 raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
             fill_level = self.ost_fill_level_dict[ost]
