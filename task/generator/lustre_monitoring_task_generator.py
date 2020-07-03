@@ -65,8 +65,8 @@ class LustreMonitoringTaskGenerator(Process):
         else:
             self.ost_select_list = list()
 
-        self.measure_interval = config.getfloat('control', 'measure_interval')
         self.local_mode = config.getboolean('control', 'local_mode')
+        self.measure_interval = config.getfloat('control', 'measure_interval')
 
         self.run_flag = False
 

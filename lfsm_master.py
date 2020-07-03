@@ -40,7 +40,7 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from globals import VERSION
+from version import VERSION
 
 
 TASK_DISTRIBUTION = True

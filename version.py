@@ -19,4 +19,3 @@
 
 
 VERSION = "1.5.1"
-LOCAL_MODE = True

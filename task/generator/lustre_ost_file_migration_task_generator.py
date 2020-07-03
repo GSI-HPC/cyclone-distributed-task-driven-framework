@@ -32,7 +32,6 @@ from enum import Enum, unique
 from multiprocessing import Process
 
 from ctrl.critical_section import CriticalSection
-from globals import LOCAL_MODE
 from lfs.lfs_utils import LFSUtils
 from msg.base_message import BaseMessage
 from task.ost_migrate_task import OstMigrateTask
@@ -76,7 +75,10 @@ class LustreOstFileMigrationTaskGenerator(Process):
         config = configparser.ConfigParser()
         config.read_file(open(config_file))
 
-        if not LOCAL_MODE:
+        self.local_mode = config.getboolean('control', 'local_mode')
+
+        if not self.local_mode:
+
             self.lfs_utils = LFSUtils("/usr/bin/lfs")
             self.lfs_path = config.get('lustre', 'fs_path')
 
@@ -137,7 +139,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         item = ost_cache.pop()
 
-                                        if LOCAL_MODE:
+                                        if self.local_mode:
                                             task = EmptyTask()
                                         else:
                                             task = OstMigrateTask(source_ost, target_ost, item.filename)
@@ -351,7 +353,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def _update_ost_fill_level_dict(self):
 
-        if LOCAL_MODE:
+        if self.local_mode:
 
             self.ost_fill_level_dict.clear()
 
