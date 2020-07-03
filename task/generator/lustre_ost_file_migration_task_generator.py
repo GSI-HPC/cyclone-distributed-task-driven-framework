@@ -87,9 +87,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         self.ost_fill_threshold = config.getint('lustre.migration', 'ost_fill_threshold')
 
-        self.ost_source_cache_dict = dict()
+        self.ost_cache_dict = dict()
 
-        # TODO: Create class for managing state and capacity for OSTs.
         self.ost_source_state_dict = dict()
         self.ost_target_state_dict = dict()
 
@@ -125,7 +124,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 try:
 
-                    for source_ost, ost_cache in self.ost_source_cache_dict.items():
+                    # TODO: check ost_source_state_dict then check the cache.
+                    for source_ost, ost_cache in self.ost_cache_dict.items():
 
                         if self.ost_source_state_dict[source_ost] == OSTState.READY:
 
@@ -207,16 +207,18 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         logging.info("###### OST Cache Sizes ######")
 
-                        ost_cache_ids = self.ost_source_cache_dict.keys()
+                        ost_cache_ids = self.ost_cache_dict.keys()
 
                         if len(ost_cache_ids):
 
                             for source_ost in sorted(ost_cache_ids, key=int):
-                                logging.info("OST: %s - Size: %s"
-                                             % (source_ost, len(self.ost_source_cache_dict[source_ost])))
 
+                                logging.info("OST: %s - Size: %s"
+                                             % (source_ost, len(self.ost_cache_dict[source_ost])))
                         else:
                             logging.info("No OST caches available!")
+
+                        self._deallocate_empty_ost_caches()
 
                     # TODO: adaptive sleep... ???
                     time.sleep(0.001)
@@ -271,7 +273,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 file_counter += 1
 
         if file_counter:
-            self._allocate_ost_source_caches()
+            self._allocate_ost_caches()
 
         logging.info("Count of processed input files: %s" % file_counter)
 
@@ -296,10 +298,10 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     ost, filename = stripped_line.split()
                     migrate_item = LustreOstMigrateItem(ost, filename)
 
-                    if ost not in self.ost_source_cache_dict:
-                        self.ost_source_cache_dict[ost] = list()
+                    if ost not in self.ost_cache_dict:
+                        self.ost_cache_dict[ost] = list()
 
-                    self.ost_source_cache_dict[ost].append(migrate_item)
+                    self.ost_cache_dict[ost].append(migrate_item)
 
                     loaded_counter += 1
 
@@ -310,32 +312,36 @@ class LustreOstFileMigrationTaskGenerator(Process):
             logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
                          % (file_path, loaded_counter, skipped_counter))
 
-    def _allocate_ost_source_caches(self):
+    def _allocate_ost_caches(self):
 
-        del_ost_source_list = None
-
-        for ost, cache in self.ost_source_cache_dict.items():
+        for ost, cache in self.ost_cache_dict.items():
 
             if len(cache):
 
                 if not (ost in self.ost_source_state_dict):
                     self._update_ost_source_state_dict(ost)
 
-            else:
+    def _deallocate_empty_ost_caches(self):
+
+        empty_ost_cache_ids = None
+
+        for ost, cache in self.ost_cache_dict.items():
+
+            if len(cache) == 0:
 
                 if self.ost_source_state_dict[ost] == OSTState.READY \
                         or self.ost_source_state_dict[ost] == OSTState.LOCKED:
 
-                    if not del_ost_source_list:
-                        del_ost_source_list = list()
+                    if not empty_ost_cache_ids:
+                        empty_ost_cache_ids = list()
 
-                    del_ost_source_list.append(ost)
+                    empty_ost_cache_ids.append(ost)
 
-        if del_ost_source_list:
+        if empty_ost_cache_ids:
 
-            for ost in del_ost_source_list:
+            for ost in empty_ost_cache_ids:
 
-                del self.ost_source_cache_dict[ost]
+                del self.ost_cache_dict[ost]
                 del self.ost_source_state_dict[ost]
 
     def _init_ost_target_state_dict(self):
