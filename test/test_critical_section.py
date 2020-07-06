@@ -27,19 +27,19 @@ from ctrl.critical_section import CriticalSection
 
 def worker_func(wid, lock):
 
-    logging.info("Started Worker: %s" % wid)
+    logging.info("Started Worker: %s", wid)
 
     # Check if critical section is locked,
     # since the timeout might interrupt the blocking wait.
     with CriticalSection(lock, timeout=1) as critical_section:
 
-        logging.info("Lock acquired: %s" % critical_section.is_locked())
+        logging.info("Lock acquired: %s", critical_section.is_locked())
 
         if critical_section.is_locked():
 
-            logging.info("Worker[%s] - locked" % wid)
+            logging.info("Worker[%s] - locked", wid)
             time.sleep(3)
-            logging.info("Worker[%s] - released" % wid)
+            logging.info("Worker[%s] - released", wid)
 
     return
 
