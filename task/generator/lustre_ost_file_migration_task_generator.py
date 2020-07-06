@@ -185,12 +185,12 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         elapsed_time = datetime.now() - start_time
 
                         logging.info("Elapsed time: %s - Number of OSTs: %s",
-                                     (elapsed_time, len(self.ost_fill_level_dict)))
+                                     elapsed_time, len(self.ost_fill_level_dict))
 
                         if logging.root.level <= logging.DEBUG:
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
-                                logging.debug("OST: %s - Fill Level: %s", (ost, fill_level))
+                                logging.debug("OST: %s - Fill Level: %s", ost, fill_level)
 
                         for ost in self.ost_source_state_dict.keys():
                             self._update_ost_source_state_dict(ost)
@@ -219,7 +219,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                             for source_ost in sorted(ost_cache_ids, key=int):
 
                                 logging.info("OST: %s - Size: %s",
-                                             (source_ost, len(self.ost_cache_dict[source_ost])))
+                                             source_ost, len(self.ost_cache_dict[source_ost]))
                         else:
                             logging.info("No OST caches available!")
 
@@ -240,7 +240,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error("Exception in %s (line: %s): %s",
-                          (filename, exc_tb.tb_lineno, exc_value))
+                          filename, exc_tb.tb_lineno, exc_value)
 
             logging.info("%s exited!", self.__class__.__name__)
 
@@ -311,11 +311,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     loaded_counter += 1
 
                 except ValueError as error:
-                    logging.warning("Skipped line: %s (%s)", (line, error))
+                    logging.warning("Skipped line: %s (%s)", line, error)
                     skipped_counter += 1
 
             logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s",
-                         (file_path, loaded_counter, skipped_counter))
+                         file_path, loaded_counter, skipped_counter)
 
     def _allocate_ost_caches(self):
 

@@ -381,8 +381,8 @@ def main():
                         error_count += 1
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logging.error("Caught exception in main loop: %s - ",
-                                      "%s (line: %s)", e, filename, exc_tb.tb_lineno)
+                        logging.error("Caught exception in main loop: %s - %s (line: %s)",
+                                      e, filename, exc_tb.tb_lineno)
 
                         stop_task_distribution()
 
