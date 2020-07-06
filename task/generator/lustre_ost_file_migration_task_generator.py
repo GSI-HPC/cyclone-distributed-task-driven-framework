@@ -125,10 +125,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                 try:
 
-                    # TODO: check ost_source_state_dict then check the cache.
-                    for source_ost, ost_cache in self.ost_cache_dict.items():
+                    for source_ost in self.ost_source_state_dict:
 
                         if self.ost_source_state_dict[source_ost] == OSTState.READY:
+
+                            ost_cache = self.ost_cache_dict[source_ost]
 
                             if len(ost_cache):
 
