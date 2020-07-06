@@ -285,8 +285,8 @@ def main():
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: "
-                                                                   + task.tid)
+                                                raise RuntimeError("Undefined state processing task: %s"
+                                                                   % task.tid)
 
                                         else:
                                             do_task_assign = True
@@ -345,7 +345,8 @@ def main():
                                     comm_handler.send_string(send_msg.to_string())
 
                                 else:
-                                    raise RuntimeError('Undefined type found in message: ' + recv_msg.to_string())
+                                    raise RuntimeError("Undefined type found in message: %s"
+                                                       % recv_msg.to_string())
 
                             else:   # Do graceful shutdown, since task distribution is off!
 

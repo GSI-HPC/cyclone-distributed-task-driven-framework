@@ -114,8 +114,7 @@ class LFSUtils:
                 else:
                     return False
 
-        raise RuntimeError("[LFSUtils::is_ost_idx_active] Index not found: %s",
-                           ost_idx)
+        raise RuntimeError("[LFSUtils::is_ost_idx_active] Index not found: %s" % ost_idx)
 
     def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""

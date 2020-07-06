@@ -382,7 +382,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         if operator_func:
 
             if ost not in self.ost_fill_level_dict:
-                raise RuntimeError("OST not found in ost_fill_level_dict: %s", ost)
+                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
             fill_level = self.ost_fill_level_dict[ost]
 

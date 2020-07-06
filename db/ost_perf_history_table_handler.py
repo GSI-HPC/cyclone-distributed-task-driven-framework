@@ -103,7 +103,7 @@ CREATE TABLE """ + self._table + """ (
                 for i in range(1, len_ost_perf_result_list):
                     sql += ",(" + self._ost_perf_result_list[i] + ")"
 
-        logging.debug("Executing SQL statement:\n%s", sql)
+        logging.debug("Executing SQL statement:\n%s" % sql)
 
         with closing(mysql.connector.connect(host=self._host,
                                              user=self._user,

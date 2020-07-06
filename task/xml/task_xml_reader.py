@@ -63,7 +63,7 @@ class TaskXmlReader:
             found_task = False
 
             if root.tag != 'tasks':
-                raise RuntimeError("Wrong root tag detected: '%s'", root.tag)
+                raise RuntimeError("Wrong root tag detected: '%s'" % root.tag)
 
             if not len(root):
                 raise RuntimeError("No task definitions found in '%s'" % file_path)
@@ -71,7 +71,7 @@ class TaskXmlReader:
             for child in root:
 
                 if child.tag != 'task':
-                    raise RuntimeError("Wrong child tag detected: '%s'", child.tag)
+                    raise RuntimeError("Wrong child tag detected: '%s'" % child.tag)
 
                 if child.attrib['name'] == task_name:
 

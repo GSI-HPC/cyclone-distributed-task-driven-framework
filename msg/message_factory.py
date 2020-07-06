@@ -74,4 +74,4 @@ class MessageFactory:
         if msg_type == MessageType.TASK_ASSIGN():
             return TaskAssign(message)
 
-        raise RuntimeError("No message could be created from: " + message)
+        raise RuntimeError("No message could be created from: %s" % message)

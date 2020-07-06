@@ -194,7 +194,7 @@ class LustreMonitoringTaskGenerator(Process):
                         break
 
                 if found_select_ost_idx is False:
-                    raise RuntimeError("OST to select was not found in ost_info_list: %s", select_ost_idx)
+                    raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_idx)
 
             if not len(select_ost_idx_list):
                 raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
@@ -236,8 +236,8 @@ class LustreMonitoringTaskGenerator(Process):
                         break
 
                 if not found_select_ost_idx:
-                    raise RuntimeError("OST-IDX to select was not found "
-                                       "in ost_info_list: %s", select_ost_idx)
+                    raise RuntimeError("OST-IDX to select was not found in ost_info_list: %s"
+                                       % select_ost_idx)
 
             return select_ost_idx_list
 
