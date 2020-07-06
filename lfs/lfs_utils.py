@@ -68,7 +68,7 @@ class LFSUtils:
         try:
 
             regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
-            logging.debug("Using regex for `lfs check osts`: %s" % regex_str)
+            logging.debug("Using regex for `lfs check osts`: %s", regex_str)
             pattern = re.compile(regex_str)
 
             args = ['sudo', self.lfs_bin, 'check', 'osts']
@@ -96,10 +96,10 @@ class LFSUtils:
                         ost_list.append(LFSOstItem(target, ost, state, False))
 
                 else:
-                    logging.warning("No regex match for line: %s" % line)
+                    logging.warning("No regex match for line: %s", line)
 
         except Exception as e:
-            logging.error("Exception occurred: %s" % e)
+            logging.error("Exception occurred: %s", e)
 
         return ost_list
 
@@ -114,14 +114,14 @@ class LFSUtils:
                 else:
                     return False
 
-        raise RuntimeError("[LFSUtils::is_ost_idx_active] Index not found: %s"
-                           % ost_idx)
+        raise RuntimeError("[LFSUtils::is_ost_idx_active] Index not found: %s",
+                           ost_idx)
 
     def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
-        logging.debug("Setting stripe for file: %s - OST: %s"
-                      % (file_path, ost_idx))
+        logging.debug("Setting stripe for file: %s - OST: %s",
+                      (file_path, ost_idx))
 
         args = [self.lfs_bin, 'setstripe', '-i', ost_idx, file_path]
 
@@ -173,7 +173,7 @@ class LFSUtils:
                 raise RuntimeError('Empty filename!')
 
             if skip and self.is_file_stripped(filename):
-                logging.info("SKIPPED|%s" % filename)
+                logging.info("SKIPPED|%s", filename)
             else:
 
                 args = [self.lfs_bin, 'migrate']
@@ -193,7 +193,7 @@ class LFSUtils:
                 subprocess.run(args, check=True, stderr=subprocess.PIPE)
                 elapsed_time = datetime.now() - start_time
 
-                logging.info("SUCCESS|%s|%s" % (filename, elapsed_time))
+                logging.info("SUCCESS|%s|%s", filename, elapsed_time)
 
         except subprocess.CalledProcessError as error:
 
@@ -203,7 +203,7 @@ class LFSUtils:
             if error.stderr:
                 stderr = error.stderr.decode('UTF-8')
 
-            logging.info("FAILED|%s|%i|%s" % (filename, rc, stderr))
+            logging.info("FAILED|%s|%i|%s", filename, rc, stderr)
 
     def retrieve_ost_fill_level(self, fs_path):
 

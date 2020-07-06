@@ -124,7 +124,7 @@ def check_all_controller_down(count_active_controller):
         logging.info('Shutdown of controllers complete!')
         return True
 
-    logging.debug("Waiting for number of controllers to quit: %s" % count_active_controller)
+    logging.debug("Waiting for number of controllers to quit: %s", count_active_controller)
     return False
 
 
@@ -180,7 +180,7 @@ def main():
 
                 logging.info("Started")
                 logging.info("Master PID: %s", pid_control.pid())
-                logging.info("Version: %s" % VERSION)
+                logging.info("Version: %s", VERSION)
 
                 signal.signal(signal.SIGHUP, signal_handler)
                 signal.signal(signal.SIGINT, signal_handler)
@@ -228,7 +228,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug("Retrieved message: " + recv_data)
+                            logging.debug("Retrieved message: %s", recv_data)
 
                             recv_msg = MessageFactory.create(recv_data)
                             recv_msg_type = recv_msg.type()
@@ -279,13 +279,14 @@ def main():
                                                     and last_exec_timestamp < task_resend_threshold:
 
                                                 logging.debug("Ignoring task to assign... - "
-                                                              "Waiting for task with TID to finish: %s"
-                                                              % task.tid)
+                                                              "Waiting for task with TID to finish: %s",
+                                                              task.tid)
 
                                                 send_msg = WaitCommand(controller_wait_duration)
 
                                             else:
-                                                raise RuntimeError("Undefined state processing task: ", task.tid)
+                                                raise RuntimeError("Undefined state processing task: "
+                                                                   + task.tid)
 
                                         else:
                                             do_task_assign = True
@@ -304,7 +305,7 @@ def main():
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
 
-                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    logging.debug("Sending message: %s", send_msg.to_string())
                                     comm_handler.send_string(send_msg.to_string())
 
                                 elif MessageType.TASK_FINISHED() == recv_msg_type:
@@ -315,14 +316,14 @@ def main():
 
                                         if recv_msg.sender == task_status_dict[tid].controller:
 
-                                            logging.debug("Retrieved finished message for TID: %s" % tid)
+                                            logging.debug("Retrieved finished message for TID: %s", tid)
 
                                             task_status_dict[tid].state = TaskState.finished()
                                             task_status_dict[tid].timestamp = int(time.time())
 
                                             with CriticalSection(lock_result_queue):
 
-                                                logging.debug("Pushing TID to result queue: %s" % tid)
+                                                logging.debug("Pushing TID to result queue: %s", tid)
                                                 result_queue.push(tid)
 
                                         else:
@@ -332,13 +333,15 @@ def main():
                                         raise RuntimeError("Inconsistency detected on task finished!")
 
                                     send_msg = Acknowledge()
-                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    # TODO: if debug then call to_string() or call it once...
+                                    logging.debug("Sending message: %s", send_msg.to_string())
                                     comm_handler.send_string(send_msg.to_string())
 
                                 elif MessageType.HEARTBEAT() == recv_msg_type:
 
                                     send_msg = Acknowledge()
-                                    logging.debug("Sending message: " + send_msg.to_string())
+                                    # TODO: if debug then call to_string() or call it once...
+                                    logging.debug("Sending message: %s", send_msg.to_string())
                                     comm_handler.send_string(send_msg.to_string())
 
                                 else:
@@ -347,7 +350,7 @@ def main():
                             else:   # Do graceful shutdown, since task distribution is off!
 
                                 send_msg = ExitCommand()
-                                logging.debug("Sending message: " + send_msg.to_string())
+                                logging.debug("Sending message: %s", send_msg.to_string())
                                 comm_handler.send_string(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)
@@ -378,8 +381,8 @@ def main():
                         error_count += 1
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logging.error("Caught exception in main loop: %s - "
-                                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
+                        logging.error("Caught exception in main loop: %s - ",
+                                      "%s (line: %s)", e, filename, exc_tb.tb_lineno)
 
                         stop_task_distribution()
 
@@ -389,7 +392,7 @@ def main():
             else:
 
                 logging.error("Another instance might be already running!")
-                logging.info("PID file: %s" % config_file_reader.pid_file)
+                logging.info("PID file: %s", config_file_reader.pid_file)
                 sys.exit(1)
 
     except Exception as e:
@@ -398,7 +401,7 @@ def main():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error("Caught exception in main block: %s - "
-                      "%s (line: %s)" % (str(e), filename, exc_tb.tb_lineno))
+                      "%s (line: %s)", e, filename, exc_tb.tb_lineno)
 
     try:
 
@@ -423,7 +426,7 @@ def main():
         error_count += 1
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error("Exception in %s (line: %s): %s" % (filename, exc_tb.tb_lineno, e))
+        logging.error("Exception in %s (line: %s): %s", filename, exc_tb.tb_lineno, e)
 
     logging.info("Finished")
 

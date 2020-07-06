@@ -59,7 +59,7 @@ CREATE TABLE """ + self._table + """ (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1
 """
 
-        logging.debug("Creating database table:\n" + sql)
+        logging.debug("Creating database table:\n%s", sql)
 
         with closing(mysql.connector.connect(host=self._host,
                                              user=self._user,
@@ -103,7 +103,7 @@ CREATE TABLE """ + self._table + """ (
                 for i in range(1, len_ost_perf_result_list):
                     sql += ",(" + self._ost_perf_result_list[i] + ")"
 
-        logging.debug("Executing SQL statement:\n" + sql)
+        logging.debug("Executing SQL statement:\n%s", sql)
 
         with closing(mysql.connector.connect(host=self._host,
                                              user=self._user,
@@ -118,8 +118,8 @@ CREATE TABLE """ + self._table + """ (
                     raise RuntimeError("Number of rows inserted is not equal "
                                        "to number of input records!")
 
-        logging.debug("Inserted: %s records into table: %s"
-                      % (len_ost_perf_result_list, self._table))
+        logging.debug("Inserted: %s records into table: %s",
+                      len_ost_perf_result_list, self._table)
 
     def count(self):
         return len(self._ost_perf_result_list)

@@ -81,7 +81,7 @@ class IOTask(BaseTask):
 
             if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                logging.debug("Found active OST-IDX: %s" % self.ost_idx)
+                logging.debug("Found active OST-IDX: %s", self.ost_idx)
 
                 self._initialize_payload()
 
@@ -111,7 +111,7 @@ class IOTask(BaseTask):
                                       write_duration)
             else:
 
-                logging.debug("Found non-active OST: %s" % self.ost_idx)
+                logging.debug("Found non-active OST: %s", self.ost_idx)
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -120,7 +120,7 @@ class IOTask(BaseTask):
 
             if ost_perf_result:
 
-                logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
+                logging.debug("ost_perf_result.to_csv_list: %s", ost_perf_result.to_csv_list())
 
                 if self.db_proxy_endpoint:
 
@@ -144,8 +144,8 @@ class IOTask(BaseTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in IOTask: %s - %s (line: %s)"
-                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
+            logging.error("Caught exception (type: %s) in IOTask: %s - %s (line: %s)",
+                          exc_type, str(e), filename, exc_tb.tb_lineno)
 
     def _initialize_payload(self):
 
@@ -161,7 +161,7 @@ class IOTask(BaseTask):
     def _write_file(self, file_path):
 
         try:
-            logging.debug("Started writing to file: %s" % file_path)
+            logging.debug("Started writing to file: %s", file_path)
 
             iterations = self.total_size_bytes / self.block_size_bytes
 
@@ -190,7 +190,7 @@ class IOTask(BaseTask):
             if duration:
                 throughput = self.total_size_bytes / duration
 
-            logging.debug("Finished writing to file: %s" % file_path)
+            logging.debug("Finished writing to file: %s", file_path)
 
             return tuple((duration, throughput))
 
@@ -199,8 +199,8 @@ class IOTask(BaseTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in IOTask during write file: %s - %s (line: %s)"
-                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
+            logging.error("Caught exception (type: %s) in IOTask during write file: %s - %s (line: %s)",
+                          exc_type, str(e), filename, exc_tb.tb_lineno)
 
             return tuple((-1, -1))
 
@@ -213,7 +213,7 @@ class IOTask(BaseTask):
 
                 if file_size == self.total_size_bytes:
 
-                    logging.debug("Started reading from file: %s" % file_path)
+                    logging.debug("Started reading from file: %s", file_path)
 
                     total_read_bytes = 0
 
@@ -239,7 +239,7 @@ class IOTask(BaseTask):
                     if duration:
                         throughput = self.total_size_bytes / duration
 
-                    logging.debug("Finished reading from file: %s" % file_path)
+                    logging.debug("Finished reading from file: %s", file_path)
 
                     return tuple((duration, throughput))
 
@@ -257,7 +257,7 @@ class IOTask(BaseTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in IOTask during read file: %s - %s (line: %s)"
-                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
+            logging.error("Caught exception (type: %s) in IOTask during read file: %s - %s (line: %s)",
+                          exc_type, str(e), filename, exc_tb.tb_lineno)
 
             return tuple((-1, -1))

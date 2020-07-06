@@ -125,7 +125,7 @@ class Worker(multiprocessing.Process):
             signal.signal(signal.SIGUSR1, self.signal_handler_shutdown)
             signal.siginterrupt(signal.SIGUSR1, True)
 
-            logging.debug("Started Worker: %s" % self.name)
+            logging.debug("Started Worker: %s", self.name)
 
             with CriticalSection(self.lock_worker_state_table):
 
@@ -151,8 +151,8 @@ class Worker(multiprocessing.Process):
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-                    logging.error("Caught exception (type: %s) in worker[%s] during task execute: %s - %s (line: %s)"
-                                  % (exc_type, self.name, str(e), filename, exc_tb.tb_lineno))
+                    logging.error("Caught exception (type: %s) in worker[%s] during task execute: %s - %s (line: %s)",
+                                  exc_type, self.name, e, filename, exc_tb.tb_lineno)
 
                 with CriticalSection(self.cond_result_queue):
 
@@ -165,7 +165,7 @@ class Worker(multiprocessing.Process):
                     self.worker_state_table_item.set_tid('')
                     self.worker_state_table_item.set_timestamp(int(time.time()))
 
-            logging.debug("Exiting worker: %s" % self.name)
+            logging.debug("Exiting worker: %s", self.name)
 
             os._exit(0)
 
@@ -174,8 +174,8 @@ class Worker(multiprocessing.Process):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in worker[%s] during run loop: %s - %s (line: %s)"
-                          % (exc_type, self.name, str(e), filename, exc_tb.tb_lineno))
+            logging.error("Caught exception (type: %s) in worker[%s] during run loop: %s - %s (line: %s)",
+                          exc_type, self.name, e, filename, exc_tb.tb_lineno)
 
             os._exit(1)
 

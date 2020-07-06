@@ -111,7 +111,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
             signal.signal(signal.SIGTERM, self._signal_handler_terminate)
             signal.siginterrupt(signal.SIGTERM, True)
 
-            logging.info("%s started!" % self.__class__.__name__)
+            logging.info("%s started!", self.__class__.__name__)
 
             self._update_ost_fill_level_dict()
             self._init_ost_target_state_dict()
@@ -147,8 +147,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         task.tid = f"{source_ost}:{target_ost}"
 
-                                        logging.debug("Pushing task with TID to task queue: %s"
-                                                      % task.tid)
+                                        logging.debug("Pushing task with TID to task queue: %s",
+                                                      task.tid)
 
                                         with CriticalSection(self.lock_task_queue):
                                             self.task_queue.push(task)
@@ -164,7 +164,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                             finished_tid = self.result_queue.pop()
 
-                            logging.debug("Popped TID from result queue: %s " % finished_tid)
+                            logging.debug("Popped TID from result queue: %s ", finished_tid)
 
                             source_ost, target_ost = finished_tid.split(":")
 
@@ -184,13 +184,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         self._update_ost_fill_level_dict()
                         elapsed_time = datetime.now() - start_time
 
-                        logging.info("Elapsed time: %s - Number of OSTs: %s"
-                                     % (elapsed_time, len(self.ost_fill_level_dict)))
+                        logging.info("Elapsed time: %s - Number of OSTs: %s",
+                                     (elapsed_time, len(self.ost_fill_level_dict)))
 
                         if logging.root.level <= logging.DEBUG:
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
-                                logging.debug("OST: %s - Fill Level: %s" % (ost, fill_level))
+                                logging.debug("OST: %s - Fill Level: %s", (ost, fill_level))
 
                         for ost in self.ost_source_state_dict.keys():
                             self._update_ost_source_state_dict(ost)
@@ -218,8 +218,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                             for source_ost in sorted(ost_cache_ids, key=int):
 
-                                logging.info("OST: %s - Size: %s"
-                                             % (source_ost, len(self.ost_cache_dict[source_ost])))
+                                logging.info("OST: %s - Size: %s",
+                                             (source_ost, len(self.ost_cache_dict[source_ost])))
                         else:
                             logging.info("No OST caches available!")
 
@@ -239,14 +239,14 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Exception in %s (line: %s): %s"
-                          % (filename, exc_tb.tb_lineno, exc_value))
+            logging.error("Exception in %s (line: %s): %s",
+                          (filename, exc_tb.tb_lineno, exc_value))
 
-            logging.info("%s exited!" % self.__class__.__name__)
+            logging.info("%s exited!", self.__class__.__name__)
 
             sys.exit(1)
 
-        logging.info("%s finished!" % self.__class__.__name__)
+        logging.info("%s finished!", self.__class__.__name__)
 
         sys.exit(0)
 
@@ -280,7 +280,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         if file_counter:
             self._allocate_ost_caches()
 
-        logging.info("Count of processed input files: %s" % file_counter)
+        logging.info("Count of processed input files: %s", file_counter)
 
     def _load_input_file(self, file_path):
 
@@ -294,7 +294,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 stripped_line = line.strip()
 
                 if BaseMessage.field_separator in stripped_line:
-                    logging.warning("Skipped line: %s" % line)
+                    logging.warning("Skipped line: %s", line)
                     skipped_counter += 1
                     continue
 
@@ -311,11 +311,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     loaded_counter += 1
 
                 except ValueError as error:
-                    logging.warning("Skipped line: %s (%s)" % (line, error))
+                    logging.warning("Skipped line: %s (%s)", (line, error))
                     skipped_counter += 1
 
-            logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s"
-                         % (file_path, loaded_counter, skipped_counter))
+            logging.info("Loaded input file: %s - Loaded: %s - Skipped: %s",
+                         (file_path, loaded_counter, skipped_counter))
 
     def _allocate_ost_caches(self):
 
@@ -382,7 +382,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
         if operator_func:
 
             if ost not in self.ost_fill_level_dict:
-                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
+                raise RuntimeError("OST not found in ost_fill_level_dict: %s", ost)
 
             fill_level = self.ost_fill_level_dict[ost]
 

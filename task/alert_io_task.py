@@ -148,7 +148,7 @@ class AlertIOTask(IOTask):
             # TODO: Remove code redundancy in IOTasks.
             if ost_perf_result:
 
-                logging.debug("ost_perf_result.to_csv_list: %s" % ost_perf_result.to_csv_list())
+                logging.debug("ost_perf_result.to_csv_list: %s", ost_perf_result.to_csv_list())
 
                 if self.db_proxy_endpoint:
 
@@ -172,8 +172,8 @@ class AlertIOTask(IOTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in AlertIOTask: %s - %s (line: %s)"
-                          % (exc_type, str(e), filename, exc_tb.tb_lineno))
+            logging.error("Caught exception (type: %s) in AlertIOTask: %s - %s (line: %s)",
+                          exc_type, str(e), filename, exc_tb.tb_lineno)
 
     def _send_mail(self, args):
 

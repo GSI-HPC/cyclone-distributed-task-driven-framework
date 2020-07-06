@@ -138,7 +138,7 @@ def main():
 
                     logging.info("Started")
                     logging.info("Database Proxy PID: %s", pid_control.pid())
-                    logging.debug("Version: %s" % config_file_reader.version)
+                    logging.debug("Version: %s", config_file_reader.version)
 
                     signal.signal(signal.SIGHUP, signal_handler)
                     signal.signal(signal.SIGINT, signal_handler)
@@ -170,7 +170,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug("Retrieved data: %s" % recv_data)
+                            logging.debug("Retrieved data: %s", recv_data)
 
                             table_handler.insert(recv_data)
 
@@ -193,18 +193,18 @@ def main():
                 else:
 
                     logging.error("Another instance might be already running!")
-                    logging.info("PID file: %s" % config_file_reader.pid_file)
+                    logging.info("PID file: %s", config_file_reader.pid_file)
                     os._exit(1)
 
             except Exception as e:
 
-                logging.error("Caught exception in inner block: %s" % e)
+                logging.error("Caught exception in inner block: %s", e)
                 set_run_flag_false()
                 error = True
 
     except Exception as e:
 
-        logging.error("Caught exception in outer block: %s" % e)
+        logging.error("Caught exception in outer block: %s", e)
         os._exit(1)
 
     if table_handler and table_handler.count():
