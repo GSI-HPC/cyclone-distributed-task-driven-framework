@@ -57,6 +57,7 @@ class PIDControl:
             else:
 
                 os.remove(self._pid_file)
+
                 return self.create_pid_file()
 
     def unlock(self):
@@ -68,12 +69,12 @@ class PIDControl:
 
         if os.path.isfile(self._pid_file):
 
-            # TODO Use with statement for opening file
-            fd = open(self._pid_file, 'r')
-            content = fd.read()
-            fd.close()
-            if content == '':
-                raise RuntimeError("PID file is empty: %s" % self._pid_file)
+            with open(self._pid_file, 'r') as fd:
+
+                content = fd.read()
+
+                if not content:
+                    raise RuntimeError("PID file is empty: %s" % self._pid_file)
 
             return content.split(';')[0]
 
@@ -89,17 +90,17 @@ class PIDControl:
         if not os.path.isdir(pid_file_dir):
             raise IOError("Directory path does not exist for PID file: %s" % pid_file_dir)
 
-        # TODO use with statement for writing to file
-        fd = open(self._pid_file, 'w')
+        with open(self._pid_file, 'w') as fd:
 
-        fcntl.lockf(fd, fcntl.LOCK_EX)
+            fcntl.lockf(fd, fcntl.LOCK_EX)
 
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
 
-        fd.write(self._pid + ";" + timestamp)
-        fd.close()
+            fd.write(self._pid + ";" + timestamp)
 
-        return True
+            return True
+
+        return False
 
     @staticmethod
     def check_process_exits(pid):
