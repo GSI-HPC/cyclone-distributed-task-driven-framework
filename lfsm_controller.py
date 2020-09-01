@@ -430,8 +430,7 @@ def main():
 
             else:
 
-                logging.error("Another instance might be already running!")
-                logging.info("PID file: %s", config_file_reader.pid_file)
+                logging.error("Another instance might be already running (PID file: %s)!" % config_file_reader.pid_file)
                 sys.exit(1)
 
     except Exception as e:
