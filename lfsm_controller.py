@@ -233,8 +233,8 @@ def main():
                 comm_handler.connect()
 
                 request_retry_count = 0
-                max_num_request_retries = 3
                 request_retry_wait_duration = config_file_reader.request_retry_wait_duration
+                max_num_request_retries = config_file_reader.max_num_request_retries
 
                 lock_worker_state_table = multiprocessing.Lock()
                 lock_result_queue = multiprocessing.Lock()

@@ -36,6 +36,7 @@ class ControllerConfigFileReader:
 
         self.pid_file = config.get('control', 'pid_file')
         self.request_retry_wait_duration = config.getint('control', 'request_retry_wait_duration')
+        self.max_num_request_retries = config.getint('control', 'max_num_request_retries')
 
         self.comm_target = config.get('comm', 'target')
         self.comm_port = config.getint('comm', 'port')
@@ -54,6 +55,9 @@ class ControllerConfigFileReader:
 
         if not self.request_retry_wait_duration:
             raise ConfigValueError("No request retry wait duration was specified!")
+
+        if not self.max_num_request_retries:
+            raise ConfigValueError("max_num_request_retries is not set!")
 
         if not self.comm_target:
             raise ConfigValueError("No communication target was specified!")
