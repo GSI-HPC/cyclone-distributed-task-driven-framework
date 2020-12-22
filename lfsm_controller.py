@@ -331,6 +331,9 @@ def main():
                             logging.debug("Sending message to master: %s", send_msg.to_string())
                             comm_handler.send_string(send_msg.to_string())
 
+# Check for response and process it.
+# Used redundant - TODO: make a class method.
+################################################################################
                             in_raw_data = comm_handler.recv_string()
 
                             if in_raw_data:
@@ -343,15 +346,12 @@ def main():
                                 if MessageType.TASK_ASSIGN() == in_msg_type:
 
                                     task = in_msg.to_task()
-
                                     logging.debug("Retrieved task assign for: %s", task.tid)
-
                                     task_queue.push(task)
-
                                     logging.debug("Pushed task to task queue: %s", task.tid)
 
                                 elif MessageType.ACKNOWLEDGE() == in_msg_type:
-                                    continue
+                                    pass
 
                                 elif MessageType.WAIT_COMMAND() == in_msg_type:
 
@@ -365,9 +365,9 @@ def main():
                                     RUN_CONDITION = False
                                     logging.info('Retrieved exit message from master...')
 
-                                # Reset after retrieving a message
-                                if request_retry_count > 0:
+                                if request_retry_count:
                                     request_retry_count = 0
+################################################################################
 
                             else:
 
@@ -378,9 +378,50 @@ def main():
                                     RUN_CONDITION = False
 
                                 time.sleep(request_retry_wait_duration)
-                                logging.debug('No response retrieved - Reconnecting...')
-                                comm_handler.reconnect()
-                                request_retry_count += 1
+
+# Check for response and process it.
+# Used redundant - TODO: make a class method.
+################################################################################
+                                in_raw_data = comm_handler.recv_string()
+
+                                if in_raw_data:
+
+                                    logging.debug("Retrieved message (raw data): %s", in_raw_data)
+
+                                    in_msg = MessageFactory.create(in_raw_data)
+                                    in_msg_type = in_msg.type()
+
+                                    if MessageType.TASK_ASSIGN() == in_msg_type:
+
+                                        task = in_msg.to_task()
+                                        logging.debug("Retrieved task assign for: %s", task.tid)
+                                        task_queue.push(task)
+                                        logging.debug("Pushed task to task queue: %s", task.tid)
+
+                                    elif MessageType.ACKNOWLEDGE() == in_msg_type:
+                                        pass
+
+                                    elif MessageType.WAIT_COMMAND() == in_msg_type:
+
+                                        #TODO: Implement it on the master side!
+                                        wait_duration = in_msg.duration
+                                        logging.debug("Retrieved Wait Command with duration: %s", wait_duration)
+                                        time.sleep(wait_duration)
+
+                                    elif MessageType.EXIT_COMMAND() == in_msg_type:
+
+                                        RUN_CONDITION = False
+                                        logging.info('Retrieved exit message from master...')
+
+                                    if request_retry_count:
+                                        request_retry_count = 0
+################################################################################
+
+                                else:
+
+                                    logging.debug('No response retrieved - Reconnecting...')
+                                    comm_handler.reconnect()
+                                    request_retry_count += 1
 
                     except Exception as e:
 
