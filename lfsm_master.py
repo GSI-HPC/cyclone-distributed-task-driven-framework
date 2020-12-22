@@ -242,8 +242,6 @@ def main():
 
                                     task = None
 
-                                    # Check if critical section is locked,
-                                    # since the timeout might interrupt the blocking wait.
                                     with CriticalSection(lock_task_queue, timeout=1) \
                                             as critical_section:
 
