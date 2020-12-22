@@ -141,13 +141,7 @@ def create_task_generator(task_queue,
     dynamic_module = importlib.import_module(module_name)
     dynamic_class = getattr(dynamic_module, class_name)
 
-    task_generator = dynamic_class(task_queue,
-                                   lock_task_queue,
-                                   result_queue,
-                                   lock_result_queue,
-                                   config_file)
-
-    return task_generator
+    return dynamic_class(task_queue, lock_task_queue, result_queue, lock_result_queue, config_file)
 
 
 def main():
