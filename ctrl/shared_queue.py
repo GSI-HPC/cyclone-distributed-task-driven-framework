@@ -82,7 +82,7 @@ class SharedQueue:
             return self._queue.get()
         except queue.Empty:
             # TODO throw exception?
-            print('>>>>>>> pop_nowait caught exception <<<<<<<<')
+            print('>>>>>>> pop caught exception <<<<<<<<')
 
         return None
 
