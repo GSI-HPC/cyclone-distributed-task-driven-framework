@@ -2,6 +2,7 @@
 *.log
 *.pyc
 *.pid
+*.vscode
 
 Pyinstaller/pybuild/*
 
