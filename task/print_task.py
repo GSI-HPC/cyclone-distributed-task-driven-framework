@@ -18,6 +18,9 @@
 #
 
 
+import os
+import time
+
 from task.base_task import BaseTask
 
 
@@ -28,6 +31,15 @@ class PrintTask(BaseTask):
 
     def execute(self):
 
-        # TODO: which worker ID would be helpful for analyzing the task distribution.
-        print("TID: %s" % self.tid)
+        pid = os.getpid()
+        outfile = "/tmp/%s.tmp" % pid
+
+        tid_num = int(self.tid)
+        waittime = (tid_num % 100 / 1000)
+        time.sleep(waittime)
+
+        with open(outfile, "a") as myfile:
+
+            myfile.write("TID: %i - PID: %i - Wait: %f\n" 
+                % (pid, tid_num, waittime))
 
