@@ -22,8 +22,45 @@ import multiprocessing
 import queue
 
 
-# TODO: Also comment method locking mechanism.
 class SharedQueue:
+    """Wrapper class for the multiprocessing.Queue.
+
+    Underlying multiprocessing.Queue uses locking mechanism for single accesses 
+    on get() and put(), which are mapped by pop() and push() method for blocking access.
+
+    Use a locking mechanism to guarantee consistency accessing the SharedQueue's
+    multiple access methods, for instance fill() and clear(), also with the is_empty() method.
+    For the benefit of performance gain, additional locking has to be provided outside or 
+    by implementing a subclass.
+
+    Example for concurrent accesses on the SharedQueue between accesses of P1 and P2
+    are provided as following:
+
+    # P1
+    with CriticalSection(Lock):
+
+        if not SharedQueue.is_empty():
+            SharedQueue.clear()
+
+        SharedQueue.fill(List)
+
+    # P2
+    with CriticalSection(Lock, timeout=1) as critical_section:
+
+        if critical_section.is_locked():
+
+            if not SharedQueue.is_empty():
+
+                # Use non-blocking access here, otherwise a blocking access 
+                # might interfere with the clear() in the other critical section.
+                # Such a race condition might lead to a deadlock situation.
+                item = SharedQueue.pop_nowait()
+
+                if item:
+                    item.do_something()
+
+    Note: CriticalSection is provided in the local package named ctrl.
+    """
 
     def __init__(self):
         self._queue = multiprocessing.Queue()
@@ -34,10 +71,14 @@ class SharedQueue:
     def __exit__(self, exc_type, exc_value, traceback):
         self._queue.close()
 
-    # TODO: Comment fill method is not synchronized with other methods,
-    #       so it needs a outer lock.
     def fill(self, in_list):
-        """Fills the queue with the passed input list (blocking)"""
+        """Fills the queue with the passed input list (partly blocking).
+        
+        Since the items in the queue have to be iterated over, just each insert
+        of an item is blocking. But the iteration does not guarantee full consistency.
+        Because of multiprocessing semantics, this is not reliable.
+        Use a locking mechanism to guarantee consistency.
+        """
 
         if len(in_list) == 0:
             raise RuntimeError('Input list is empty!')
@@ -48,21 +89,24 @@ class SharedQueue:
         for item in in_list:
             self._queue.put(item)
 
-    # TODO: Comment clear method is not synchronized with other methods,
-    #       so it needs a outer lock.
     def clear(self):
-        """Clears all items from the queue (blocking)"""
+        """Clears all items from the queue (partly blocking).
+
+        Since the items in the queue have to be iterated over, just each remove
+        of an item is blocking. But the iteration does not guarantee full consistency.
+        Because of multiprocessing semantics, this is not reliable.
+        Use a locking mechanism to guarantee consistency.
+        """
 
         while not self._queue.empty():
 
             try:
                 self._queue.get()
             except queue.Empty:
-                # TODO throw exception? Just pass...
-                print('>>>>>>> clear: get item caught exception <<<<<<<<')
+                break
 
     def push(self, item):
-        """Pushes an item into the queue (blocking)"""
+        """Pushes an item into the queue (blocking)."""
 
         if not item:
             raise RuntimeError("Passed item for shared queue push was not set!")
@@ -70,25 +114,30 @@ class SharedQueue:
         self._queue.put(item)
 
     def pop_nowait(self):
-        """Returns an item from the queue (non-blocking)"""
+        """Returns an item from the queue (non-blocking).
+        
+        Returns
+        -------
+        object
+            on success an object retrieved from the SharedQueue is returned,
+            otherwise None is returned.
+        """
 
         try:
             return self._queue.get_nowait()
         except queue.Empty:
-            # TODO throw exception? Better return None?
-            print('>>>>>>> pop_nowait caught exception <<<<<<<<')
-
-        return None
+            return None
 
     def pop(self):
-        """Returns an item from the queue (blocking)"""
+        """Returns an item from the queue (blocking)."""
         return self._queue.get()
 
     def is_empty(self):
-        """
-            Checks if the queue is empty (non-blocking)
-            Return True if the queue is empty, False otherwise. 
-            Because of multiprocessing semantics, this is not reliable.
+        """Checks if the queue is empty (non-blocking).
+
+        Returns True if the queue is empty, False otherwise.
+        Because of multiprocessing semantics, this is not reliable.
+        Use a locking mechanism to guarantee consistency.
         """
 
         if self._queue.empty():
