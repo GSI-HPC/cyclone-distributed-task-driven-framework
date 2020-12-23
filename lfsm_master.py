@@ -131,7 +131,6 @@ def check_all_controller_down(count_active_controller):
 def create_task_generator(task_queue,
                           lock_task_queue,
                           result_queue,
-                          lock_result_queue,
                           config_file_reader):
 
     module_name = config_file_reader.task_gen_module
@@ -141,11 +140,7 @@ def create_task_generator(task_queue,
     dynamic_module = importlib.import_module(module_name)
     dynamic_class = getattr(dynamic_module, class_name)
 
-    return dynamic_class(task_queue, 
-                        lock_task_queue, 
-                        result_queue, 
-                        lock_result_queue, 
-                        config_file)
+    return dynamic_class(task_queue, lock_task_queue, result_queue, config_file)
 
 
 def main():
@@ -199,12 +194,10 @@ def main():
 
                 # TODO: Integrate lock into shared queue
                 lock_task_queue = multiprocessing.Lock()
-                lock_result_queue = multiprocessing.Lock()
 
                 task_generator = create_task_generator(task_queue,
                                                        lock_task_queue,
                                                        result_queue,
-                                                       lock_result_queue,
                                                        config_file_reader)
 
                 task_generator.start()
@@ -313,14 +306,11 @@ def main():
                                         if recv_msg.sender == task_status_dict[tid].controller:
 
                                             logging.debug("Retrieved finished message for TID: %s", tid)
-
                                             task_status_dict[tid].state = TaskState.finished()
                                             task_status_dict[tid].timestamp = int(time.time())
 
-                                            with CriticalSection(lock_result_queue):
-
-                                                logging.debug("Pushing TID to result queue: %s", tid)
-                                                result_queue.push(tid)
+                                            logging.debug("Pushing TID to result queue: %s", tid)
+                                            result_queue.push(tid)
 
                                         else:
                                             logging.warning("Retrieved task finished from different controller!")

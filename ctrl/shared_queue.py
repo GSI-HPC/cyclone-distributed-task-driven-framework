@@ -22,6 +22,8 @@ import multiprocessing
 import queue
 
 
+# TODO: use a critical section for consistency. But name it ManagedLock!
+# TODO: Also comment method locking mechanism.
 class SharedQueue:
 
     def __init__(self):
@@ -33,6 +35,8 @@ class SharedQueue:
     def __exit__(self, exc_type, exc_value, traceback):
         self._queue.close()
 
+    # TODO: Comment fill method is not synchronized with other methods,
+    #       so it needs a outer lock.
     def fill(self, in_list):
         """Fills the queue with the passed input list (blocking)"""
 
@@ -45,6 +49,8 @@ class SharedQueue:
         for item in in_list:
             self._queue.put(item)
 
+    # TODO: Comment clear method is not synchronized with other methods,
+    #       so it needs a outer lock.
     def clear(self):
         """Clears all items from the queue (blocking)"""
 
@@ -53,7 +59,7 @@ class SharedQueue:
             try:
                 self._queue.get()
             except queue.Empty:
-                # TODO throw exception?
+                # TODO throw exception? Just pass...
                 print('>>>>>>> clear: get item caught exception <<<<<<<<')
 
     def push(self, item):
@@ -70,24 +76,21 @@ class SharedQueue:
         try:
             return self._queue.get_nowait()
         except queue.Empty:
-            # TODO throw exception?
+            # TODO throw exception? Better return None?
             print('>>>>>>> pop_nowait caught exception <<<<<<<<')
 
         return None
 
     def pop(self):
         """Returns an item from the queue (blocking)"""
-
-        try:
-            return self._queue.get()
-        except queue.Empty:
-            # TODO throw exception?
-            print('>>>>>>> pop caught exception <<<<<<<<')
-
-        return None
+        return self._queue.get()
 
     def is_empty(self):
-        """Checks if the queue is empty (non-blocking)"""
+        """
+            Checks if the queue is empty (non-blocking)
+            Return True if the queue is empty, False otherwise. 
+            Because of multiprocessing semantics, this is not reliable.
+        """
 
         if self._queue.empty():
             return True

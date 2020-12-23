@@ -38,7 +38,6 @@ class LustreMonitoringTaskGenerator(Process):
                  task_queue,
                  lock_task_queue,
                  result_queue,
-                 lock_result_queue,
                  config_file):
 
         super(LustreMonitoringTaskGenerator, self).__init__()
@@ -47,7 +46,6 @@ class LustreMonitoringTaskGenerator(Process):
         self.lock_task_queue = lock_task_queue
 
         self.result_queue = result_queue
-        self.lock_result_queue = lock_result_queue
 
         config = configparser.ConfigParser()
         config.read_file(open(config_file))

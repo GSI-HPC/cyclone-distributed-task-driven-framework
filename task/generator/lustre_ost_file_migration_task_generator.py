@@ -61,7 +61,6 @@ class LustreOstFileMigrationTaskGenerator(Process):
                  task_queue,
                  lock_task_queue,
                  result_queue,
-                 lock_result_queue,
                  config_file):
 
         super(LustreOstFileMigrationTaskGenerator, self).__init__()
@@ -70,7 +69,6 @@ class LustreOstFileMigrationTaskGenerator(Process):
         self.lock_task_queue = lock_task_queue
 
         self.result_queue = result_queue
-        self.lock_result_queue = lock_result_queue
 
         config = configparser.ConfigParser()
         config.read_file(open(config_file))
@@ -160,16 +158,12 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                     while not self.result_queue.is_empty():
 
-                        with CriticalSection(self.lock_result_queue):
+                        finished_tid = self.result_queue.pop()
+                        logging.debug("Popped TID from result queue: %s ", finished_tid)
 
-                            finished_tid = self.result_queue.pop()
-
-                            logging.debug("Popped TID from result queue: %s ", finished_tid)
-
-                            source_ost, target_ost = finished_tid.split(":")
-
-                            self._update_ost_state_dict(source_ost, self.ost_source_state_dict)
-                            self._update_ost_state_dict(target_ost, self.ost_target_state_dict)
+                        source_ost, target_ost = finished_tid.split(":")
+                        self._update_ost_state_dict(source_ost, self.ost_source_state_dict)
+                        self._update_ost_state_dict(target_ost, self.ost_target_state_dict)
 
                     last_run_time = int(time.time())
 
