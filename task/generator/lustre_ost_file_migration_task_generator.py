@@ -31,7 +31,6 @@ from datetime import datetime
 from enum import Enum, unique
 from multiprocessing import Process
 
-from ctrl.critical_section import CriticalSection
 from lfs.lfs_utils import LFSUtils
 from msg.base_message import BaseMessage
 from task.ost_migrate_task import OstMigrateTask
@@ -59,17 +58,15 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def __init__(self,
                  task_queue,
-                 lock_task_queue,
+                 lock_task_queue,   # Ignored
                  result_queue,
                  config_file):
 
         super(LustreOstFileMigrationTaskGenerator, self).__init__()
 
         self.task_queue = task_queue
-        self.lock_task_queue = lock_task_queue
-
         self.result_queue = result_queue
-
+        
         config = configparser.ConfigParser()
         config.read_file(open(config_file))
 
@@ -145,11 +142,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         task.tid = f"{source_ost}:{target_ost}"
 
-                                        logging.debug("Pushing task with TID to task queue: %s",
-                                                      task.tid)
-
-                                        with CriticalSection(self.lock_task_queue):
-                                            self.task_queue.push(task)
+                                        logging.debug("Pushing task with TID to task queue: %s", task.tid)
+                                        self.task_queue.push(task)
 
                                         self.ost_source_state_dict[source_ost] = OSTState.BLOCKED
                                         self.ost_target_state_dict[target_ost] = OSTState.BLOCKED

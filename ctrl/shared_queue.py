@@ -22,7 +22,6 @@ import multiprocessing
 import queue
 
 
-# TODO: use a critical section for consistency. But name it ManagedLock!
 # TODO: Also comment method locking mechanism.
 class SharedQueue:
 

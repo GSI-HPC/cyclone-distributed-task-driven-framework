@@ -192,7 +192,6 @@ def main():
                 controller_wait_duration = config_file_reader.controller_wait_duration
                 task_resend_timeout = config_file_reader.task_resend_timeout
 
-                # TODO: Integrate lock into shared queue
                 lock_task_queue = multiprocessing.Lock()
 
                 task_generator = create_task_generator(task_queue,
