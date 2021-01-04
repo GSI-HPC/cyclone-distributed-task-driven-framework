@@ -29,7 +29,7 @@ import os
 from multiprocessing import Process
 
 from ctrl.critical_section import CriticalSection
-from task.print_task import PrintTask
+from task.benchmark_task import BenchmarkTask
 
 
 class BenchmarkTaskGenerator(Process):
@@ -83,18 +83,21 @@ class BenchmarkTaskGenerator(Process):
                 if task_list:
                     self.task_queue.fill(task_list)
 
-            start_time = time.time() * 1000.0
-
             while self.run_flag:
 
                 if completed_tasks < len_task_list:
 
+                    # No synchronization with controller required, just wait until first task is popped.
+                    # This approach is simple and to a certain extend reproducible, 
+                    # but not totally accurate in the runtime, since the startup time is not measured.
+                    if completed_tasks == 1:
+                        start_time = time.time() * 1000.0
+
                     if not self.result_queue.is_empty():
 
-                            # TODO: pop as long as result items are available.
-                            tid = self.result_queue.pop()
-                            completed_tasks += 1
-                            logging.debug("Task completed with TID: %s" % tid)
+                        tid = self.result_queue.pop()
+                        completed_tasks += 1
+                        logging.debug("Task completed with TID: %s" % tid)
 
                     else:
 
@@ -143,7 +146,7 @@ class BenchmarkTaskGenerator(Process):
         for i in range(self.num_tasks):
 
             # TODO: Add optional/mandatory parameter for TID on the BaseTask class?
-            task = PrintTask()
+            task = BenchmarkTask()
             task.tid = str(i)
             task_list.append(task)
 
