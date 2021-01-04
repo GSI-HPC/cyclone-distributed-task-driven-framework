@@ -4,10 +4,10 @@
 
 ### Required
 **Python** - Version >= 3.4.2  
-**Python bindings for 0MQ (pyzmq)** - Interprocess communication between different hosts e.g. master and controller components  
+**Python bindings for 0MQ (pyzmq)** - Interprocess communication between different core components e.g. master and controller.  
 
 ### Optional
-**MySQL Connector Python (mysql)** - For storing provided example IO-task results into a MySQL database
+**MySQL Connector Python (mysql)** - For storing provided example IO-task results into a MySQL database.  
 
 ## Documentation
 
