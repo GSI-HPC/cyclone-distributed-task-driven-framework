@@ -99,14 +99,12 @@ class SharedQueue:
         """
 
         while not self._queue.empty():
-
-            try:
-                self._queue.get()
-            except queue.Empty:
-                break
+            self._queue.get()
 
     def push(self, item):
-        """Pushes an item into the queue (blocking)."""
+        """Pushes an item into the queue (blocking).
+           It might block until a free slot becomes available.
+        """
 
         if not item:
             raise RuntimeError("Passed item for shared queue push was not set!")
