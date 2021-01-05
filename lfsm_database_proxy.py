@@ -89,6 +89,7 @@ def set_run_flag_false():
 
 
 def signal_handler(signum, frame):
+    # pylint: disable=unused-argument
 
     if signum == signal.SIGHUP:
 

@@ -56,11 +56,7 @@ class OSTState(Enum):
 
 class LustreOstFileMigrationTaskGenerator(Process):
 
-    def __init__(self,
-                 task_queue,
-                 lock_task_queue,   # Ignored
-                 result_queue,
-                 config_file):
+    def __init__(self, task_queue, result_queue, config_file):
 
         super(LustreOstFileMigrationTaskGenerator, self).__init__()
 

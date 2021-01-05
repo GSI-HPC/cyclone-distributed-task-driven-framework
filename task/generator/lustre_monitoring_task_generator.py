@@ -110,7 +110,7 @@ class LustreMonitoringTaskGenerator(Process):
 
             except Exception as e:
 
-                exc_type, exc_obj, exc_tb = sys.exc_info()
+                _, _, exc_tb = sys.exc_info()
                 filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
                 logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
@@ -121,6 +121,7 @@ class LustreMonitoringTaskGenerator(Process):
         os._exit(0)
 
     def _signal_handler_terminate(self, signum, frame):
+        # pylint: disable=unused-argument
 
         self.run_flag = False
 

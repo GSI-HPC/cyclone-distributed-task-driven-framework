@@ -21,12 +21,10 @@
 import abc
 
 
-class BaseTask(object):
+class BaseTask(metaclass=abc.ABCMeta):
     """Base task class to be implemented so a task can be executed by a worker."""
 
     def __init__(self):
-
-        __metaclass__ = abc.ABCMeta
 
         super(BaseTask, self).__init__()
 

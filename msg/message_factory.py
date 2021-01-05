@@ -31,10 +31,10 @@ from msg.heartbeat import Heartbeat
 from msg.exit_command import ExitCommand
 
 
-class MessageFactory:
+class MessageFactory(metaclass=ABCMeta):
 
     def __init__(self):
-        __metaclass__ = ABCMeta
+        pass
 
     @staticmethod
     def create(message):

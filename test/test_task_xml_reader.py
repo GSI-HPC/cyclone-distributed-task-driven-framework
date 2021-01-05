@@ -33,12 +33,14 @@ def test_empty_task():
 
 
 def test_io_task():
+    # pylint: disable=unused-variable
 
     task_xml_info = TaskXmlReader.read_task_definition('../Configuration/lustre_monitoring_tasks.xml', 'IOTask')
     task = TaskFactory().create_from_xml_info(task_xml_info)
 
 
 def test_alert_io_task():
+    # pylint: disable=unused-variable
 
     task_xml_info = TaskXmlReader.read_task_definition('../Configuration/lustre_monitoring_tasks.xml', 'AlertIOTask')
     task = TaskFactory().create_from_xml_info(task_xml_info)
@@ -54,7 +56,7 @@ def main():
 
     except Exception as e:
 
-        exc_type, exc_obj, exc_tb = sys.exc_info()
+        exc_type, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
         logging.error(f"Caught exception (type: {exc_type}): {e} - {filename} (line: {exc_tb.tb_lineno})")

@@ -148,7 +148,7 @@ class Worker(multiprocessing.Process):
 
                 except Exception as e:
 
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    exc_type, _, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] "
                                   f"during task execute: {e} - {filename} (line: {exc_tb.tb_lineno})")
@@ -170,11 +170,12 @@ class Worker(multiprocessing.Process):
 
         except Exception as e:
 
-            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] during run loop: {e} "
                           f"- {filename} (line: {exc_tb.tb_lineno})")
             os._exit(1)
 
     def signal_handler_shutdown(self, signal, frame):
+        # pylint: disable=unused-argument
         self.run_flag = False

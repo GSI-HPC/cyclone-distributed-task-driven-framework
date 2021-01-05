@@ -99,6 +99,7 @@ def stop_task_distribution():
 
 
 def signal_handler(signum, frame):
+    # pylint: disable=unused-argument
 
     if signum == signal.SIGHUP:
 
@@ -315,15 +316,19 @@ def main():
                                         raise RuntimeError("Inconsistency detected on task finished!")
 
                                     send_msg = Acknowledge()
-                                    # TODO: if debug then call to_string() or call it once...
-                                    logging.debug(f"Sending message: {send_msg.to_string()}")
+
+                                    if logging.root.level <= logging.DEBUG:
+                                        logging.debug(f"Sending message: {send_msg.to_string()}")
+
                                     comm_handler.send_string(send_msg.to_string())
 
                                 elif MessageType.HEARTBEAT() == recv_msg_type:
 
                                     send_msg = Acknowledge()
-                                    # TODO: if debug then call to_string() or call it once...
-                                    logging.debug(f"Sending message: {send_msg.to_string()}")
+
+                                    if logging.root.level <= logging.DEBUG:
+                                        logging.debug(f"Sending message: {send_msg.to_string()}")
+
                                     comm_handler.send_string(send_msg.to_string())
 
                                 else:
@@ -361,7 +366,7 @@ def main():
                     except Exception as e:
 
                         error_count += 1
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        _, _, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         logging.error(f"Caught exception in main loop: {e} - {filename} (line: {exc_tb.tb_lineno})")
 
@@ -378,7 +383,7 @@ def main():
     except Exception as e:
 
         error_count += 1
-        exc_type, exc_obj, exc_tb = sys.exc_info()
+        _, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(f"Caught exception in main block: {e} - {filename} (line: {exc_tb.tb_lineno})")
 
@@ -388,7 +393,7 @@ def main():
 
             os.kill(task_generator.pid, signal.SIGTERM)
 
-            for i in range(0, 10, 1):
+            for _ in range(0, 10, 1):
 
                 if task_generator.is_alive():
                     logging.debug("Waiting for Task Generator to finish...")
@@ -403,7 +408,7 @@ def main():
     except Exception as e:
 
         error_count += 1
-        exc_type, exc_obj, exc_tb = sys.exc_info()
+        _, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
 

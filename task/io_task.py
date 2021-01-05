@@ -141,7 +141,7 @@ class IOTask(BaseTask):
 
         except Exception as e:
 
-            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error(f"Caught exception (type: {exc_type}) in IOTask: {e} - {filename} (line: {exc_tb.tb_lineno})")
@@ -168,7 +168,7 @@ class IOTask(BaseTask):
 
             with open(file_path, 'w') as f:
 
-                for i in range(int(iterations)):
+                for _ in range(int(iterations)):
                     f.write(self.payload_block)
 
                 if self.payload_rest_block:
@@ -195,7 +195,7 @@ class IOTask(BaseTask):
 
         except Exception as e:
 
-            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error(f"Caught exception (type: {exc_type}) in IOTask during write file: {e} "
@@ -253,7 +253,7 @@ class IOTask(BaseTask):
 
         except Exception as e:
 
-            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error(f"Caught exception (type: {exc_type}) in IOTask during read file: {e} "

@@ -21,14 +21,12 @@
 import abc
 
 
-class BaseMessage(object):
+class BaseMessage(metaclass=abc.ABCMeta):
     """Base message of all messages send over the message passing interface."""
 
     field_separator = ';'
 
     def __init__(self, header, body):
-
-        __metaclass__ = abc.ABCMeta
 
         super(BaseMessage, self).__init__()
 

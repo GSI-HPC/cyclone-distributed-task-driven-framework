@@ -181,6 +181,7 @@ def stop_run_condition():
 
 
 def signal_handler(signum, frame):
+    # pylint: disable=unused-argument
 
     if signum == signal.SIGHUP:
 
@@ -428,7 +429,7 @@ def main():
                     except Exception as e:
 
                         RUN_CONDITION = False
-                        exc_type, exc_obj, exc_tb = sys.exc_info()
+                        exc_type, _, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         logging.error(f"Caught exception (type: {exc_type}) in main loop: {e} "
                                       f"- {filename} (line: {exc_tb.tb_lineno})")
@@ -476,7 +477,7 @@ def main():
 
     except Exception as e:
 
-        exc_type, exc_obj, exc_tb = sys.exc_info()
+        exc_type, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
         sys.exit(1)

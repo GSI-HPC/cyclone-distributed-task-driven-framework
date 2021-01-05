@@ -21,10 +21,10 @@
 from abc import ABCMeta
 
 
-class MessageType:
+class MessageType(metaclass=ABCMeta):
 
     def __init__(self):
-        __metaclass__ = ABCMeta
+        pass
 
     @staticmethod
     def TASK_REQUEST():
