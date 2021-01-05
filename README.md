@@ -3,7 +3,7 @@
 ## Requisites
 
 ### Required
-**Python** - Version >= 3.4.2  
+**Python** - Version >= 3.6  
 **Python bindings for 0MQ (pyzmq)** - Interprocess communication between different core components e.g. master and controller.  
 
 ### Optional
