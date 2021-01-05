@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,12 +32,12 @@ class BenchmarkTask(BaseTask):
     def execute(self):
 
         pid = os.getpid()
-        outfile = "/tmp/benchmark_task_%s.tmp" % pid
+        outfile = f"/tmp/benchmark_task_{pid}.tmp"
 
         tid_num = int(self.tid)
         waittime = (tid_num % 100 / 1000)
         time.sleep(waittime)
 
         with open(outfile, "a") as myfile:
-            myfile.write("TID: %i - PID: %i - Wait: %f\n" % (pid, tid_num, waittime))
+            myfile.write(f"TID: {tid_num} - PID: {pid} - Wait: {waittime}\n")
 

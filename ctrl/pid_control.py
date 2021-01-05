@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti
+# Copyright 2021 Gabriele Iannetti
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ class PIDControl:
             pid_from_file = self.read_pid_from_file()
 
             if pid_from_file == self._pid:
-                raise RuntimeError("Calling process (PID=%s) is already owning the PID file!" % self._pid)
+                raise RuntimeError(f"Calling process (PID={self._pid}) is already owning the PID file!")
 
             if PIDControl.check_process_exits(pid_from_file):
                 return False
@@ -74,7 +74,7 @@ class PIDControl:
                 content = fd.read()
 
                 if not content:
-                    raise RuntimeError("PID file is empty: %s" % self._pid_file)
+                    raise RuntimeError(f"PID file is empty: {self._pid_file}")
 
             return content.split(';')[0]
 
@@ -88,7 +88,7 @@ class PIDControl:
         pid_file_dir = os.path.dirname(self._pid_file)
 
         if not os.path.isdir(pid_file_dir):
-            raise IOError("Directory path does not exist for PID file: %s" % pid_file_dir)
+            raise IOError(f"Directory path does not exist for PID file: {pid_file_dir}")
 
         with open(self._pid_file, 'w') as fd:
 
@@ -105,7 +105,7 @@ class PIDControl:
     @staticmethod
     def check_process_exits(pid):
 
-        if os.path.exists("/proc/" + str(pid)):
+        if os.path.exists(f"/proc/{pid}"):
             return True
         else:
             return False

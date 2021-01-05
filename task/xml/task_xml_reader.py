@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import os
 class TaskXmlReaderError(Exception):
 
     def __init__(self, message):
-        super(TaskXmlReaderError, self).__init__("[XML]: %s" % message)
+        super(TaskXmlReaderError, self).__init__(f"[XML]: {message}")
 
 
 class TaskXmlInfo:
@@ -49,7 +49,7 @@ class TaskXmlReader:
     def read_task_definition(file_path, task_name):
 
         if not os.path.isfile(file_path):
-            raise IOError("The XML task definition file does not exist or is not a file: %s" % file_path)
+            raise IOError(f"The XML task definition file does not exist or is not a file: {file_path}")
 
         try:
 
@@ -63,20 +63,20 @@ class TaskXmlReader:
             found_task = False
 
             if root.tag != 'tasks':
-                raise RuntimeError("Wrong root tag detected: '%s'" % root.tag)
+                raise RuntimeError(f"Wrong root tag detected: '{root.tag}'")
 
             if not len(root):
-                raise RuntimeError("No task definitions found in '%s'" % file_path)
+                raise RuntimeError(f"No task definitions found in '{file_path}'")
 
             for child in root:
 
                 if child.tag != 'task':
-                    raise RuntimeError("Wrong child tag detected: '%s'" % child.tag)
+                    raise RuntimeError(f"Wrong child tag detected: '{child.tag}'")
 
                 if child.attrib['name'] == task_name:
 
                     if found_task:
-                        raise RuntimeError("Found duplicate task name definition for: '%s'" % task_name)
+                        raise RuntimeError(f"Found duplicate task name definition for: '{task_name}'")
                     else:
                         found_task = True
 
@@ -110,10 +110,10 @@ class TaskXmlReader:
                             class_properties[property_item.tag] = property_item.text
 
             if not found_task:
-                raise RuntimeError("No task definition found for: '%s'" % task_name)
+                raise RuntimeError(f"No task definition found for: '{task_name}'")
 
             return TaskXmlInfo(class_module, class_name, class_properties)
 
         except Exception as e:
-            raise TaskXmlReaderError("%s" % e)
+            raise TaskXmlReaderError(f"{e}")
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ class LFSOstItem:
     def ost_idx(self, ost):
 
         if ost[0:3] != "OST":
-            raise RuntimeError("OST word not found in argument: %s" % ost)
+            raise RuntimeError(f"OST word not found in argument: {ost}")
 
         # Cut and convert to hex but keep the decimal index as str!
         self._ost_idx = str(int(ost[3:], 16))
@@ -59,7 +59,7 @@ class LFSUtils:
         self.lfs_bin = lfs_bin
 
         if not os.path.isfile(self.lfs_bin):
-            raise RuntimeError("LFS binary was not found under: '%s'" % self.lfs_bin)
+            raise RuntimeError(f"LFS binary was not found under: '{self.lfs_bin}'")
 
     def create_ost_item_list(self, target):
 
@@ -68,7 +68,7 @@ class LFSUtils:
         try:
 
             regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
-            logging.debug("Using regex for `lfs check osts`: %s", regex_str)
+            logging.debug(f"Using regex for `lfs check osts`: {regex_str}")
             pattern = re.compile(regex_str)
 
             args = ['sudo', self.lfs_bin, 'check', 'osts']
@@ -96,10 +96,10 @@ class LFSUtils:
                         ost_list.append(LFSOstItem(target, ost, state, False))
 
                 else:
-                    logging.warning("No regex match for line: %s", line)
+                    logging.warning(f"No regex match for line: {line}")
 
         except Exception as e:
-            logging.error("Exception occurred: %s", e)
+            logging.error(f"Exception occurred: {e}")
 
         return ost_list
 
@@ -114,12 +114,12 @@ class LFSUtils:
                 else:
                     return False
 
-        raise RuntimeError("[LFSUtils::is_ost_idx_active] Index not found: %s" % ost_idx)
+        raise RuntimeError(f"[LFSUtils::is_ost_idx_active] Index not found: {ost_idx}")
 
     def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
-        logging.debug("Setting stripe for file: %s - OST: %s", file_path, ost_idx)
+        logging.debug(f"Setting stripe for file: {file_path} - OST: {ost_idx}")
 
         args = [self.lfs_bin, 'setstripe', '-i', ost_idx, file_path]
 
@@ -149,8 +149,7 @@ class LFSUtils:
             return True
         else:
             func_name = sys._getframe().f_code.co_name
-            raise RuntimeError("[%s] Undefined stripe count returned for '%s': %i"
-                               % (func_name, filename, stripe_count))
+            raise RuntimeError(f"[{func_name}] Undefined stripe count returned for '{filename}': {stripe_count}")
 
     def migrate_file(self, filename, idx=None, block=False, skip=True):
         """
@@ -171,7 +170,7 @@ class LFSUtils:
                 raise RuntimeError('Empty filename!')
 
             if skip and self.is_file_stripped(filename):
-                logging.info("SKIPPED|%s", filename)
+                logging.info(f"SKIPPED|{filename}")
             else:
 
                 args = [self.lfs_bin, 'migrate']
@@ -191,7 +190,7 @@ class LFSUtils:
                 subprocess.run(args, check=True, stderr=subprocess.PIPE)
                 elapsed_time = datetime.now() - start_time
 
-                logging.info("SUCCESS|%s|%s", filename, elapsed_time)
+                logging.info(f"SUCCESS|{filename}|{elapsed_time}")
 
         except subprocess.CalledProcessError as error:
 
@@ -201,7 +200,7 @@ class LFSUtils:
             if error.stderr:
                 stderr = error.stderr.decode('UTF-8')
 
-            logging.info("FAILED|%s|%i|%s", filename, rc, stderr)
+            logging.info(f"FAILED|{filename}|{rc}|{stderr}")
 
     def retrieve_ost_fill_level(self, fs_path):
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ class DatabaseProxyConfigFileReader:
     def __init__(self, config_file):
 
         if not os.path.isfile(config_file):
-            raise IOError("The config file does not exist or is not a file: %s" % config_file)
+            raise IOError(f"The config file does not exist or is not a file: {config_file}")
 
         config = configparser.ConfigParser()
         config.read(config_file)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -113,7 +113,7 @@ class LustreMonitoringTaskGenerator(Process):
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-                logging.error("Exception in %s (line: %s): %s", filename, exc_tb.tb_lineno, e)
+                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
                 logging.info("LustreMonitoringTaskGenerator exited!")
                 os._exit(1)
 
@@ -130,24 +130,23 @@ class LustreMonitoringTaskGenerator(Process):
 
     def _create_task_list(self, ost_idx_list):
 
-        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
+        task_xml_info = TaskXmlReader.read_task_definition(self.task_file, 
                                                            self.task_name)
 
-        logging.debug("Loaded Task Information from XML: '%s.%s'",
-                      task_xml_info.class_module, task_xml_info.class_name)
+        logging.debug(f"Loaded Task Information from XML: '{task_xml_info.class_module}.{task_xml_info.class_name}'")
 
         task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
 
         task_list = list()
 
         logging.debug("Creating task list...")
-        logging.debug("Length of OST index list: %s", len(ost_idx_list))
+        logging.debug(f"Length of OST index list: {len(ost_idx_list)}")
 
         # Create tasks and set up runtime determined information
         # e.g. task ID and Lustre specific OST index
         for ost_idx in ost_idx_list:
 
-            logging.debug("Create task for OST index: %s", ost_idx)
+            logging.debug(f"Create task for OST index: {ost_idx}")
 
             task = copy.copy(task_skeleton)
 
@@ -187,12 +186,12 @@ class LustreMonitoringTaskGenerator(Process):
 
                         found_select_ost_idx = True
 
-                        logging.debug("Found OST from selected list: %s", select_ost_idx)
+                        logging.debug(f"Found OST from selected list: {select_ost_idx}")
 
                         break
 
                 if found_select_ost_idx is False:
-                    raise RuntimeError("OST to select was not found in ost_info_list: %s" % select_ost_idx)
+                    raise RuntimeError(f"OST to select was not found in ost_info_list: {select_ost_idx}")
 
             if not len(select_ost_idx_list):
                 raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
@@ -223,8 +222,7 @@ class LustreMonitoringTaskGenerator(Process):
 
                     if select_ost_idx == ost_idx:
 
-                        logging.debug("Found OST-IDX from selected list: %s",
-                                      select_ost_idx)
+                        logging.debug(f"Found OST-IDX from selected list: {select_ost_idx}")
 
                         if not found_select_ost_idx:
                             found_select_ost_idx = True
@@ -234,8 +232,7 @@ class LustreMonitoringTaskGenerator(Process):
                         break
 
                 if not found_select_ost_idx:
-                    raise RuntimeError("OST-IDX to select was not found in ost_info_list: %s"
-                                       % select_ost_idx)
+                    raise RuntimeError(f"OST-IDX to select was not found in ost_info_list: {select_ost_idx}")
 
             return select_ost_idx_list
 

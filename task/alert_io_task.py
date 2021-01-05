@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -87,20 +87,14 @@ class AlertIOTask(IOTask):
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
-                    mail_subject = "[LUSTRE Monitoring] OST Write Performance Degradation Detected: %s" % self.ost_idx
+                    mail_subject = f"[LUSTRE Monitoring] OST Write Performance Degradation Detected: {self.ost_idx}"
 
-                    mail_text = "Timestamp: %s\n" \
-                                "OST: %s\n\n" \
-                                "Alert Threshold: %ss\n" \
-                                "Total Size: %s\n" \
-                                "Block Size: %s\n" \
-                                "Sync Flag: %s\n" % \
-                                (write_timestamp,
-                                 self.ost_idx,
-                                 self.mail_threshold,
-                                 self.total_size_bytes,
-                                 self.block_size_bytes,
-                                 self.write_file_sync)
+                    mail_text = f"Timestamp: {write_timestamp}\n" \
+                                f"OST: {self.ost_idx}\n\n" \
+                                f"Alert Threshold: {self.mail_threshold}s\n" \
+                                f"Total Size: {self.total_size_bytes}\n" \
+                                f"Block Size: {self.block_size_bytes}\n" \
+                                f"Sync Flag: {self.write_file_sync}\n"
 
                     args_send_mail = [(mail_subject, mail_text)]
 
@@ -114,10 +108,11 @@ class AlertIOTask(IOTask):
 
                     read_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
-                    mail_subject = "[LUSTRE Monitoring] OST Read Performance Degradation Detected: %s" % self.ost_idx
+                    mail_subject = f"[LUSTRE Monitoring] OST Read Performance Degradation Detected: {self.ost_idx}"
 
-                    mail_text = "OST-IDX: %s\nTimestamp: %s\nAlert Threshold: %ss" % \
-                                (self.ost_idx, write_timestamp, str(self.mail_threshold))
+                    mail_text = f"OST-IDX: {self.ost_idx}\n" \ 
+                                f"Timestamp: {write_timestamp}\n" \
+                                f"Alert Threshold: {self.mail_threshold}s"
 
                     args_send_mail = [(mail_subject, mail_text)]
 
@@ -148,7 +143,7 @@ class AlertIOTask(IOTask):
             # TODO: Remove code redundancy in IOTasks.
             if ost_perf_result:
 
-                logging.debug("ost_perf_result.to_csv_list: %s", ost_perf_result.to_csv_list())
+                logging.debug(f"ost_perf_result.to_csv_list: {ost_perf_result.to_csv_list()}")
 
                 if self.db_proxy_endpoint:
 
@@ -172,8 +167,8 @@ class AlertIOTask(IOTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in AlertIOTask: %s - %s (line: %s)",
-                          exc_type, str(e), filename, exc_tb.tb_lineno)
+            logging.error(f"Caught exception (type: {exc_type}) in AlertIOTask: {e} "
+                          f"- {filename} (line: {exc_tb.tb_lineno})")
 
     def _send_mail(self, args):
 

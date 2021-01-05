@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,15 +46,12 @@ class TaskFactory:
         if len_init_args > 0:
 
             if arg_spec_args[0] != 'self':
-                raise RuntimeError("Parameter self not found in class: '%s'" % xml_info.class_name)
+                raise RuntimeError(f"Parameter self not found in class: '{xml_info.class_name}'")
 
         if (len_init_args-1) != len_body_items:
 
-            raise RuntimeError("Signature of '%s::%s::init(%s)' has different size to provided property list of '%s'!"
-                               % (xml_info.class_module,
-                                  xml_info.class_name,
-                                  arg_spec.args,
-                                  xml_info.class_properties))
+            raise RuntimeError(f"Signature of '{xml_info.class_module}::{xml_info.class_name}::init({arg_spec.args})' "
+                               f"has different size to provided property list of '{xml_info.class_properties}'!")
 
         # Skip the self argument at position 0
         arg_index = 1
@@ -63,8 +60,8 @@ class TaskFactory:
 
             if property_name != arg_spec_args[arg_index]:
 
-                raise RuntimeError("Signature of '%s::%s::init(%s)' does not contain property name '%s'!"
-                                   % (xml_info.class_module, xml_info.class_name, arg_spec.args, property_name))
+                raise RuntimeError(f"Signature of '{xml_info.class_module}::{xml_info.class_name}"
+                                   f"::init({arg_spec.args})' does not contain property name '{property_name}'!")
 
             arg_index += 1
 
@@ -89,7 +86,7 @@ class TaskFactory:
         header_items = message.header.split(BaseMessage.field_separator)
 
         if len(header_items) != 4:
-            raise RuntimeError("Invalid message header for a task creation found: %s" % message)
+            raise RuntimeError(f"Invalid message header for a task creation found: {message}")
 
         task_module = header_items[1]
         task_class = header_items[2]
@@ -166,6 +163,6 @@ class TaskFactory:
                                  body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
                                  body_items[10], body_items[11], body_items[12], body_items[14])
         else:
-            raise RuntimeError("No task instantiation supported for: '%s'!" % dynamic_class.__name__)
+            raise RuntimeError(f"No task instantiation supported for: '{dynamic_class.__name__}'!")
 
         return task

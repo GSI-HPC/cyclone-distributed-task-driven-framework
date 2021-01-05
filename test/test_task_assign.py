@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ def test_empty_task_from_class():
     task.tid = "0"
     task_assign = TaskAssign(task)
 
-    print("test_empty_task_from_class: %s" % task_assign.to_string())
+    print(f"test_empty_task_from_class: {task_assign.to_string()}")
 
 
 def test_io_task_from_str():
@@ -39,9 +39,9 @@ def test_io_task_from_str():
     message = "TASK_ASS;task.io_task;IOTask;0;1000;1000000;off;target_dir;/usr/bin/lfs;fs-name"
     task_assign = TaskAssign(message)
 
-    print("test_io_task_from_str: %s" % task_assign.to_string())
-    print("test_io_task_from_str.header: %s" % task_assign.header)
-    print("test_io_task_from_str.body: %s" % task_assign.body)
+    print(f"test_io_task_from_str: {task_assign.to_string()}")
+    print(f"test_io_task_from_str.header: {task_assign.header}")
+    print(f"test_io_task_from_str.body: {task_assign.body}")
 
 
 def main():
@@ -56,8 +56,7 @@ def main():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-        logging.error("Caught exception (type: %s): %s - %s (line: %s)",
-                      exc_type, str(e), filename, exc_tb.tb_lineno)
+        logging.error(f"Caught exception (type: {exc_type}): {e} - {filename} (line: {exc_tb.tb_lineno})")
 
 
 if __name__ == '__main__':

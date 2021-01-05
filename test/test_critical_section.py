@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,19 +27,19 @@ from ctrl.critical_section import CriticalSection
 
 def worker_func(wid, lock):
 
-    logging.info("Started Worker: %s", wid)
+    logging.info(f"Started Worker: {wid}")
 
     # Check if critical section is locked,
     # since the timeout might interrupt the blocking wait.
     with CriticalSection(lock, timeout=1) as critical_section:
 
-        logging.info("Lock acquired: %s", critical_section.is_locked())
+        logging.info(f"Lock acquired: {critical_section.is_locked()}")
 
         if critical_section.is_locked():
 
-            logging.info("Worker[%s] - locked", wid)
+            logging.info(f"Worker[{wid}] - locked")
             time.sleep(3)
-            logging.info("Worker[%s] - released", wid)
+            logging.info(f"Worker[{wid}] - released")
 
     return
 

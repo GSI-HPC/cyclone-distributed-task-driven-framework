@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,4 +21,4 @@
 class ConfigValueError(Exception):
 
     def __init__(self, message):
-        super(ConfigValueError, self).__init__("%s" % message)
+        super(ConfigValueError, self).__init__(f"{message}")

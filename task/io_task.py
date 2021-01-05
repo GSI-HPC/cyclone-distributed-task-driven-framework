@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ class IOTask(BaseTask):
         self.lfs_utils = LFSUtils(lfs_bin)
 
         if self.db_proxy_target != '' and self.db_proxy_port != '':
-            self.db_proxy_endpoint = "tcp://" + self.db_proxy_target + ":" + self.db_proxy_port
+            self.db_proxy_endpoint = f"tcp://{self.db_proxy_target}:{self.db_proxy_port}"
         else:
             self.db_proxy_endpoint = None
 
@@ -81,7 +81,7 @@ class IOTask(BaseTask):
 
             if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                logging.debug("Found active OST-IDX: %s", self.ost_idx)
+                logging.debug(f"Found active OST-IDX: {self.ost_idx}")
 
                 self._initialize_payload()
 
@@ -111,7 +111,7 @@ class IOTask(BaseTask):
                                       write_duration)
             else:
 
-                logging.debug("Found non-active OST: %s", self.ost_idx)
+                logging.debug(f"Found non-active OST: {self.ost_idx}")
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -120,7 +120,7 @@ class IOTask(BaseTask):
 
             if ost_perf_result:
 
-                logging.debug("ost_perf_result.to_csv_list: %s", ost_perf_result.to_csv_list())
+                logging.debug(f"ost_perf_result.to_csv_list: {ost_perf_result.to_csv_list()}")
 
                 if self.db_proxy_endpoint:
 
@@ -144,8 +144,7 @@ class IOTask(BaseTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in IOTask: %s - %s (line: %s)",
-                          exc_type, str(e), filename, exc_tb.tb_lineno)
+            logging.error(f"Caught exception (type: {exc_type}) in IOTask: {e} - {filename} (line: {exc_tb.tb_lineno})")
 
     def _initialize_payload(self):
 
@@ -161,7 +160,7 @@ class IOTask(BaseTask):
     def _write_file(self, file_path):
 
         try:
-            logging.debug("Started writing to file: %s", file_path)
+            logging.debug(f"Started writing to file: {file_path}")
 
             iterations = self.total_size_bytes / self.block_size_bytes
 
@@ -190,7 +189,7 @@ class IOTask(BaseTask):
             if duration:
                 throughput = self.total_size_bytes / duration
 
-            logging.debug("Finished writing to file: %s", file_path)
+            logging.debug(f"Finished writing to file: {file_path}")
 
             return tuple((duration, throughput))
 
@@ -199,8 +198,8 @@ class IOTask(BaseTask):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in IOTask during write file: %s - %s (line: %s)",
-                          exc_type, str(e), filename, exc_tb.tb_lineno)
+            logging.error(f"Caught exception (type: {exc_type}) in IOTask during write file: {e} "
+                          f"- {filename} (line: {exc_tb.tb_lineno})")
 
             return tuple((-1, -1))
 
@@ -213,7 +212,7 @@ class IOTask(BaseTask):
 
                 if file_size == self.total_size_bytes:
 
-                    logging.debug("Started reading from file: %s", file_path)
+                    logging.debug(f"Started reading from file: {file_path}")
 
                     total_read_bytes = 0
 
@@ -239,25 +238,25 @@ class IOTask(BaseTask):
                     if duration:
                         throughput = self.total_size_bytes / duration
 
-                    logging.debug("Finished reading from file: %s", file_path)
+                    logging.debug(f"Finished reading from file: {file_path}")
 
                     return tuple((duration, throughput))
 
                 elif file_size == 0:
-                    raise RuntimeError("File is empty: %s" % file_path)
+                    raise RuntimeError(f"File is empty: {file_path}")
 
                 else:
-                    raise RuntimeError("File is incomplete: %s" % file_path)
+                    raise RuntimeError(f"File is incomplete: {file_path}")
 
             else:
-                raise RuntimeError("No file to be read could be found under: %s" % file_path)
+                raise RuntimeError(f"No file to be read could be found under: {file_path}")
 
         except Exception as e:
 
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Caught exception (type: %s) in IOTask during read file: %s - %s (line: %s)",
-                          exc_type, str(e), filename, exc_tb.tb_lineno)
+            logging.error(f"Caught exception (type: {exc_type}) in IOTask during read file: {e} "
+                          f"- {filename} (line: {exc_tb.tb_lineno})")
 
             return tuple((-1, -1))

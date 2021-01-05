@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -97,11 +97,11 @@ class BenchmarkTaskGenerator(Process):
 
                         tid = self.result_queue.pop()
                         completed_tasks += 1
-                        logging.debug("Task completed with TID: %s" % tid)
+                        logging.debug(f"Task completed with TID: {tid}")
 
                     else:
 
-                        logging.debug("Polling (%fs)" % self.poll_time_ms)
+                        logging.debug(f"Polling ({self.poll_time_ms}s)")
                         time.sleep(self.poll_time_ms)
                 else:
                     self.run_flag = False
@@ -109,7 +109,7 @@ class BenchmarkTaskGenerator(Process):
             end_time = time.time() * 1000.0
             duration = (end_time - start_time) / 1000.0
 
-            logging.info("It took: %fs" % duration)
+            logging.info(f"It took: {duration}s")
 
         except InterruptedError as e:
             logging.error("Caught InterruptedError exception.")
@@ -119,7 +119,7 @@ class BenchmarkTaskGenerator(Process):
             exc_type, exc_obj, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error("Exception in %s (line: %s): %s", filename, exc_tb.tb_lineno, e)
+            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
             logging.info("BenchmarkTaskGenerator exited!")
             os._exit(1)
 
@@ -141,7 +141,7 @@ class BenchmarkTaskGenerator(Process):
         task_list = list()
 
         logging.debug("Creating task list...")
-        logging.debug("Number of tasks to generate: %i", self.num_tasks)
+        logging.debug(f"Number of tasks to generate: {self.num_tasks}")
 
         for i in range(self.num_tasks):
 
@@ -151,7 +151,7 @@ class BenchmarkTaskGenerator(Process):
             task_list.append(task)
 
         if logging.root.level <= logging.DEBUG:
-            logging.debug("Number of tasks generated: %i", len(task_list))
+            logging.debug(f"Number of tasks generated: {len(task_list)}")
 
         if self.num_tasks != len(task_list):
             raise RuntimeError("Number of tasks to generate is not equal to length of task list!")

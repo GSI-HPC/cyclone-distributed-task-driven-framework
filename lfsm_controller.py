@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -57,8 +57,7 @@ def init_arg_parser():
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=str('Path to the config file (default: %s)'
-                                 % default_config_file),
+                        help=f"Path to the config file (default: {default_config_file})",
                         default=default_config_file)
 
     parser.add_argument('-D',
@@ -96,7 +95,7 @@ def create_worker_ids(worker_count):
     worker_ids = list()
 
     for i in range(0, worker_count):
-        worker_ids.append("WORKER_" + str(i))
+        worker_ids.append(f"WORKER_{i}")
 
     return worker_ids
 
@@ -104,13 +103,16 @@ def create_worker_ids(worker_count):
 def create_worker_state_table(worker_ids):
 
     worker_state_table = dict()
+    len_worker_ids = len(worker_ids)
 
-    for i in range(0, len(worker_ids)):
+    for i in range(0, len_worker_ids):
         worker_state_table[worker_ids[i]] = WorkerStateTableItem()
 
-    if len(worker_state_table) != len(worker_ids):
-        raise RuntimeError("Inconsistent worker state table size found: %s - expected: %s"
-                           % (len(worker_state_table), len(worker_ids)))
+    len_worker_state_table = len(worker_state_table)
+
+    if len_worker_state_table != len_worker_ids:
+        raise RuntimeError(f"Inconsistent worker state table size found: {len_worker_state_table}"
+                           f" - expected: {len_worker_ids}")
 
     return worker_state_table
 
@@ -146,7 +148,7 @@ def start_worker(worker_handle_dict, worker_state_table):
         raise RuntimeError("Empty worker handle dict!")
 
     if len(worker_handle_dict) != len(worker_state_table):
-        raise RuntimeError('Different sizes in worker handle dict and worker state table detected!')
+        raise RuntimeError("Different sizes in worker handle dict and worker state table detected!")
 
     for worker_id in worker_handle_dict.keys():
         worker_handle_dict[worker_id].start()
@@ -166,8 +168,8 @@ def start_worker(worker_handle_dict, worker_state_table):
             return True
 
         wait_time = retry_count * retry_count
+        logging.debug(f"Waiting for worker to be READY - Waiting seconds: {wait_time}")
         time.sleep(wait_time)
-        logging.debug("Waiting for worker to be READY - Waiting seconds: %s", wait_time)
 
 
 def stop_run_condition():
@@ -203,7 +205,7 @@ def main():
         args = init_arg_parser()
 
         if args.print_version:
-            print("Version %s" % VERSION)
+            print(f"Version {VERSION}")
             sys.exit()
 
         config_file_reader = ControllerConfigFileReader(args.config_file)
@@ -220,8 +222,8 @@ def main():
             if pid_control.lock():
 
                 logging.info("Started")
-                logging.info("Controller PID: %s", pid_control.pid())
-                logging.debug("Version: %s", VERSION)
+                logging.info(f"Controller PID: {pid_control.pid()}")
+                logging.debug(f"Version: {VERSION}")
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -275,7 +277,7 @@ def main():
 
                                     if task_id:
 
-                                        logging.debug("Finished task: %s", task_id)
+                                        logging.debug(f"Finished task: {task_id}")
                                         send_msg = TaskFinished(comm_handler.fqdn, task_id)
 
                         if not send_msg:
@@ -328,7 +330,7 @@ def main():
                         if send_msg:
 
                             # TODO: remove redundant call of send_msg.to_string()
-                            logging.debug("Sending message to master: %s", send_msg.to_string())
+                            logging.debug(f"Sending message to master: {send_msg.to_string()}")
                             comm_handler.send_string(send_msg.to_string())
 
 # Check for response and process it.
@@ -338,7 +340,7 @@ def main():
 
                             if in_raw_data:
 
-                                logging.debug("Retrieved message (raw data): %s", in_raw_data)
+                                logging.debug(f"Retrieved message (raw data): {in_raw_data}")
 
                                 in_msg = MessageFactory.create(in_raw_data)
                                 in_msg_type = in_msg.type()
@@ -346,9 +348,9 @@ def main():
                                 if MessageType.TASK_ASSIGN() == in_msg_type:
 
                                     task = in_msg.to_task()
-                                    logging.debug("Retrieved task assign for: %s", task.tid)
+                                    logging.debug(f"Retrieved task assign for: {task.tid}")
                                     task_queue.push(task)
-                                    logging.debug("Pushed task to task queue: %s", task.tid)
+                                    logging.debug(f"Pushed task to task queue: {task.tid}")
 
                                 elif MessageType.ACKNOWLEDGE() == in_msg_type:
                                     pass
@@ -357,7 +359,7 @@ def main():
 
                                     #TODO: Implement it on the master side!
                                     wait_duration = in_msg.duration
-                                    logging.debug("Retrieved Wait Command with duration: %s", wait_duration)
+                                    logging.debug(f"Retrieved Wait Command with duration: {wait_duration}")
                                     time.sleep(wait_duration)
 
                                 elif MessageType.EXIT_COMMAND() == in_msg_type:
@@ -386,7 +388,7 @@ def main():
 
                                 if in_raw_data:
 
-                                    logging.debug("Retrieved message (raw data): %s", in_raw_data)
+                                    logging.debug(f"Retrieved message (raw data): {in_raw_data}")
 
                                     in_msg = MessageFactory.create(in_raw_data)
                                     in_msg_type = in_msg.type()
@@ -394,9 +396,9 @@ def main():
                                     if MessageType.TASK_ASSIGN() == in_msg_type:
 
                                         task = in_msg.to_task()
-                                        logging.debug("Retrieved task assign for: %s", task.tid)
+                                        logging.debug(f"Retrieved task assign for: {task.tid}")
                                         task_queue.push(task)
-                                        logging.debug("Pushed task to task queue: %s", task.tid)
+                                        logging.debug(f"Pushed task to task queue: {task.tid}")
 
                                     elif MessageType.ACKNOWLEDGE() == in_msg_type:
                                         pass
@@ -405,7 +407,7 @@ def main():
 
                                         #TODO: Implement it on the master side!
                                         wait_duration = in_msg.duration
-                                        logging.debug("Retrieved Wait Command with duration: %s", wait_duration)
+                                        logging.debug(f"Retrieved Wait Command with duration: {wait_duration}")
                                         time.sleep(wait_duration)
 
                                     elif MessageType.EXIT_COMMAND() == in_msg_type:
@@ -426,12 +428,10 @@ def main():
                     except Exception as e:
 
                         RUN_CONDITION = False
-
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-                        logging.error("Caught exception (type: %s) in main loop: %s - %s (line: %s)",
-                                      exc_type, e, filename, exc_tb.tb_lineno)
+                        logging.error(f"Caught exception (type: {exc_type}) in main loop: {e} "
+                                      f"- {filename} (line: {exc_tb.tb_lineno})")
 
                 if not RUN_CONDITION:
 
@@ -453,8 +453,8 @@ def main():
 
                                     task_queue.push(PoisenPill())
 
-                                    logging.debug("Waiting for worker to complete: %s",
-                                                  worker_handle_dict[worker_id].name)
+                                    logging.debug("Waiting for worker to complete: "
+                                                  f"{worker_handle_dict[worker_id].name}")
 
                                     found_active_worker = True
 
@@ -467,18 +467,18 @@ def main():
                                 time.sleep(1)
 
                     except Exception as e:
-                        logging.error("Caught exception terminating Worker: %s", e)
+                        logging.error(f"Caught exception terminating Worker: {e}")
 
             else:
 
-                logging.error("Another instance might be already running (PID file: %s)!" % config_file_reader.pid_file)
+                logging.error(f"Another instance might be already running (PID file: {config_file_reader.pid_file})!")
                 sys.exit(1)
 
     except Exception as e:
 
         exc_type, exc_obj, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error("Exception in %s (line: %s): %s", filename, exc_tb.tb_lineno, e)
+        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
         sys.exit(1)
 
     logging.info('Finished')

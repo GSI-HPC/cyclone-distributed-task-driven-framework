@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ class TaskAssign(BaseMessage):
             len_message = len(value)
 
             if count_message_items < 4:
-                raise RuntimeError("Invalid header size found in message: '%s'" % value)
+                raise RuntimeError(f"Invalid header size found in message: '{value}'")
 
             header = message_items[0] \
                 + BaseMessage.field_separator \
@@ -72,7 +72,7 @@ class TaskAssign(BaseMessage):
             task_class = value.__class__
 
             if not TaskAssign._is_inherited_from_base_task(task_class):
-                raise RuntimeError("The following class was not inherited from the BaseTask class: '%s'" % task_class)
+                raise RuntimeError(f"The following class was not inherited from the BaseTask class: '{task_class}'")
 
             header = TaskAssign._create_header(value, task_class)
             body = TaskAssign._create_body(value, task_class)
@@ -101,8 +101,7 @@ class TaskAssign(BaseMessage):
             raise RuntimeError("Task has to be located into the task package!")
 
         if not task.tid:
-            raise RuntimeError("Attribute tid not set for task: %s" %
-                               task_class)
+            raise RuntimeError(f"Attribute tid not set for task: {task_class}")
 
         header = MessageType.TASK_ASSIGN() \
             + BaseMessage.field_separator \

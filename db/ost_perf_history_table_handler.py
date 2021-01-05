@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ CREATE TABLE """ + self._table + """ (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1
 """
 
-        logging.debug("Creating database table:\n%s", sql)
+        logging.debug(f"Creating database table:\n{sql}")
 
         with closing(mysql.connector.connect(host=self._host,
                                              user=self._user,
@@ -103,7 +103,7 @@ CREATE TABLE """ + self._table + """ (
                 for i in range(1, len_ost_perf_result_list):
                     sql += ",(" + self._ost_perf_result_list[i] + ")"
 
-        logging.debug("Executing SQL statement:\n%s" % sql)
+        logging.debug(f"Executing SQL statement:\n{sql}")
 
         with closing(mysql.connector.connect(host=self._host,
                                              user=self._user,
@@ -115,11 +115,9 @@ CREATE TABLE """ + self._table + """ (
                 cur.execute(sql)
 
                 if cur.rowcount != len_ost_perf_result_list:
-                    raise RuntimeError("Number of rows inserted is not equal "
-                                       "to number of input records!")
+                    raise RuntimeError("Number of rows inserted is not equal to number of input records!")
 
-        logging.debug("Inserted: %s records into table: %s",
-                      len_ost_perf_result_list, self._table)
+        logging.debug(f"Inserted: {len_ost_perf_result_list} records into table: {self._table}")
 
     def count(self):
         return len(self._ost_perf_result_list)

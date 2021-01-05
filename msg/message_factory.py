@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,4 +74,4 @@ class MessageFactory:
         if msg_type == MessageType.TASK_ASSIGN():
             return TaskAssign(message)
 
-        raise RuntimeError("No message could be created from: %s" % message)
+        raise RuntimeError(f"No message could be created from: {message}")

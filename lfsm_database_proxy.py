@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,8 +44,7 @@ def init_arg_parser():
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=str('Path to the config file (default: %s)'
-                                 % default_config_file),
+                        help=f"Path to the config file (default: {default_config_file})",
                         default=default_config_file)
 
     parser.add_argument('--create-table',
@@ -137,8 +136,8 @@ def main():
                 if pid_control.lock():
 
                     logging.info("Started")
-                    logging.info("Database Proxy PID: %s", pid_control.pid())
-                    logging.debug("Version: %s", config_file_reader.version)
+                    logging.info(f"Database Proxy PID: {pid_control.pid()}")
+                    logging.debug(f"Version: {config_file_reader.version}")
 
                     signal.signal(signal.SIGHUP, signal_handler)
                     signal.signal(signal.SIGINT, signal_handler)
@@ -170,7 +169,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug("Retrieved data: %s", recv_data)
+                            logging.debug(f"Retrieved data: {recv_data}")
 
                             table_handler.insert(recv_data)
 
@@ -192,19 +191,19 @@ def main():
 
                 else:
 
-                    logging.error("Another instance might be already running (PID file: %s)!" 
-                                    % config_file_reader.pid_file)
+                    logging.error(f"Another instance might be already running "
+                                  f"(PID file: {config_file_reader.pid_file})!")
                     os._exit(1)
 
             except Exception as e:
 
-                logging.error("Caught exception in inner block: %s", e)
+                logging.error(f"Caught exception in inner block: {e}")
                 set_run_flag_false()
                 error = True
 
     except Exception as e:
 
-        logging.error("Caught exception in outer block: %s", e)
+        logging.error(f"Caught exception in outer block: {e}")
         os._exit(1)
 
     if table_handler and table_handler.count():
