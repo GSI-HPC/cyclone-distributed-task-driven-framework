@@ -96,11 +96,11 @@ class BenchmarkTaskGenerator(Process):
 
                         tid = self.result_queue.pop()
                         completed_tasks += 1
-                        logging.debug(f"Task completed with TID: {tid}")
+                        logging.debug("Task completed with TID: %s", tid)
 
                     else:
 
-                        logging.debug(f"Polling ({self.poll_time_ms}s)")
+                        logging.debug("Polling (%ss)", self.poll_time_ms)
                         time.sleep(self.poll_time_ms)
                 else:
                     self.run_flag = False
@@ -141,7 +141,7 @@ class BenchmarkTaskGenerator(Process):
         task_list = list()
 
         logging.debug("Creating task list...")
-        logging.debug(f"Number of tasks to generate: {self.num_tasks}")
+        logging.debug("Number of tasks to generate: %i", self.num_tasks)
 
         for i in range(self.num_tasks):
 
@@ -151,7 +151,7 @@ class BenchmarkTaskGenerator(Process):
             task_list.append(task)
 
         if logging.root.level <= logging.DEBUG:
-            logging.debug(f"Number of tasks generated: {len(task_list)}")
+            logging.debug("Number of tasks generated: %i", len(task_list))
 
         if self.num_tasks != len(task_list):
             raise RuntimeError("Number of tasks to generate is not equal to length of task list!")

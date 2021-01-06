@@ -38,4 +38,5 @@ class PoisenPill(BaseTask):
         self.tid = f"POISEN_PILL_{multiprocessing.current_process().name}"
 
     def execute(self):
-        logging.debug(f"Worker retrieved poisen pill: '{multiprocessing.current_process().name}'")
+        logging.debug("Worker retrieved poisen pill: '%s'", multiprocessing.current_process().name)
+

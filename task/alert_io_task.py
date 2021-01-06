@@ -143,7 +143,8 @@ class AlertIOTask(IOTask):
             # TODO: Remove code redundancy in IOTasks.
             if ost_perf_result:
 
-                logging.debug(f"ost_perf_result.to_csv_list: {ost_perf_result.to_csv_list()}")
+                if logging.root.level <= logging.DEBUG:
+                    logging.debug("ost_perf_result.to_csv_list: %s", ost_perf_result.to_csv_list())
 
                 if self.db_proxy_endpoint:
 

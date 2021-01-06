@@ -134,20 +134,20 @@ class LustreMonitoringTaskGenerator(Process):
         task_xml_info = TaskXmlReader.read_task_definition(self.task_file, 
                                                            self.task_name)
 
-        logging.debug(f"Loaded Task Information from XML: '{task_xml_info.class_module}.{task_xml_info.class_name}'")
+        logging.debug("Loaded Task Information from XML: '%s'", task_xml_info.class_module.task_xml_info.class_name)
 
         task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
 
         task_list = list()
 
         logging.debug("Creating task list...")
-        logging.debug(f"Length of OST index list: {len(ost_idx_list)}")
+        logging.debug("Length of OST index list: %i", len(ost_idx_list))
 
         # Create tasks and set up runtime determined information
         # e.g. task ID and Lustre specific OST index
         for ost_idx in ost_idx_list:
 
-            logging.debug(f"Create task for OST index: {ost_idx}")
+            logging.debug("Create task for OST index: %s", ost_idx)
 
             task = copy.copy(task_skeleton)
 
@@ -187,7 +187,7 @@ class LustreMonitoringTaskGenerator(Process):
 
                         found_select_ost_idx = True
 
-                        logging.debug(f"Found OST from selected list: {select_ost_idx}")
+                        logging.debug("Found OST from selected list: %s", select_ost_idx)
 
                         break
 
@@ -223,7 +223,7 @@ class LustreMonitoringTaskGenerator(Process):
 
                     if select_ost_idx == ost_idx:
 
-                        logging.debug(f"Found OST-IDX from selected list: {select_ost_idx}")
+                        logging.debug("Found OST-IDX from selected list: %s", select_ost_idx)
 
                         if not found_select_ost_idx:
                             found_select_ost_idx = True

@@ -138,7 +138,8 @@ def main():
 
                     logging.info("Started")
                     logging.info(f"Database Proxy PID: {pid_control.pid()}")
-                    logging.debug(f"Version: {config_file_reader.version}")
+
+                    logging.debug("Version: %s", config_file_reader.version)
 
                     signal.signal(signal.SIGHUP, signal_handler)
                     signal.signal(signal.SIGINT, signal_handler)
@@ -170,7 +171,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug(f"Retrieved data: {recv_data}")
+                            logging.debug("Retrieved data: %s", recv_data)
 
                             table_handler.insert(recv_data)
 

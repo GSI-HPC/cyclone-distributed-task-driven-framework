@@ -68,7 +68,7 @@ class LFSUtils:
         try:
 
             regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
-            logging.debug(f"Using regex for `lfs check osts`: {regex_str}")
+            logging.debug("Using regex for `lfs check osts`: %s", regex_str)
             pattern = re.compile(regex_str)
 
             args = ['sudo', self.lfs_bin, 'check', 'osts']
@@ -119,7 +119,7 @@ class LFSUtils:
     def set_stripe(self, ost_idx, file_path):
         """Throws subprocess.CalledProcessError on error in subprocess.check_output"""
 
-        logging.debug(f"Setting stripe for file: {file_path} - OST: {ost_idx}")
+        logging.debug("Setting stripe for file: %s - OST: %s", file_path, ost_idx)
 
         args = [self.lfs_bin, 'setstripe', '-i', ost_idx, file_path]
 

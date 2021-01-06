@@ -168,7 +168,7 @@ def start_worker(worker_handle_dict, worker_state_table):
             return True
 
         wait_time = retry_count * retry_count
-        logging.debug(f"Waiting for worker to be READY - Waiting seconds: {wait_time}")
+        logging.debug("Waiting for worker to be READY - Waiting seconds: %i", wait_time)
         time.sleep(wait_time)
 
 
@@ -224,7 +224,8 @@ def main():
 
                 logging.info("Started")
                 logging.info(f"Controller PID: {pid_control.pid()}")
-                logging.debug(f"Version: {VERSION}")
+
+                logging.debug("Version: %s", VERSION)
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -278,7 +279,7 @@ def main():
 
                                     if task_id:
 
-                                        logging.debug(f"Finished task: {task_id}")
+                                        logging.debug("Finished task: %s", task_id)
                                         send_msg = TaskFinished(comm_handler.fqdn, task_id)
 
                         if not send_msg:
@@ -330,8 +331,10 @@ def main():
 
                         if send_msg:
 
-                            # TODO: remove redundant call of send_msg.to_string()
-                            logging.debug(f"Sending message to master: {send_msg.to_string()}")
+                            if logging.root.level <= logging.DEBUG:
+                                # TODO: remove redundant call of send_msg.to_string()
+                                logging.debug("Sending message to master: %s", send_msg.to_string())
+
                             comm_handler.send_string(send_msg.to_string())
 
 # Check for response and process it.
@@ -341,7 +344,7 @@ def main():
 
                             if in_raw_data:
 
-                                logging.debug(f"Retrieved message (raw data): {in_raw_data}")
+                                logging.debug("Retrieved message (raw data): %s", in_raw_data)
 
                                 in_msg = MessageFactory.create(in_raw_data)
                                 in_msg_type = in_msg.type()
@@ -349,9 +352,9 @@ def main():
                                 if MessageType.TASK_ASSIGN() == in_msg_type:
 
                                     task = in_msg.to_task()
-                                    logging.debug(f"Retrieved task assign for: {task.tid}")
+                                    logging.debug("Retrieved task assign for: %s", task.tid)
                                     task_queue.push(task)
-                                    logging.debug(f"Pushed task to task queue: {task.tid}")
+                                    logging.debug("Pushed task to task queue: %s", task.tid)
 
                                 elif MessageType.ACKNOWLEDGE() == in_msg_type:
                                     pass
@@ -360,7 +363,7 @@ def main():
 
                                     #TODO: Implement it on the master side!
                                     wait_duration = in_msg.duration
-                                    logging.debug(f"Retrieved Wait Command with duration: {wait_duration}")
+                                    logging.debug("Retrieved Wait Command with duration: %fs", wait_duration)
                                     time.sleep(wait_duration)
 
                                 elif MessageType.EXIT_COMMAND() == in_msg_type:
@@ -389,7 +392,7 @@ def main():
 
                                 if in_raw_data:
 
-                                    logging.debug(f"Retrieved message (raw data): {in_raw_data}")
+                                    logging.debug("Retrieved message (raw data): %s", in_raw_data)
 
                                     in_msg = MessageFactory.create(in_raw_data)
                                     in_msg_type = in_msg.type()
@@ -397,9 +400,9 @@ def main():
                                     if MessageType.TASK_ASSIGN() == in_msg_type:
 
                                         task = in_msg.to_task()
-                                        logging.debug(f"Retrieved task assign for: {task.tid}")
+                                        logging.debug("Retrieved task assign for: %s", task.tid)
                                         task_queue.push(task)
-                                        logging.debug(f"Pushed task to task queue: {task.tid}")
+                                        logging.debug("Pushed task to task queue: %s", task.tid)
 
                                     elif MessageType.ACKNOWLEDGE() == in_msg_type:
                                         pass
@@ -408,7 +411,7 @@ def main():
 
                                         #TODO: Implement it on the master side!
                                         wait_duration = in_msg.duration
-                                        logging.debug(f"Retrieved Wait Command with duration: {wait_duration}")
+                                        logging.debug("Retrieved Wait Command with duration: %fs", wait_duration)
                                         time.sleep(wait_duration)
 
                                     elif MessageType.EXIT_COMMAND() == in_msg_type:
@@ -454,8 +457,8 @@ def main():
 
                                     task_queue.push(PoisenPill())
 
-                                    logging.debug("Waiting for worker to complete: "
-                                                  f"{worker_handle_dict[worker_id].name}")
+                                    logging.debug("Waiting for worker to complete: %s",
+                                                  worker_handle_dict[worker_id].name)
 
                                     found_active_worker = True
 

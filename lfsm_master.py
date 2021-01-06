@@ -124,7 +124,7 @@ def check_all_controller_down(count_active_controller):
         logging.info('Shutdown of controllers complete!')
         return True
 
-    logging.debug(f"Waiting for number of controllers to quit: {count_active_controller}")
+    logging.debug("Waiting for number of controllers to quit: %i", count_active_controller)
     return False
 
 
@@ -194,11 +194,7 @@ def main():
 
                 lock_task_queue = multiprocessing.Lock()
 
-                task_generator = create_task_generator(task_queue,
-                                                       lock_task_queue,
-                                                       result_queue,
-                                                       config_file_reader)
-
+                task_generator = create_task_generator(task_queue, lock_task_queue, result_queue, config_file_reader)
                 task_generator.start()
 
                 # TODO: Make a class for the master.
@@ -218,7 +214,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug(f"Retrieved message: {recv_data}")
+                            logging.debug("Retrieved message: %s", recv_data)
 
                             recv_msg = MessageFactory.create(recv_data)
                             recv_msg_type = recv_msg.type()
@@ -266,8 +262,8 @@ def main():
                                             elif task_status_dict[task.tid].state == TaskState.assigned() \
                                                     and last_exec_timestamp < task_resend_threshold:
 
-                                                logging.debug("Ignoring task to assign... - "
-                                                              f"Waiting for task with TID to finish: {task.tid}")
+                                                logging.debug("Ignoring task to assign..."
+                                                              " - Waiting for task with TID to finish: %s", task.tid)
 
                                                 send_msg = WaitCommand(controller_wait_duration)
 
@@ -291,7 +287,7 @@ def main():
                                     else:
                                         send_msg = WaitCommand(controller_wait_duration)
 
-                                    logging.debug(f"Sending message: {send_msg.to_string()}")
+                                    logging.debug("Sending message: %s", send_msg.to_string())
                                     comm_handler.send_string(send_msg.to_string())
 
                                 elif MessageType.TASK_FINISHED() == recv_msg_type:
@@ -302,11 +298,11 @@ def main():
 
                                         if recv_msg.sender == task_status_dict[tid].controller:
 
-                                            logging.debug(f"Retrieved finished message for TID: {tid}")
+                                            logging.debug("Retrieved finished message for TID: %s", tid)
                                             task_status_dict[tid].state = TaskState.finished()
                                             task_status_dict[tid].timestamp = int(time.time())
 
-                                            logging.debug(f"Pushing TID to result queue: {tid}")
+                                            logging.debug("Pushing TID to result queue: %s", tid)
                                             result_queue.push(tid)
 
                                         else:
@@ -318,7 +314,7 @@ def main():
                                     send_msg = Acknowledge()
 
                                     if logging.root.level <= logging.DEBUG:
-                                        logging.debug(f"Sending message: {send_msg.to_string()}")
+                                        logging.debug("Sending message: %s", send_msg.to_string())
 
                                     comm_handler.send_string(send_msg.to_string())
 
@@ -327,7 +323,7 @@ def main():
                                     send_msg = Acknowledge()
 
                                     if logging.root.level <= logging.DEBUG:
-                                        logging.debug(f"Sending message: {send_msg.to_string()}")
+                                        logging.debug("Sending message: %s", send_msg.to_string())
 
                                     comm_handler.send_string(send_msg.to_string())
 
@@ -337,7 +333,10 @@ def main():
                             else:   # Do graceful shutdown, since task distribution is off!
 
                                 send_msg = ExitCommand()
-                                logging.debug(f"Sending message: {send_msg.to_string()}")
+                                
+                                if logging.root.level <= logging.DEBUG:
+                                    logging.debug("Sending message: %s", send_msg.to_string())
+                                
                                 comm_handler.send_string(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)

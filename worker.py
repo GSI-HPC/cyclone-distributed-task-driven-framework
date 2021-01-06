@@ -125,7 +125,7 @@ class Worker(multiprocessing.Process):
             signal.signal(signal.SIGUSR1, self.signal_handler_shutdown)
             signal.siginterrupt(signal.SIGUSR1, True)
 
-            logging.debug(f"Started Worker: {self.name}")
+            logging.debug("Started Worker: %s", self.name)
 
             with CriticalSection(self.lock_worker_state_table):
 
@@ -164,7 +164,7 @@ class Worker(multiprocessing.Process):
                     self.worker_state_table_item.set_tid('')
                     self.worker_state_table_item.set_timestamp(int(time.time()))
 
-            logging.debug(f"Exiting worker: {self.name}")
+            logging.debug("Exiting worker: %s", self.name)
 
             os._exit(0)
 

@@ -138,7 +138,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                         task.tid = f"{source_ost}:{target_ost}"
 
-                                        logging.debug(f"Pushing task with TID to task queue: {task.tid}")
+                                        logging.debug("Pushing task with TID to task queue: %s", task.tid)
                                         self.task_queue.push(task)
 
                                         self.ost_source_state_dict[source_ost] = OSTState.BLOCKED
@@ -149,7 +149,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                     while not self.result_queue.is_empty():
 
                         finished_tid = self.result_queue.pop()
-                        logging.debug(f"Popped TID from result queue: {finished_tid}")
+                        logging.debug("Popped TID from result queue: %s", finished_tid)
 
                         source_ost, target_ost = finished_tid.split(":")
                         self._update_ost_state_dict(source_ost, self.ost_source_state_dict)
@@ -173,7 +173,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
                         if logging.root.level <= logging.DEBUG:
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
-                                logging.debug(f"OST: {ost} - Fill Level: {fill_level}")
+                                logging.debug("OST: %s - Fill Level: %i", ost, fill_level)
 
                         for ost in self.ost_source_state_dict.keys():
                             self._update_ost_source_state_dict(ost)

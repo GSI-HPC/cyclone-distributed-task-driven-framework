@@ -46,6 +46,8 @@ class IOTask(BaseTask):
 
         super(IOTask, self).__init__()
 
+        # TODO: Comment about data type
+        # OST-IDX might be integer or string (hex decimal) e.g. 0012 or 000C
         self.ost_idx = ost_idx
 
         self.block_size_bytes = int(block_size_bytes)
@@ -81,7 +83,7 @@ class IOTask(BaseTask):
 
             if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                logging.debug(f"Found active OST-IDX: {self.ost_idx}")
+                logging.debug("Found active OST-IDX: %s", self.ost_idx)
 
                 self._initialize_payload()
 
@@ -111,7 +113,7 @@ class IOTask(BaseTask):
                                       write_duration)
             else:
 
-                logging.debug(f"Found non-active OST: {self.ost_idx}")
+                logging.debug("Found non-active OST: %s", self.ost_idx)
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
@@ -120,7 +122,8 @@ class IOTask(BaseTask):
 
             if ost_perf_result:
 
-                logging.debug(f"ost_perf_result.to_csv_list: {ost_perf_result.to_csv_list()}")
+                if logging.root.level <= logging.DEBUG:
+                    logging.debug("ost_perf_result.to_csv_list: %s", ost_perf_result.to_csv_list())
 
                 if self.db_proxy_endpoint:
 
@@ -160,7 +163,7 @@ class IOTask(BaseTask):
     def _write_file(self, file_path):
 
         try:
-            logging.debug(f"Started writing to file: {file_path}")
+            logging.debug("Started writing to file: %s", file_path)
 
             iterations = self.total_size_bytes / self.block_size_bytes
 
@@ -189,7 +192,7 @@ class IOTask(BaseTask):
             if duration:
                 throughput = self.total_size_bytes / duration
 
-            logging.debug(f"Finished writing to file: {file_path}")
+            logging.debug("Finished writing to file: %s", file_path)
 
             return tuple((duration, throughput))
 
@@ -212,7 +215,7 @@ class IOTask(BaseTask):
 
                 if file_size == self.total_size_bytes:
 
-                    logging.debug(f"Started reading from file: {file_path}")
+                    logging.debug("Started reading from file: %s", file_path)
 
                     total_read_bytes = 0
 
@@ -238,7 +241,7 @@ class IOTask(BaseTask):
                     if duration:
                         throughput = self.total_size_bytes / duration
 
-                    logging.debug(f"Finished reading from file: {file_path}")
+                    logging.debug("Finished reading from file: %s", file_path)
 
                     return tuple((duration, throughput))
 
