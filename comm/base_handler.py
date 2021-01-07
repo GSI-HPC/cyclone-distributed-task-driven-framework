@@ -26,8 +26,8 @@ import zmq
 class BaseHandler(metaclass=abc.ABCMeta):
 
     def __init__(self, target, port, poll_timeout):
-        
-        super(BaseHandler, self).__init__()
+
+        super().__init__()
 
         if not target:
             raise RuntimeError('No target set!')

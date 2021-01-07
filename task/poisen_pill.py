@@ -29,7 +29,7 @@ class PoisenPill(BaseTask):
 
     def __init__(self):
 
-        super(PoisenPill, self).__init__()
+        super().__init__()
 
         # Since the monitoring is Lustre specific and a task is bound to an OST,
         # an tid has to be set even for a pseudo task like this one.

@@ -58,7 +58,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
     def __init__(self, task_queue, result_queue, config_file):
 
-        super(LustreOstFileMigrationTaskGenerator, self).__init__()
+        super().__init__()
 
         self.task_queue = task_queue
         self.result_queue = result_queue

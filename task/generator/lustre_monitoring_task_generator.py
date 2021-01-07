@@ -40,7 +40,7 @@ class LustreMonitoringTaskGenerator(Process):
                  result_queue,
                  config_file):
 
-        super(LustreMonitoringTaskGenerator, self).__init__()
+        super().__init__()
 
         self.task_queue = task_queue
         self.lock_task_queue = lock_task_queue
@@ -69,7 +69,7 @@ class LustreMonitoringTaskGenerator(Process):
         self.run_flag = False
 
     def start(self):
-        super(LustreMonitoringTaskGenerator, self).start()
+        super().start()
 
     def run(self):
 

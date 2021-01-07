@@ -26,7 +26,7 @@ class BaseTask(metaclass=abc.ABCMeta):
 
     def __init__(self):
 
-        super(BaseTask, self).__init__()
+        super().__init__()
 
         # TODO: Should have no property and setter method,
         #       since the attribute is private.

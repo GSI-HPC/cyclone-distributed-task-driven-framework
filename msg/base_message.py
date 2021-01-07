@@ -28,7 +28,7 @@ class BaseMessage(metaclass=abc.ABCMeta):
 
     def __init__(self, header, body):
 
-        super(BaseMessage, self).__init__()
+        super().__init__()
 
         if not header:
             raise RuntimeError('No header is set!')

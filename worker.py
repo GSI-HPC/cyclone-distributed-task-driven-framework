@@ -98,7 +98,7 @@ class Worker(multiprocessing.Process):
                  task_queue,
                  result_queue, cond_result_queue):
 
-        super(Worker, self).__init__()
+        super().__init__()
 
         self.name = name
 
@@ -116,7 +116,7 @@ class Worker(multiprocessing.Process):
 
         self.run_flag = True
 
-        super(Worker, self).start()
+        super().start()
 
     def run(self):
 

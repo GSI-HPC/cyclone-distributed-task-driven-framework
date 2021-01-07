@@ -26,7 +26,7 @@ class ExitCommand(BaseMessage):
     """Master sends this message to the controller when they are requesting a task and it is time to exit."""
 
     def __init__(self):
-        super(ExitCommand, self).__init__(MessageType.EXIT_COMMAND(), '')
+        super().__init__(MessageType.EXIT_COMMAND(), '')
 
     def _validate(self):
         pass

@@ -24,9 +24,9 @@ from comm.base_handler import BaseHandler
 
 
 class DatabaseProxyCommHandler(BaseHandler):
-    
+
     def __init__(self, target, port, poll_timeout):
-        super(DatabaseProxyCommHandler, self).__init__(target, port, poll_timeout)
+        super().__init__(target, port, poll_timeout)
 
     def __enter__(self):
         return self

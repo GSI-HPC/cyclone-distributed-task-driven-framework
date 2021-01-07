@@ -39,7 +39,7 @@ class BenchmarkTaskGenerator(Process):
                  result_queue,
                  config_file):
 
-        super(BenchmarkTaskGenerator, self).__init__()
+        super().__init__()
 
         self.task_queue = task_queue
         self.lock_task_queue = lock_task_queue
@@ -55,7 +55,7 @@ class BenchmarkTaskGenerator(Process):
         self.run_flag = False
 
     def start(self):
-        super(BenchmarkTaskGenerator, self).start()
+        super().start()
 
     def run(self):
 
@@ -87,7 +87,7 @@ class BenchmarkTaskGenerator(Process):
                 if completed_tasks < len_task_list:
 
                     # No synchronization with controller required, just wait until first task is popped.
-                    # This approach is simple and to a certain extend reproducible, 
+                    # This approach is simple and to a certain extend reproducible,
                     # but not totally accurate in the runtime, since the startup time is not measured.
                     if completed_tasks == 1:
                         start_time = time.time() * 1000.0

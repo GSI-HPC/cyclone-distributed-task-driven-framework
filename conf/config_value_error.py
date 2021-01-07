@@ -21,4 +21,4 @@
 class ConfigValueError(Exception):
 
     def __init__(self, message):
-        super(ConfigValueError, self).__init__(f"{message}")
+        super().__init__(f"{message}")

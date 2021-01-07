@@ -30,7 +30,7 @@ class OstMigrateTask(BaseTask):
 
     def __init__(self, source_ost, target_ost, filename):
 
-        super(OstMigrateTask, self).__init__()
+        super().__init__()
 
         self.lfs_utils = LFSUtils("/usr/bin/lfs")
 

@@ -31,7 +31,7 @@ class Acknowledge(BaseMessage):
     """
 
     def __init__(self):
-        super(Acknowledge, self).__init__(MessageType.ACKNOWLEDGE(), '')
+        super().__init__(MessageType.ACKNOWLEDGE(), '')
 
     def _validate(self):
         pass

@@ -27,7 +27,7 @@ from task.base_task import BaseTask
 class BenchmarkTask(BaseTask):
 
     def __init__(self):
-        super(BenchmarkTask, self).__init__()
+        super().__init__()
 
     def execute(self):
 

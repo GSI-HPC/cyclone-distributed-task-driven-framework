@@ -27,7 +27,7 @@ import os
 class TaskXmlReaderError(Exception):
 
     def __init__(self, message):
-        super(TaskXmlReaderError, self).__init__(f"[XML]: {message}")
+        super().__init__(f"[XML]: {message}")
 
 
 class TaskXmlInfo:

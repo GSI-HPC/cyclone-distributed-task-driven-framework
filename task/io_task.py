@@ -44,7 +44,7 @@ class IOTask(BaseTask):
                  db_proxy_target,
                  db_proxy_port):
 
-        super(IOTask, self).__init__()
+        super().__init__()
 
         # TODO: Comment about data type
         # OST-IDX might be integer or string (hex decimal) e.g. 0012 or 000C

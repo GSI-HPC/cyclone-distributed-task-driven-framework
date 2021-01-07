@@ -31,7 +31,7 @@ class TaskAssign(BaseMessage):
 
     """
         The __init__ method can take two different types of arguments:
-        
+
         1. A string based object - if the controller retrieves this message from the master.
         2. A task based object - if the master sends this message to a controller.
     """
@@ -77,7 +77,7 @@ class TaskAssign(BaseMessage):
             header = TaskAssign._create_header(value, task_class)
             body = TaskAssign._create_body(value, task_class)
 
-        super(TaskAssign, self).__init__(header, body)
+        super().__init__(header, body)
 
     @staticmethod
     def _is_inherited_from_base_task(a_class):

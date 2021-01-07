@@ -52,15 +52,15 @@ class AlertIOTask(IOTask):
                  db_proxy_target,
                  db_proxy_port):
 
-        super(AlertIOTask, self).__init__(ost_idx,
-                                          int(block_size_bytes),
-                                          int(total_size_bytes),
-                                          write_file_sync,
-                                          target_dir,
-                                          lfs_bin,
-                                          lfs_target,
-                                          db_proxy_target,
-                                          db_proxy_port)
+        super().__init__(ost_idx,
+                        int(block_size_bytes),
+                        int(total_size_bytes),
+                        write_file_sync,
+                        target_dir,
+                        lfs_bin,
+                        lfs_target,
+                        db_proxy_target,
+                        db_proxy_port)
 
         self.mail_server = mail_server
         self.mail_sender = mail_sender
@@ -110,7 +110,7 @@ class AlertIOTask(IOTask):
 
                     mail_subject = f"[LUSTRE Monitoring] OST Read Performance Degradation Detected: {self.ost_idx}"
 
-                    mail_text = f"OST-IDX: {self.ost_idx}\n" \ 
+                    mail_text = f"OST-IDX: {self.ost_idx}\n" \
                                 f"Timestamp: {write_timestamp}\n" \
                                 f"Alert Threshold: {self.mail_threshold}s"
 

@@ -33,7 +33,7 @@ class Heartbeat(BaseMessage):
         if not sender:
             raise RuntimeError('No sender is set!')
 
-        super(Heartbeat, self).__init__(MessageType.HEARTBEAT(), sender)
+        super().__init__(MessageType.HEARTBEAT(), sender)
 
     def _validate(self):
 

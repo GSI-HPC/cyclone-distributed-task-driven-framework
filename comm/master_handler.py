@@ -26,7 +26,7 @@ from comm.base_handler import BaseHandler
 class MasterCommHandler(BaseHandler):
 
     def __init__(self, target, port, poll_timeout):
-        super(MasterCommHandler, self).__init__(target, port, poll_timeout)
+        super().__init__(target, port, poll_timeout)
 
     def __enter__(self):
         return self

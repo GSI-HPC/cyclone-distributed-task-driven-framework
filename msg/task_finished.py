@@ -35,7 +35,7 @@ class TaskFinished(BaseMessage):
 
         body = sender + self.field_separator + tid
 
-        super(TaskFinished, self).__init__(MessageType.TASK_FINISHED(), body)
+        super().__init__(MessageType.TASK_FINISHED(), body)
 
     def _validate(self):
 
