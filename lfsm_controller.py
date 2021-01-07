@@ -319,7 +319,6 @@ def main():
 
                                     logging.error('No worker are alive!')
                                     RUN_CONDITION = False
-                                    continue
 
                                 else:   # Available worker are busy
 
