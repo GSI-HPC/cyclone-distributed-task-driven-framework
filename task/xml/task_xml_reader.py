@@ -65,7 +65,7 @@ class TaskXmlReader:
             if root.tag != 'tasks':
                 raise RuntimeError(f"Wrong root tag detected: '{root.tag}'")
 
-            if not len(root):
+            if not root:
                 raise RuntimeError(f"No task definitions found in '{file_path}'")
 
             for child in root:

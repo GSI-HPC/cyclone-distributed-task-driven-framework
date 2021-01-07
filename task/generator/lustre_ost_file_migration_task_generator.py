@@ -62,7 +62,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         self.task_queue = task_queue
         self.result_queue = result_queue
-        
+
         config = configparser.ConfigParser()
         config.read_file(open(config_file))
 
@@ -122,7 +122,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                             ost_cache = self.ost_cache_dict[source_ost]
 
-                            if len(ost_cache):
+                            if ost_cache:
 
                                 for target_ost, target_state in self.ost_target_state_dict.items():
 
@@ -197,7 +197,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         ost_cache_ids = self.ost_cache_dict.keys()
 
-                        if len(ost_cache_ids):
+                        if ost_cache_ids:
 
                             for source_ost in sorted(ost_cache_ids, key=int):
 
@@ -301,7 +301,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         for ost, cache in self.ost_cache_dict.items():
 
-            if len(cache):
+            if cache:
 
                 if ost not in self.ost_source_state_dict:
                     self._update_ost_source_state_dict(ost)

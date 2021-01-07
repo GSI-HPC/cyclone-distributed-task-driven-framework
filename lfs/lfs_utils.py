@@ -228,7 +228,7 @@ class LFSUtils:
 
                 ost_fill_level_dict[ost_idx] = fill_level
 
-        if not len(ost_fill_level_dict):
+        if not ost_fill_level_dict:
             raise RuntimeError("Lustre OST fill levels are empty!")
 
         return ost_fill_level_dict

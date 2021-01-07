@@ -131,7 +131,7 @@ class LustreMonitoringTaskGenerator(Process):
 
     def _create_task_list(self, ost_idx_list):
 
-        task_xml_info = TaskXmlReader.read_task_definition(self.task_file, 
+        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
                                                            self.task_name)
 
         logging.debug("Loaded Task Information from XML: '%s'", task_xml_info.class_module.task_xml_info.class_name)
@@ -141,7 +141,13 @@ class LustreMonitoringTaskGenerator(Process):
         task_list = list()
 
         logging.debug("Creating task list...")
-        logging.debug("Length of OST index list: %i", len(ost_idx_list))
+
+        if logging.root.isEnabledFor(logging.DEBUG):
+
+            if ost_idx_list:
+                logging.debug("Length of OST index list: %i", len(ost_idx_list))
+            else:
+                logging.debug("Empty OST index list!")
 
         # Create tasks and set up runtime determined information
         # e.g. task ID and Lustre specific OST index
@@ -168,10 +174,10 @@ class LustreMonitoringTaskGenerator(Process):
         for ost_item in ost_item_list:
             ost_idx_list.append(ost_item.ost_idx)
 
-        if len(ost_idx_list) == 0:
+        if not ost_idx_list:
             raise RuntimeError("OST list is empty!")
 
-        if len(self.ost_select_list):
+        if self.ost_select_list:
 
             select_ost_idx_list = list()
 
@@ -194,7 +200,7 @@ class LustreMonitoringTaskGenerator(Process):
                 if found_select_ost_idx is False:
                     raise RuntimeError(f"OST to select was not found in ost_info_list: {select_ost_idx}")
 
-            if not len(select_ost_idx_list):
+            if not select_ost_idx_list:
                 raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
 
             return select_ost_idx_list
@@ -211,7 +217,7 @@ class LustreMonitoringTaskGenerator(Process):
         for ost_idx in range(max_ost_idx):
             ost_idx_list.append(str(ost_idx))
 
-        if len(self.ost_select_list):
+        if self.ost_select_list:
 
             select_ost_idx_list = list()
 

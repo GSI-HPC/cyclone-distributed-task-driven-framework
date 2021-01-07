@@ -144,8 +144,11 @@ def create_worker(worker_state_table,
 
 def start_worker(worker_handle_dict, worker_state_table):
 
-    if not len(worker_handle_dict):
+    if not worker_handle_dict:
         raise RuntimeError("Empty worker handle dict!")
+
+    if not worker_state_table:
+        raise RuntimeError("Empty worker state table!")
 
     if len(worker_handle_dict) != len(worker_state_table):
         raise RuntimeError("Different sizes in worker handle dict and worker state table detected!")
