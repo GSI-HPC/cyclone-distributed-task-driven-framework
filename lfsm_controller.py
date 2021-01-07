@@ -331,7 +331,7 @@ def main():
 
                         if send_msg:
 
-                            if logging.root.level <= logging.DEBUG:
+                            if logging.root.isEnabledFor(logging.DEBUG):
                                 # TODO: remove redundant call of send_msg.to_string()
                                 logging.debug("Sending message to master: %s", send_msg.to_string())
 

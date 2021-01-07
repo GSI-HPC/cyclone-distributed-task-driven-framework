@@ -150,7 +150,7 @@ class BenchmarkTaskGenerator(Process):
             task.tid = str(i)
             task_list.append(task)
 
-        if logging.root.level <= logging.DEBUG:
+        if logging.root.isEnabledFor(logging.DEBUG):
             logging.debug("Number of tasks generated: %i", len(task_list))
 
         if self.num_tasks != len(task_list):

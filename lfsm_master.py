@@ -313,7 +313,7 @@ def main():
 
                                     send_msg = Acknowledge()
 
-                                    if logging.root.level <= logging.DEBUG:
+                                    if logging.root.isEnabledFor(logging.DEBUG):
                                         logging.debug("Sending message: %s", send_msg.to_string())
 
                                     comm_handler.send_string(send_msg.to_string())
@@ -322,7 +322,7 @@ def main():
 
                                     send_msg = Acknowledge()
 
-                                    if logging.root.level <= logging.DEBUG:
+                                    if logging.root.isEnabledFor(logging.DEBUG):
                                         logging.debug("Sending message: %s", send_msg.to_string())
 
                                     comm_handler.send_string(send_msg.to_string())
@@ -334,7 +334,7 @@ def main():
 
                                 send_msg = ExitCommand()
                                 
-                                if logging.root.level <= logging.DEBUG:
+                                if logging.root.isEnabledFor(logging.DEBUG):
                                     logging.debug("Sending message: %s", send_msg.to_string())
                                 
                                 comm_handler.send_string(send_msg.to_string())  # Does not block.

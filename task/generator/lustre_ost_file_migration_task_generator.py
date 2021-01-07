@@ -170,7 +170,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                         logging.info(f"Elapsed time: {elapsed_time} - Number of OSTs: {len(self.ost_fill_level_dict)}")
 
-                        if logging.root.level <= logging.DEBUG:
+                        if logging.root.isEnabledFor(logging.DEBUG):
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
                                 logging.debug("OST: %s - Fill Level: %i", ost, fill_level)
