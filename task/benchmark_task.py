@@ -26,9 +26,6 @@ from task.base_task import BaseTask
 
 class BenchmarkTask(BaseTask):
 
-    def __init__(self):
-        super().__init__()
-
     def execute(self):
 
         pid = os.getpid()
