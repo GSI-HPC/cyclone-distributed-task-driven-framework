@@ -40,4 +40,3 @@ class TaskRequest(BaseMessage):
     @property
     def sender(self):
         return self.body
-

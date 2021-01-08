@@ -245,4 +245,3 @@ class LustreMonitoringTaskGenerator(Process):
 
         else:
             return ost_idx_list
-

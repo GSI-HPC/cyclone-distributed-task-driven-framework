@@ -75,4 +75,3 @@ class MasterConfigFileReader:
 
         if not self.poll_timeout:
             raise ConfigValueError("No polling timeout was specified!")
-

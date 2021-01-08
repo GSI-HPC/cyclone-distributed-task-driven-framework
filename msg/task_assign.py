@@ -137,4 +137,3 @@ class TaskAssign(BaseMessage):
 
     def to_task(self):
         return TaskFactory.create_from_message(BaseMessage(self.header, self.body))
-

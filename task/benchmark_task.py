@@ -37,4 +37,3 @@ class BenchmarkTask(BaseTask):
 
         with open(outfile, "a") as myfile:
             myfile.write(f"TID: {tid_num} - PID: {pid} - Wait: {waittime}\n")
-

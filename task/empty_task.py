@@ -25,4 +25,3 @@ class EmptyTask(BaseTask):
 
     def execute(self):
         pass
-

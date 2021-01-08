@@ -49,4 +49,3 @@ class TaskFinished(BaseMessage):
     @property
     def tid(self):
         return self.body.split(BaseMessage.field_separator)[1]
-

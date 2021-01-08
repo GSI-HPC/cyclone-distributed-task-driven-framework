@@ -195,4 +195,3 @@ class AlertIOTask(IOTask):
         smtp_conn = smtplib.SMTP(self.mail_server)
         smtp_conn.sendmail(self.mail_sender, self.mail_receiver_list, msg_string)
         smtp_conn.quit()
-

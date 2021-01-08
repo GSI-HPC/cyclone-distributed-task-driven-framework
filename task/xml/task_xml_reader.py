@@ -116,4 +116,3 @@ class TaskXmlReader:
 
         except Exception as e:
             raise TaskXmlReaderError(f"{e}")
-

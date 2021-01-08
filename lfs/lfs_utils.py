@@ -232,4 +232,3 @@ class LFSUtils:
             raise RuntimeError("Lustre OST fill levels are empty!")
 
         return ost_fill_level_dict
-

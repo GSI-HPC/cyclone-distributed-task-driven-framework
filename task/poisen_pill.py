@@ -39,4 +39,3 @@ class PoisenPill(BaseTask):
 
     def execute(self):
         logging.debug("Worker retrieved poisen pill: '%s'", multiprocessing.current_process().name)
-

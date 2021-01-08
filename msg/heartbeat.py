@@ -43,4 +43,3 @@ class Heartbeat(BaseMessage):
     @property
     def sender(self):
         return self.body
-

@@ -50,5 +50,3 @@ class BaseTask(metaclass=abc.ABCMeta):
             raise ValueError('Argument tid must be set!')
 
         self._tid = tid
-
-

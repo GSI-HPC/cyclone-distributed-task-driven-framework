@@ -39,4 +39,3 @@ class WaitCommand(BaseMessage):
     @property
     def duration(self):
         return int(self.body)
-

@@ -35,4 +35,3 @@ class Acknowledge(BaseMessage):
 
     def _validate(self):
         pass
-
