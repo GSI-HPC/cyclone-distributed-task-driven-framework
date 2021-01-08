@@ -25,12 +25,12 @@ import queue
 class SharedQueue:
     """Wrapper class for the multiprocessing.Queue.
 
-    Underlying multiprocessing.Queue uses locking mechanism for single accesses 
+    Underlying multiprocessing.Queue uses locking mechanism for single accesses
     on get() and put(), which are mapped by pop() and push() method for blocking access.
 
     Use a locking mechanism to guarantee consistency accessing the SharedQueue's
     multiple access methods, for instance fill() and clear(), also with the is_empty() method.
-    For the benefit of performance gain, additional locking has to be provided outside or 
+    For the benefit of performance gain, additional locking has to be provided outside or
     by implementing a subclass.
 
     Example for concurrent accesses on the SharedQueue between accesses of P1 and P2
@@ -51,7 +51,7 @@ class SharedQueue:
 
             if not SharedQueue.is_empty():
 
-                # Use non-blocking access here, otherwise a blocking access 
+                # Use non-blocking access here, otherwise a blocking access
                 # might interfere with the clear() in the other critical section.
                 # Such a race condition might lead to a deadlock situation.
                 item = SharedQueue.pop_nowait()
@@ -73,7 +73,7 @@ class SharedQueue:
 
     def fill(self, in_list):
         """Fills the queue with the passed input list (partly blocking).
-        
+
         Since the items in the queue have to be iterated over, just each insert
         of an item is blocking. But the iteration does not guarantee full consistency.
         Because of multiprocessing semantics, this is not reliable.
@@ -113,7 +113,7 @@ class SharedQueue:
 
     def pop_nowait(self):
         """Returns an item from the queue (non-blocking).
-        
+
         Returns
         -------
         object
@@ -137,8 +137,5 @@ class SharedQueue:
         Because of multiprocessing semantics, this is not reliable.
         Use a locking mechanism to guarantee consistency.
         """
+        return self._queue.empty()
 
-        if self._queue.empty():
-            return True
-        else:
-            return False
