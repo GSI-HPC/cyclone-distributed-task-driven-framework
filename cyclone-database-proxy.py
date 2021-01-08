@@ -35,9 +35,9 @@ RUN_FLAG = True
 
 def init_arg_parser():
 
-    parser = argparse.ArgumentParser(description='LFSM Database Proxy')
+    parser = argparse.ArgumentParser(description='Cyclone Database Proxy')
 
-    default_config_file = "/etc/lfsm/database-proxy.conf"
+    default_config_file = "/etc/cyclone/database-proxy.conf"
 
     parser.add_argument('-f',
                         '--config-file',

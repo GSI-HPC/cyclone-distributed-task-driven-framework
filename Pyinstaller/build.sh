@@ -7,9 +7,9 @@ SOURCE_DIR=../../
 # --distpath=.dist
 # --workpath=.build
 
-MASTER_EXE=dist/lfsm-master.py
-CONTROLLER_EXE=dist/lfsm-controller.py
-DATABASE_PROXY_EXE=dist/lfsm-database-proxy.py
+MASTER_EXE=dist/cyclone-master.py
+CONTROLLER_EXE=dist/cyclone-controller.py
+DATABASE_PROXY_EXE=dist/cyclone-database-proxy.py
 
 # !!! Build successfully tested with -> Python version 3.6.8 and 3.8.2 !!!
 HIDDEN_IMPORTS="--hidden-import task.ost_migrate_task \
@@ -20,7 +20,7 @@ HIDDEN_IMPORTS="--hidden-import task.ost_migrate_task \
 
 function build_master {
 
-	$(pyinstaller --onefile $HIDDEN_IMPORTS --name lfsm-master.py $SOURCE_DIR/lfsm\_master.py)
+	$(pyinstaller --onefile $HIDDEN_IMPORTS --name cyclone-master.py $SOURCE_DIR/cyclone-master.py)
 
 	if [ -f "$MASTER_EXE" ]; then
 		echo ">>> Python executable found: $TARGET_DIR/$MASTER_EXE"
@@ -32,7 +32,7 @@ function build_master {
 
 function build_controller {
 
-	$(pyinstaller --onefile $HIDDEN_IMPORTS --name lfsm-controller.py $SOURCE_DIR/lfsm_controller.py)
+	$(pyinstaller --onefile $HIDDEN_IMPORTS --name cyclone-controller.py $SOURCE_DIR/cyclone-controller.py)
 
 	if [ -f "$CONTROLLER_EXE" ]; then
 		echo ">>> Python executable found: $TARGET_DIR/$CONTROLLER_EXE"
@@ -44,7 +44,7 @@ function build_controller {
 
 function build_database_proxy {
 
-	$(pyinstaller --onefile --name lfsm-database-proxy.py $SOURCE_DIR/lfsm\_database\_proxy.py)
+	$(pyinstaller --onefile --name cyclone-database-proxy.py $SOURCE_DIR/cyclon-database-proxy.py)
 
 	if [ -f "$DATABASE_PROXY_EXE" ]; then
 		echo ">>> Python executable found: $TARGET_DIR/$DATABASE_PROXY_EXE"

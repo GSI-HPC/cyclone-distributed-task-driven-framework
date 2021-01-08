@@ -48,9 +48,9 @@ RUN_CONDITION = True
 
 def init_arg_parser():
 
-    parser = argparse.ArgumentParser(description='LFSM Controller')
+    parser = argparse.ArgumentParser(description='Cyclone Controller')
 
-    default_config_file = "/etc/lfsm/controller.conf"
+    default_config_file = "/etc/cyclone/controller.conf"
 
     parser.add_argument('-f',
                         '--config-file',

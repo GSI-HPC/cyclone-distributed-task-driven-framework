@@ -48,9 +48,9 @@ TASK_DISTRIBUTION = True
 
 def init_arg_parser():
 
-    default_config_file = "/etc/lfsm/master.conf"
+    default_config_file = "/etc/cyclone/master.conf"
 
-    parser = argparse.ArgumentParser(description='LFSM Master')
+    parser = argparse.ArgumentParser(description='Cyclone Master')
 
     parser.add_argument('-f',
                         '--config-file',
@@ -333,10 +333,10 @@ def main():
                             else:   # Do graceful shutdown, since task distribution is off!
 
                                 send_msg = ExitCommand()
-                                
+
                                 if logging.root.isEnabledFor(logging.DEBUG):
                                     logging.debug("Sending message: %s", send_msg.to_string())
-                                
+
                                 comm_handler.send_string(send_msg.to_string())  # Does not block.
 
                                 controller_heartbeat_dict.pop(recv_msg.sender, None)

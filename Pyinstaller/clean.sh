@@ -10,18 +10,18 @@ case "$1" in
 	;;
 
 	master)
-		$(find "$TARGET_DIR" -name 'lfsm-master.*' -type f -delete)
-		$(rm -r "$TARGET_DIR"/build/lfsm-master.py)
+		$(find "$TARGET_DIR" -name 'cyclone-master.*' -type f -delete)
+		$(rm -r "$TARGET_DIR"/build/cyclone-master.py)
 	;;
 
 	controller)
-		$(find "$TARGET_DIR" -name 'lfsm-controller.*' -type f -delete)
-		$(rm -r "$TARGET_DIR"/build/lfsm-controller.py)
+		$(find "$TARGET_DIR" -name 'cyclone-controller.*' -type f -delete)
+		$(rm -r "$TARGET_DIR"/build/cyclone-controller.py)
 	;;
 
 	database-proxy)
-		$(find "$TARGET_DIR" -name 'lfsm-database-proxy.*' -type f -delete)
-		$(rm -r "$TARGET_DIR"/build/lfsm-database-proxy.py)
+		$(find "$TARGET_DIR" -name 'cyclone-database-proxy.*' -type f -delete)
+		$(rm -r "$TARGET_DIR"/build/cyclone-database-proxy.py)
 	;;
 
 	*)
