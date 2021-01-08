@@ -204,7 +204,6 @@ class LustreMonitoringTaskGenerator(Process):
                 raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
 
             return select_ost_idx_list
-
         else:
             return ost_idx_list
 
@@ -242,6 +241,5 @@ class LustreMonitoringTaskGenerator(Process):
                     raise RuntimeError(f"OST-IDX to select was not found in ost_info_list: {select_ost_idx}")
 
             return select_ost_idx_list
-
         else:
             return ost_idx_list
