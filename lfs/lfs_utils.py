@@ -108,11 +108,7 @@ class LFSUtils:
         for ost_item in self.create_ost_item_list(target):
 
             if ost_item.ost_idx == ost_idx:
-
-                if ost_item.active:
-                    return True
-                else:
-                    return False
+                return ost_item.active
 
         raise RuntimeError(f"[LFSUtils::is_ost_idx_active] Index not found: {ost_idx}")
 
