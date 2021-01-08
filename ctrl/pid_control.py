@@ -43,7 +43,6 @@ class PIDControl:
 
         if not os.path.isfile(self._pid_file):
             return self.create_pid_file()
-
         else:
 
             pid_from_file = self.read_pid_from_file()
@@ -53,11 +52,8 @@ class PIDControl:
 
             if PIDControl.check_process_exits(pid_from_file):
                 return False
-
             else:
-
                 os.remove(self._pid_file)
-
                 return self.create_pid_file()
 
     def unlock(self):
@@ -104,8 +100,4 @@ class PIDControl:
 
     @staticmethod
     def check_process_exits(pid):
-
-        if os.path.exists(f"/proc/{pid}"):
-            return True
-        else:
-            return False
+        return os.path.exists(f"/proc/{pid}")
