@@ -206,7 +206,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                 logging.info(f"OST: {source_ost} - Size: {len(self.ost_cache_dict[source_ost])}")
                         else:
-                            logging.info("All OST caches empty.")
+                            logging.info("All OST caches empty")
 
                         self._deallocate_empty_ost_caches()
 
