@@ -56,11 +56,13 @@ class OSTState(Enum):
 
 class LustreOstFileMigrationTaskGenerator(Process):
 
-    def __init__(self, task_queue, result_queue, config_file):
+    def __init__(self, task_queue, lock_task_queue, result_queue, config_file):
 
         super().__init__()
 
         self.task_queue = task_queue
+        self.lock_task_queue = lock_task_queue
+
         self.result_queue = result_queue
 
         config = configparser.ConfigParser()
@@ -294,6 +296,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 except ValueError as error:
                     logging.warning(f"Skipped line: {line} ({error})")
                     skipped_counter += 1
+            else:
+                logging.warning(f"Skipped empty file: {file_path}")
 
             logging.info(f"Loaded input file: {file_path} - Loaded: {loaded_counter} - Skipped: {skipped_counter}")
 

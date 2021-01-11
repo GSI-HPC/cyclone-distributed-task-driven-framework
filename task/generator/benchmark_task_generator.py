@@ -33,11 +33,7 @@ from task.benchmark_task import BenchmarkTask
 
 class BenchmarkTaskGenerator(Process):
 
-    def __init__(self,
-                 task_queue,
-                 lock_task_queue,
-                 result_queue,
-                 config_file):
+    def __init__(self, task_queue, lock_task_queue, result_queue, config_file):
 
         super().__init__()
 
