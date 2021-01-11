@@ -74,17 +74,18 @@ class LustreOstFileMigrationTaskGenerator(Process):
         self.threshold_reload_files = config.getint('control.threshold', 'reload_files')
         self.threshold_print_caches = config.getint('control.threshold', 'print_caches')
 
-        if not self.local_mode:
-
+        if self.local_mode:
+            self.num_osts = config.getint('control.local_mode', 'num_osts')
+        else:
             self.lfs_utils = LFSUtils("/usr/bin/lfs")
             self.lfs_path = config.get('lustre', 'fs_path')
 
-        ost_targets = config.get('lustre.migration', 'ost_targets')
+        ost_targets = config.get('migration', 'ost_targets')
         self.ost_target_list = ost_targets.strip().split(",")
 
-        self.input_dir = config.get('lustre.migration', 'input_dir')
+        self.input_dir = config.get('migration', 'input_dir')
 
-        self.ost_fill_threshold = config.getint('lustre.migration', 'ost_fill_threshold')
+        self.ost_fill_threshold = config.getint('migration', 'ost_fill_threshold')
 
         self.ost_cache_dict = dict()
 
@@ -205,7 +206,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
                                 logging.info(f"OST: {source_ost} - Size: {len(self.ost_cache_dict[source_ost])}")
                         else:
-                            logging.info("No OST caches available!")
+                            logging.info("All OST caches empty.")
 
                         self._deallocate_empty_ost_caches()
 
@@ -342,7 +343,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             self.ost_fill_level_dict.clear()
 
-            for i in range(10):
+            for i in range(self.num_osts):
 
                 ost_idx = str(i)
                 fill_level = random.randint(40, 60)
