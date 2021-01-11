@@ -296,10 +296,8 @@ class LustreOstFileMigrationTaskGenerator(Process):
                 except ValueError as error:
                     logging.warning(f"Skipped line: {line} ({error})")
                     skipped_counter += 1
-            else:
-                logging.warning(f"Skipped empty file: {file_path}")
 
-            logging.info(f"Loaded input file: {file_path} - Loaded: {loaded_counter} - Skipped: {skipped_counter}")
+            logging.info(f"Processed file: {file_path} - Loaded: {loaded_counter} - Skipped: {skipped_counter}")
 
     def _allocate_ost_caches(self):
 
