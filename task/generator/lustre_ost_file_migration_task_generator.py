@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Module for task generator"""
 
 import configparser
 import operator
@@ -55,6 +55,7 @@ class OSTState(Enum):
 
 
 class LustreOstFileMigrationTaskGenerator(Process):
+    """Class for Lustre OST File Migration Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 

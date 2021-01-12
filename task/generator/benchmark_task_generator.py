@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+"""Module for task generator"""
 
 import configparser
 import logging
@@ -32,6 +32,7 @@ from task.benchmark_task import BenchmarkTask
 
 
 class BenchmarkTaskGenerator(Process):
+    """Class for Benchmark Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
@@ -47,9 +48,6 @@ class BenchmarkTaskGenerator(Process):
         self.poll_time_ms = config.getint('control', 'poll_time_ms') / 1000.0
 
         self.run_flag = False
-
-    def start(self):
-        super().start()
 
     def run(self):
 

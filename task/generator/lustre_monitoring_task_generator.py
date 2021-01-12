@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+"""Module for task generator"""
+
 import configparser
 import logging
 import signal
@@ -33,6 +35,7 @@ from task.task_factory import TaskFactory
 
 
 class LustreMonitoringTaskGenerator(Process):
+    """Class for Lustre Monitoring Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
@@ -61,9 +64,6 @@ class LustreMonitoringTaskGenerator(Process):
         self.measure_interval = config.getfloat('control', 'measure_interval')
 
         self.run_flag = False
-
-    def start(self):
-        super().start()
 
     def run(self):
 
@@ -198,8 +198,8 @@ class LustreMonitoringTaskGenerator(Process):
                 raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
 
             return select_ost_idx_list
-        else:
-            return ost_idx_list
+
+        return ost_idx_list
 
     def _create_local_ost_idx_list(self):
 
@@ -235,5 +235,5 @@ class LustreMonitoringTaskGenerator(Process):
                     raise RuntimeError(f"OST-IDX to select was not found in ost_info_list: {select_ost_idx}")
 
             return select_ost_idx_list
-        else:
-            return ost_idx_list
+
+        return ost_idx_list

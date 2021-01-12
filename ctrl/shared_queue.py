@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""ctrl module for additional control components"""
+"""Module for additional control components"""
 
 import multiprocessing
 import queue
