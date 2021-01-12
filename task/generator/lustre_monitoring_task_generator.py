@@ -26,59 +26,43 @@ import time
 import sys
 import os
 
-from multiprocessing import Process
-
 from ctrl.critical_section import CriticalSection
 from lfs.lfs_utils import LFSUtils
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
+from task.generator.base_task_generator import BaseTaskGenerator
 
 
-class LustreMonitoringTaskGenerator(Process):
+class LustreMonitoringTaskGenerator(BaseTaskGenerator):
     """Class for Lustre Monitoring Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
-        super().__init__()
+        super().__init__(task_queue, result_queue, config_file)
 
-        self.task_queue = task_queue
-        self.result_queue = result_queue
+        self.task_file = self._config.get('task', 'task_def_file')
+        self.task_name = self._config.get('task', 'task_name')
 
-        config = configparser.ConfigParser()
-        config.read_file(open(config_file))
+        self.lfs_bin = self._config.get('lustre', 'lfs_bin')
+        self.target = self._config.get('lustre', 'target')
 
-        self.task_file = config.get('task', 'task_def_file')
-        self.task_name = config.get('task', 'task_name')
-
-        self.lfs_bin = config.get('lustre', 'lfs_bin')
-        self.target = config.get('lustre', 'target')
-
-        ost_select_list = config.get('lustre', 'ost_select_list')
+        ost_select_list = self._config.get('lustre', 'ost_select_list')
 
         if ost_select_list:
             self.ost_select_list = ost_select_list.replace(' ', '').split(',')
         else:
             self.ost_select_list = list()
 
-        self.local_mode = config.getboolean('control', 'local_mode')
-        self.measure_interval = config.getfloat('control', 'measure_interval')
-
-        self.run_flag = False
+        self.local_mode = self._config.getboolean('control', 'local_mode')
+        self.measure_interval = self._config.getfloat('control', 'measure_interval')
 
     def run(self):
 
-        self.run_flag = True
+        logging.info(f"{self._name} active!")
 
-        signal.signal(signal.SIGTERM, self._signal_handler_terminate)
-        signal.siginterrupt(signal.SIGTERM, True)
-
-        logging.info("LustreMonitoringTaskGenerator started!")
-
-        while self.run_flag:
+        while self._run_flag:
 
             try:
-
-                logging.debug("LustreMonitoringTaskGenerator active!")
 
                 ost_idx_list = None
 
@@ -89,13 +73,13 @@ class LustreMonitoringTaskGenerator(Process):
 
                 task_list = self._create_task_list(ost_idx_list)
 
-                with CriticalSection(self.task_queue.lock):
+                with CriticalSection(self._task_queue.lock):
 
-                    if not self.task_queue.is_empty():
-                        self.task_queue.clear()
+                    if not self._task_queue.is_empty():
+                        self._task_queue.clear()
 
                     if task_list:
-                        self.task_queue.fill(task_list)
+                        self._task_queue.fill(task_list)
 
                 time.sleep(self.measure_interval)
 
@@ -114,19 +98,9 @@ class LustreMonitoringTaskGenerator(Process):
         logging.info("LustreMonitoringTaskGenerator finished!")
         os._exit(0)
 
-    def _signal_handler_terminate(self, signum, frame):
-        # pylint: disable=unused-argument
-
-        self.run_flag = False
-
-        msg = "LustreMonitoringTaskGenerator retrieved signal to terminate."
-        logging.debug(msg)
-        raise InterruptedError(msg)
-
     def _create_task_list(self, ost_idx_list):
 
-        task_xml_info = TaskXmlReader.read_task_definition(self.task_file,
-                                                           self.task_name)
+        task_xml_info = TaskXmlReader.read_task_definition(self.task_file, self.task_name)
 
         logging.debug("Loaded Task Information from XML: '%s'", task_xml_info.class_module.task_xml_info.class_name)
 

@@ -25,58 +25,42 @@ import time
 import sys
 import os
 
-from multiprocessing import Process
-
 from ctrl.critical_section import CriticalSection
 from task.benchmark_task import BenchmarkTask
+from task.generator.base_task_generator import BaseTaskGenerator
 
 
-class BenchmarkTaskGenerator(Process):
+class BenchmarkTaskGenerator(BaseTaskGenerator):
     """Class for Benchmark Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
-        super().__init__()
+        super().__init__(task_queue, result_queue, config_file)
 
-        self.task_queue = task_queue
-        self.result_queue = result_queue
-
-        config = configparser.ConfigParser()
-        config.read_file(open(config_file))
-
-        self.num_tasks = config.getint('control', 'num_tasks')
-        self.poll_time_ms = config.getint('control', 'poll_time_ms') / 1000.0
-
-        self.run_flag = False
+        self._num_tasks = self._config.getint('control', 'num_tasks')
+        self._poll_time_ms = self._config.getint('control', 'poll_time_ms') / 1000.0
 
     def run(self):
 
-        self.run_flag = True
-
-        signal.signal(signal.SIGTERM, self._signal_handler_terminate)
-        signal.siginterrupt(signal.SIGTERM, True)
-
-        logging.info("BenchmarkTaskGenerator started!")
+        logging.info(f"{self._name} active!")
 
         try:
-
-            logging.debug("BenchmarkTaskGenerator active!")
 
             task_list = self._create_task_list()
             len_task_list = len(task_list)
             completed_tasks = 0
 
-            with CriticalSection(self.task_queue.lock):
+            with CriticalSection(self._task_queue.lock):
 
-                if not self.task_queue.is_empty():
-                    self.task_queue.clear()
+                if not self._task_queue.is_empty():
+                    self._task_queue.clear()
 
                 if task_list:
-                    self.task_queue.fill(task_list)
+                    self._task_queue.fill(task_list)
 
             start_time = None
 
-            while self.run_flag:
+            while self._run_flag:
 
                 if completed_tasks < len_task_list:
 
@@ -86,17 +70,17 @@ class BenchmarkTaskGenerator(Process):
                     if completed_tasks == 1:
                         start_time = time.time() * 1000.0
 
-                    if not self.result_queue.is_empty():
+                    if not self._result_queue.is_empty():
 
-                        tid = self.result_queue.pop()
+                        tid = self._result_queue.pop()
                         completed_tasks += 1
                         logging.debug("Task completed with TID: %s", tid)
                     else:
 
-                        logging.debug("Polling (%ss)", self.poll_time_ms)
-                        time.sleep(self.poll_time_ms)
+                        logging.debug("Polling (%ss)", self._poll_time_ms)
+                        time.sleep(self._poll_time_ms)
                 else:
-                    self.run_flag = False
+                    self._run_flag = False
 
             if start_time:
 
@@ -119,22 +103,14 @@ class BenchmarkTaskGenerator(Process):
         logging.info("BenchmarkTaskGenerator finished!")
         os._exit(0)
 
-    def _signal_handler_terminate(self, signum, frame):
-        # pylint: disable=unused-argument
-
-        self.run_flag = False
-
-        msg = "BenchmarkTaskGenerator retrieved signal to terminate."
-        logging.debug(msg)
-
     def _create_task_list(self):
 
         task_list = list()
 
         logging.debug("Creating task list...")
-        logging.debug("Number of tasks to generate: %i", self.num_tasks)
+        logging.debug("Number of tasks to generate: %i", self._num_tasks)
 
-        for i in range(self.num_tasks):
+        for i in range(self._num_tasks):
 
             # TODO: Add optional/mandatory parameter for TID on the BaseTask class?
             task = BenchmarkTask()
@@ -144,7 +120,7 @@ class BenchmarkTaskGenerator(Process):
         if logging.root.isEnabledFor(logging.DEBUG):
             logging.debug("Number of tasks generated: %i", len(task_list))
 
-        if self.num_tasks != len(task_list):
+        if self._num_tasks != len(task_list):
             raise RuntimeError("Number of tasks to generate is not equal to length of task list!")
 
         return task_list

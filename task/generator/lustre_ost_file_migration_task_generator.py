@@ -29,12 +29,12 @@ import os
 
 from datetime import datetime
 from enum import Enum, unique
-from multiprocessing import Process
 
 from lfs.lfs_utils import LFSUtils
 from msg.base_message import BaseMessage
 from task.ost_migrate_task import OstMigrateTask
 from task.empty_task import EmptyTask
+from task.generator.base_task_generator import BaseTaskGenerator
 
 
 class LustreOstMigrateItem:
@@ -54,37 +54,31 @@ class OSTState(Enum):
     PENDING_LOCK = 4
 
 
-class LustreOstFileMigrationTaskGenerator(Process):
+class LustreOstFileMigrationTaskGenerator(BaseTaskGenerator):
     """Class for Lustre OST File Migration Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
-        super().__init__()
+        super().__init__(task_queue, result_queue, config_file)
 
-        self.task_queue = task_queue
-        self.result_queue = result_queue
+        self.local_mode = self._config.getboolean('control', 'local_mode')
 
-        config = configparser.ConfigParser()
-        config.read_file(open(config_file))
-
-        self.local_mode = config.getboolean('control', 'local_mode')
-
-        self.threshold_update_fill_level = config.getint('control.threshold', 'update_fill_level')
-        self.threshold_reload_files = config.getint('control.threshold', 'reload_files')
-        self.threshold_print_caches = config.getint('control.threshold', 'print_caches')
+        self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
+        self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
+        self.threshold_print_caches = self._config.getint('control.threshold', 'print_caches')
 
         if self.local_mode:
-            self.num_osts = config.getint('control.local_mode', 'num_osts')
+            self.num_osts = self._config.getint('control.local_mode', 'num_osts')
         else:
             self.lfs_utils = LFSUtils("/usr/bin/lfs")
-            self.lfs_path = config.get('lustre', 'fs_path')
+            self.lfs_path = self._config.get('lustre', 'fs_path')
 
-        ost_targets = config.get('migration', 'ost_targets')
+        ost_targets = self._config.get('migration', 'ost_targets')
         self.ost_target_list = ost_targets.strip().split(",")
 
-        self.input_dir = config.get('migration', 'input_dir')
+        self.input_dir = self._config.get('migration', 'input_dir')
 
-        self.ost_fill_threshold = config.getint('migration', 'ost_fill_threshold')
+        self.ost_fill_threshold = self._config.getint('migration', 'ost_fill_threshold')
 
         self.ost_cache_dict = dict()
 
@@ -93,18 +87,11 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
         self.ost_fill_level_dict = dict()
 
-        self.run_flag = False
-
     def run(self):
 
+        logging.info(f"{self._name} active!")
+
         try:
-
-            self.run_flag = True
-
-            signal.signal(signal.SIGTERM, self._signal_handler_terminate)
-            signal.siginterrupt(signal.SIGTERM, True)
-
-            logging.info(f"{self.__class__.__name__} started!")
 
             self._update_ost_fill_level_dict()
             self._init_ost_target_state_dict()
@@ -114,7 +101,7 @@ class LustreOstFileMigrationTaskGenerator(Process):
             next_time_reload_files = int(time.time()) + self.threshold_reload_files
             next_time_print_caches = int(time.time()) + self.threshold_print_caches
 
-            while self.run_flag:
+            while self._run_flag:
 
                 try:
 
@@ -141,16 +128,16 @@ class LustreOstFileMigrationTaskGenerator(Process):
                                         task.tid = f"{source_ost}:{target_ost}"
 
                                         logging.debug("Pushing task with TID to task queue: %s", task.tid)
-                                        self.task_queue.push(task)
+                                        self._task_queue.push(task)
 
                                         self.ost_source_state_dict[source_ost] = OSTState.BLOCKED
                                         self.ost_target_state_dict[target_ost] = OSTState.BLOCKED
 
                                         break
 
-                    while not self.result_queue.is_empty():
+                    while not self._result_queue.is_empty():
 
-                        finished_tid = self.result_queue.pop()
+                        finished_tid = self._result_queue.pop()
                         logging.debug("Popped TID from result queue: %s", finished_tid)
 
                         source_ost, target_ost = finished_tid.split(":")
@@ -225,22 +212,13 @@ class LustreOstFileMigrationTaskGenerator(Process):
 
             logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {exc_value}")
 
-            logging.info(f"{self.__class__.__name__} exited!")
+            logging.info(f"{self._name} exited!")
 
             sys.exit(1)
 
-        logging.info(f"{self.__class__.__name__} finished!")
+        logging.info(f"{self._name} finished!")
 
         sys.exit(0)
-
-    def _signal_handler_terminate(self, signum, frame):
-        # pylint: disable=unused-argument
-
-        self.run_flag = False
-
-        msg = f"{self.__class__.__name__} retrieved signal to terminate."
-        logging.debug(msg)
-        raise InterruptedError(msg)
 
     def _process_input_files(self):
 
