@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+"""ctrl module for additional control components"""
 
 import multiprocessing
 import queue
@@ -37,7 +38,7 @@ class SharedQueue:
     are provided as following:
 
     # P1
-    with CriticalSection(Lock):
+    with CriticalSection(SharedQueue.lock):
 
         if not SharedQueue.is_empty():
             SharedQueue.clear()
@@ -45,7 +46,7 @@ class SharedQueue:
         SharedQueue.fill(List)
 
     # P2
-    with CriticalSection(Lock, timeout=1) as critical_section:
+    with CriticalSection(SharedQueue.lock, timeout=1) as critical_section:
 
         if critical_section.is_locked():
 
@@ -64,6 +65,7 @@ class SharedQueue:
 
     def __init__(self):
         self._queue = multiprocessing.Queue()
+        self._lock = multiprocessing.Lock()
 
     def __enter__(self):
         return self
@@ -139,3 +141,8 @@ class SharedQueue:
         """
         return self._queue.empty()
 
+    @property
+    def lock(self):
+        """Returns the prehold internal lock used for critical sections.
+           Use of this lock is not forced, but using it keeps code more compact."""
+        return self._lock

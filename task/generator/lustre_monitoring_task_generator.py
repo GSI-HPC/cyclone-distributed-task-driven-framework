@@ -34,13 +34,11 @@ from task.task_factory import TaskFactory
 
 class LustreMonitoringTaskGenerator(Process):
 
-    def __init__(self, task_queue, lock_task_queue, result_queue, config_file):
+    def __init__(self, task_queue, result_queue, config_file):
 
         super().__init__()
 
         self.task_queue = task_queue
-        self.lock_task_queue = lock_task_queue
-
         self.result_queue = result_queue
 
         config = configparser.ConfigParser()
@@ -91,7 +89,7 @@ class LustreMonitoringTaskGenerator(Process):
 
                 task_list = self._create_task_list(ost_idx_list)
 
-                with CriticalSection(self.lock_task_queue):
+                with CriticalSection(self.task_queue.lock):
 
                     if not self.task_queue.is_empty():
                         self.task_queue.clear()

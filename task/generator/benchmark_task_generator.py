@@ -33,13 +33,11 @@ from task.benchmark_task import BenchmarkTask
 
 class BenchmarkTaskGenerator(Process):
 
-    def __init__(self, task_queue, lock_task_queue, result_queue, config_file):
+    def __init__(self, task_queue, result_queue, config_file):
 
         super().__init__()
 
         self.task_queue = task_queue
-        self.lock_task_queue = lock_task_queue
-
         self.result_queue = result_queue
 
         config = configparser.ConfigParser()
@@ -70,13 +68,15 @@ class BenchmarkTaskGenerator(Process):
             len_task_list = len(task_list)
             completed_tasks = 0
 
-            with CriticalSection(self.lock_task_queue):
+            with CriticalSection(self.task_queue.lock):
 
                 if not self.task_queue.is_empty():
                     self.task_queue.clear()
 
                 if task_list:
                     self.task_queue.fill(task_list)
+
+            start_time = None
 
             while self.run_flag:
 
@@ -93,7 +93,6 @@ class BenchmarkTaskGenerator(Process):
                         tid = self.result_queue.pop()
                         completed_tasks += 1
                         logging.debug("Task completed with TID: %s", tid)
-
                     else:
 
                         logging.debug("Polling (%ss)", self.poll_time_ms)
@@ -101,10 +100,11 @@ class BenchmarkTaskGenerator(Process):
                 else:
                     self.run_flag = False
 
-            end_time = time.time() * 1000.0
-            duration = (end_time - start_time) / 1000.0
+            if start_time:
 
-            logging.info(f"It took: {duration}s")
+                end_time = time.time() * 1000.0
+                duration = (end_time - start_time) / 1000.0
+                logging.info(f"It took: {duration}s")
 
         except InterruptedError as e:
             logging.error("Caught InterruptedError exception.")
@@ -128,9 +128,6 @@ class BenchmarkTaskGenerator(Process):
 
         msg = "BenchmarkTaskGenerator retrieved signal to terminate."
         logging.debug(msg)
-
-        # TODO: Handle not as an error.
-        raise InterruptedError(msg)
 
     def _create_task_list(self):
 
