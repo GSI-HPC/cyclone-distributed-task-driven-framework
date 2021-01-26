@@ -246,11 +246,8 @@ class IOTask(BaseTask):
 
                     return tuple((duration, throughput))
 
-                elif file_size == 0:
-                    raise RuntimeError(f"File is empty: {file_path}")
-
                 else:
-                    raise RuntimeError(f"File is incomplete: {file_path}")
+                    raise RuntimeError(f"File is empty: {file_path}")
 
             else:
                 raise RuntimeError(f"No file to be read could be found under: {file_path}")
