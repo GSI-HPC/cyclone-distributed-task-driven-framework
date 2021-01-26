@@ -159,7 +159,7 @@ class IOTask(BaseTask):
         block_rest_size_bytes = self.total_size_bytes % self.block_size_bytes
 
         if block_rest_size_bytes > 0:
-            self.payload_rest_block = "".join('A' for i in range(self.block_rest_size_bytes))
+            self.payload_rest_block = "".join('A' for i in range(block_rest_size_bytes))
 
     def _write_file(self, file_path):
 
