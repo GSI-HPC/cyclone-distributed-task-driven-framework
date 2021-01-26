@@ -355,12 +355,12 @@ def main():
                                 if check_all_controller_down(len(controller_heartbeat_dict)):
                                     run_flag = False
 
-                    except Exception as e:
+                    except Exception as err:
 
                         error_count += 1
                         _, _, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logging.error(f"Caught exception in main loop: {e} - {filename} (line: {exc_tb.tb_lineno})")
+                        logging.error(f"Caught exception in main loop: {err} - {filename} (line: {exc_tb.tb_lineno})")
 
                         stop_task_distribution()
 
@@ -372,12 +372,12 @@ def main():
                 logging.error(f"Another instance might be already running (PID file: {config_file_reader.pid_file})!")
                 sys.exit(1)
 
-    except Exception as e:
+    except Exception as err:
 
         error_count += 1
         _, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f"Caught exception in main block: {e} - {filename} (line: {exc_tb.tb_lineno})")
+        logging.error(f"Caught exception in main block: {err} - {filename} (line: {exc_tb.tb_lineno})")
 
     try:
 
@@ -397,12 +397,12 @@ def main():
                 task_generator.terminate()
                 task_generator.join()
 
-    except Exception as e:
+    except Exception as err:
 
         error_count += 1
         _, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
+        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
 
     logging.info("Finished")
 

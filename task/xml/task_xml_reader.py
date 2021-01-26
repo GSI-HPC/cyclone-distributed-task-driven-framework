@@ -114,5 +114,5 @@ class TaskXmlReader:
 
             return TaskXmlInfo(class_module, class_name, class_properties)
 
-        except Exception as e:
-            raise TaskXmlReaderError(f"{e}")
+        except Exception as err:
+            raise TaskXmlReaderError(f"{err}")

@@ -52,14 +52,14 @@ def main():
 
     mp_lock = multiprocessing.Lock()
 
-    p1 = multiprocessing.Process(target=worker_func, args=(1, mp_lock))
-    p2 = multiprocessing.Process(target=worker_func, args=(2, mp_lock))
+    proc1 = multiprocessing.Process(target=worker_func, args=(1, mp_lock))
+    proc2 = multiprocessing.Process(target=worker_func, args=(2, mp_lock))
 
-    p1.start()
-    p2.start()
+    proc1.start()
+    proc2.start()
 
-    p1.join()
-    p2.join()
+    proc1.join()
+    proc2.join()
 
     logging.info("END")
 

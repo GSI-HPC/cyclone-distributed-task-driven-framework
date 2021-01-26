@@ -83,15 +83,15 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
                 time.sleep(self.measure_interval)
 
-            except InterruptedError as e:
+            except InterruptedError:
                 logging.error("Caught InterruptedError exception.")
 
-            except Exception as e:
+            except Exception as err:
 
                 _, _, exc_tb = sys.exc_info()
                 filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
+                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
                 logging.info("LustreMonitoringTaskGenerator exited!")
                 os._exit(1)
 

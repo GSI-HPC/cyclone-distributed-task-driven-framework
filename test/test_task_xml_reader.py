@@ -54,12 +54,12 @@ def main():
         test_io_task()
         test_alert_io_task()
 
-    except Exception as e:
+    except Exception as err:
 
         exc_type, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-        logging.error(f"Caught exception (type: {exc_type}): {e} - {filename} (line: {exc_tb.tb_lineno})")
+        logging.error(f"Caught exception (type: {exc_type}): {err} - {filename} (line: {exc_tb.tb_lineno})")
 
 
 if __name__ == '__main__':

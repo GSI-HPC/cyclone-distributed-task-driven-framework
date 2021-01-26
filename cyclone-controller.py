@@ -432,12 +432,12 @@ def main():
                                     comm_handler.reconnect()
                                     request_retry_count += 1
 
-                    except Exception as e:
+                    except Exception as err:
 
                         RUN_CONDITION = False
                         exc_type, _, exc_tb = sys.exc_info()
                         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logging.error(f"Caught exception (type: {exc_type}) in main loop: {e} "
+                        logging.error(f"Caught exception (type: {exc_type}) in main loop: {err} "
                                       f"- {filename} (line: {exc_tb.tb_lineno})")
 
                 if not RUN_CONDITION:
@@ -473,19 +473,19 @@ def main():
                                 logging.debug('Waiting for worker to shutdown...')
                                 time.sleep(1)
 
-                    except Exception as e:
-                        logging.error(f"Caught exception terminating Worker: {e}")
+                    except Exception as err:
+                        logging.error(f"Caught exception terminating Worker: {err}")
 
             else:
 
                 logging.error(f"Another instance might be already running (PID file: {config_file_reader.pid_file})!")
                 sys.exit(1)
 
-    except Exception as e:
+    except Exception as err:
 
         exc_type, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
+        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
         sys.exit(1)
 
     logging.info('Finished')

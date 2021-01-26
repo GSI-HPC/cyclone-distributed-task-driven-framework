@@ -43,9 +43,9 @@ class OstMigrateTask(BaseTask):
         try:
             self.lfs_utils.migrate_file(self.filename, self.target_ost)
 
-        except Exception as e:
+        except Exception as err:
 
             _, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
+            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")

@@ -98,8 +98,8 @@ class LFSUtils:
                 else:
                     logging.warning(f"No regex match for line: {line}")
 
-        except Exception as e:
-            logging.error(f"Exception occurred: {e}")
+        except Exception as err:
+            logging.error(f"Exception occurred: {err}")
 
         return ost_list
 
@@ -188,13 +188,13 @@ class LFSUtils:
 
                 logging.info(f"SUCCESS|{filename}|{elapsed_time}")
 
-        except subprocess.CalledProcessError as error:
+        except subprocess.CalledProcessError as err:
 
-            rc = error.returncode
+            rc = err.returncode
             stderr = ''
 
-            if error.stderr:
-                stderr = error.stderr.decode('UTF-8')
+            if err.stderr:
+                stderr = err.stderr.decode('UTF-8')
 
             logging.info(f"FAILED|{filename}|{rc}|{stderr}")
 

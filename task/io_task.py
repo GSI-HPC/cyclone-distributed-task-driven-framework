@@ -142,12 +142,13 @@ class IOTask(BaseTask):
 
                     logging.debug('Sent ost_perf_result to db-proxy.')
 
-        except Exception as e:
+        except Exception as err:
 
             exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Caught exception (type: {exc_type}) in IOTask: {e} - {filename} (line: {exc_tb.tb_lineno})")
+            logging.error(f"Caught exception (type: {exc_type}) in IOTask: {err}"
+                          f" - {filename} (line: {exc_tb.tb_lineno})")
 
     def _initialize_payload(self):
 
@@ -169,20 +170,20 @@ class IOTask(BaseTask):
 
             start_time = time.time() * 1000.0
 
-            with open(file_path, 'w') as f:
+            with open(file_path, 'w') as fp:
 
                 for _ in range(int(iterations)):
-                    f.write(self.payload_block)
+                    fp.write(self.payload_block)
 
                 if self.payload_rest_block:
-                    f.write(self.payload_rest_block)
+                    fp.write(self.payload_rest_block)
 
                 if self.write_file_sync == "on":
 
                     logging.debug("write_file_sync is on!")
 
-                    f.flush()
-                    os.fsync(f.fileno())
+                    fp.flush()
+                    os.fsync(fp.fileno())
 
             end_time = time.time() * 1000.0
             duration = (end_time - start_time) / 1000.0
@@ -196,13 +197,13 @@ class IOTask(BaseTask):
 
             return tuple((duration, throughput))
 
-        except Exception as e:
+        except Exception as err:
 
             exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Caught exception (type: {exc_type}) in IOTask during write file: {e} "
-                          f"- {filename} (line: {exc_tb.tb_lineno})")
+            logging.error(f"Caught exception (type: {exc_type}) in IOTask during write file: {err}"
+                          f" - {filename} (line: {exc_tb.tb_lineno})")
 
             return tuple((-1, -1))
 
@@ -221,13 +222,13 @@ class IOTask(BaseTask):
 
                     start_time = time.time() * 1000.0
 
-                    with open(file_path, 'r') as f:
+                    with open(file_path, 'r') as fp:
 
-                        read_bytes = f.read(self.block_size_bytes)
+                        read_bytes = fp.read(self.block_size_bytes)
                         total_read_bytes += len(read_bytes)
 
                         while read_bytes:
-                            read_bytes = f.read(self.block_size_bytes)
+                            read_bytes = fp.read(self.block_size_bytes)
                             total_read_bytes += len(read_bytes)
 
                     end_time = time.time() * 1000.0
@@ -254,12 +255,12 @@ class IOTask(BaseTask):
             else:
                 raise RuntimeError(f"No file to be read could be found under: {file_path}")
 
-        except Exception as e:
+        except Exception as err:
 
             exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Caught exception (type: {exc_type}) in IOTask during read file: {e} "
-                          f"- {filename} (line: {exc_tb.tb_lineno})")
+            logging.error(f"Caught exception (type: {exc_type}) in IOTask during read file: {err}"
+                          f" - {filename} (line: {exc_tb.tb_lineno})")
 
             return tuple((-1, -1))

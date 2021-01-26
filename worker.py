@@ -146,12 +146,12 @@ class Worker(multiprocessing.Process):
 
                     task.execute()
 
-                except Exception as e:
+                except Exception as err:
 
                     exc_type, _, exc_tb = sys.exc_info()
                     filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                     logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] "
-                                  f"during task execute: {e} - {filename} (line: {exc_tb.tb_lineno})")
+                                  f"during task execute: {err} - {filename} (line: {exc_tb.tb_lineno})")
 
                 with CriticalSection(self.cond_result_queue):
 
@@ -168,11 +168,11 @@ class Worker(multiprocessing.Process):
 
             os._exit(0)
 
-        except Exception as e:
+        except Exception as err:
 
             exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] during run loop: {e} "
+            logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] during run loop: {err} "
                           f"- {filename} (line: {exc_tb.tb_lineno})")
             os._exit(1)
 

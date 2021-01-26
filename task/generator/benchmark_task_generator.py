@@ -88,15 +88,15 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
                 duration = (end_time - start_time) / 1000.0
                 logging.info(f"It took: {duration}s")
 
-        except InterruptedError as e:
+        except InterruptedError:
             logging.error("Caught InterruptedError exception.")
 
-        except Exception as e:
+        except Exception as err:
 
             _, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {e}")
+            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
             logging.info("BenchmarkTaskGenerator exited!")
             os._exit(1)
 

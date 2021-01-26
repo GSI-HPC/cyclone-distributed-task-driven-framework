@@ -197,15 +197,15 @@ def main():
                                   f"(PID file: {config_file_reader.pid_file})!")
                     os._exit(1)
 
-            except Exception as e:
+            except Exception as err:
 
-                logging.error(f"Caught exception in inner block: {e}")
+                logging.error(f"Caught exception in inner block: {err}")
                 set_run_flag_false()
                 error = True
 
-    except Exception as e:
+    except Exception as err:
 
-        logging.error(f"Caught exception in outer block: {e}")
+        logging.error(f"Caught exception in outer block: {err}")
         os._exit(1)
 
     if table_handler and table_handler.count():
