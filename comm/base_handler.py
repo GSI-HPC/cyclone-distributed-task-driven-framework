@@ -35,7 +35,7 @@ class BaseHandler(metaclass=abc.ABCMeta):
         if not port:
             raise RuntimeError('No communication port set!')
 
-        if not (port in range(1024, 65535)):
+        if not port in range(1024, 65535):
             raise RuntimeError('Communication port must be a number between 1024 and 65535!')
 
         if poll_timeout <= 0:
