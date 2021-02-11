@@ -5,7 +5,7 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 ## Requisites
 
 ### Required
-**Python** - Version >= 3.6.0
+**Python** - Version >= 3.6.0  
 **Python bindings for 0MQ (pyzmq)** - Interprocess communication between different core components e.g. master and controller.
 
 ### Optional
