@@ -11,6 +11,7 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 Tested Versions:  
 
 * Python 3.6.0 + pyzmq 19.0.0
+* Python 3.8.5 + pyzmq 20.0.0
 
 
 ### Optional
