@@ -41,12 +41,14 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         self._name = self.__class__.__name__
         self._run_flag = False
 
+        # Use the SIGUSR1 instead of SIGTERM signal, since the signal handler will be passed by class inheritance.
+        # Otherwise a task generator would catch SIGTERM with the master's PID, so the master would ignore it.
+        signal.signal(signal.SIGUSR1, self._signal_handler_terminate)
+        signal.siginterrupt(signal.SIGUSR1, True)
+
     def start(self):
 
         self._run_flag = True
-
-        signal.signal(signal.SIGTERM, self._signal_handler_terminate)
-        signal.siginterrupt(signal.SIGTERM, True)
 
         logging.info(f"{self._name} started!")
 

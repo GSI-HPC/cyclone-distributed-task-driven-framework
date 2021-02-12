@@ -383,7 +383,7 @@ def main():
 
         if task_generator and task_generator.is_alive():
 
-            os.kill(task_generator.pid, signal.SIGTERM)
+            os.kill(task_generator.pid, signal.SIGUSR1)
 
             for _ in range(0, 10, 1):
 
