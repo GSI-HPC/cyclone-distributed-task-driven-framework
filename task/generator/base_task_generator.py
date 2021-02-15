@@ -52,7 +52,7 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
 
         logging.info(f"{self._name} started!")
 
-        # Start forked process after initialization.
+        # Start forked BaseTaskGenerator process after initialization by the Master process.
         super().start()
 
     @abc.abstractmethod
