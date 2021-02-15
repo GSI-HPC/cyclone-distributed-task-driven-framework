@@ -218,7 +218,7 @@ def main():
 
                             if TASK_DISTRIBUTION:
 
-                                if MessageType.TASK_REQUEST() == recv_msg_type:
+                                if recv_msg_type == MessageType.TASK_REQUEST():
 
                                     task = None
 
@@ -284,7 +284,7 @@ def main():
                                     logging.debug("Sending message: %s", send_msg.to_string())
                                     comm_handler.send_string(send_msg.to_string())
 
-                                elif MessageType.TASK_FINISHED() == recv_msg_type:
+                                elif recv_msg_type == MessageType.TASK_FINISHED():
 
                                     tid = recv_msg.tid
 
@@ -312,7 +312,7 @@ def main():
 
                                     comm_handler.send_string(send_msg.to_string())
 
-                                elif MessageType.HEARTBEAT() == recv_msg_type:
+                                elif recv_msg_type == MessageType.HEARTBEAT():
 
                                     send_msg = Acknowledge()
 
