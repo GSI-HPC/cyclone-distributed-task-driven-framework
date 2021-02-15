@@ -86,7 +86,7 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
 
                 end_time = time.time() * 1000.0
                 duration = (end_time - start_time) / 1000.0
-                logging.info(f"It took: {duration}s")
+                logging.info(f"Count of completed tasks: {len_task_list} - It took: {duration}s")
 
         except InterruptedError:
             logging.error("Caught InterruptedError exception.")
@@ -97,10 +97,10 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
-            logging.info("BenchmarkTaskGenerator exited!")
+            logging.info(f"{self._name} exited!")
             os._exit(1)
 
-        logging.info("BenchmarkTaskGenerator finished!")
+        logging.info(f"{self._name} finished!")
         os._exit(0)
 
     def _create_task_list(self):
@@ -121,6 +121,6 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
             logging.debug("Number of tasks generated: %i", len(task_list))
 
         if self._num_tasks != len(task_list):
-            raise RuntimeError("Number of tasks to generate is not equal to length of task list!")
+            raise RuntimeError("Number of tasks to generate is not equal to length of task list.")
 
         return task_list
