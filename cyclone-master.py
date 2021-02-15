@@ -236,7 +236,8 @@ def main():
                                                     TASK_DISTRIBUTION = False
                                                     controller_wait_duration = 0
 
-                                                    logging.error("Task Generator is not alive!")
+                                                    # Allow a TaskGenerator to quit itself without notifying the master.
+                                                    logging.info("Task Generator is not alive.")
 
                                     if task:
 
