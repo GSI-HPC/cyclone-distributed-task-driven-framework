@@ -157,7 +157,7 @@ class LFSUtils:
             * SUCCESS|{filename}|{time_time_elapsed}
                 - if migration of file was successful
             * FAILED|{filename}|{return_code}|{error_message}
-                - if migration of file failed e.g. 'lfs' failed
+                - if migration of file failed
         """
 
         try:
