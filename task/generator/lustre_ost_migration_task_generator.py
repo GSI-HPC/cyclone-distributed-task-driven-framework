@@ -54,8 +54,8 @@ class OSTState(Enum):
     PENDING_LOCK = 4
 
 
-class LustreOstFileMigrationTaskGenerator(BaseTaskGenerator):
-    """Class for Lustre OST File Migration Task Generator"""
+class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
+    """Class for LustreOSTMigrationTaskGenerator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
