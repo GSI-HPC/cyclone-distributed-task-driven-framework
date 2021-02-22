@@ -22,7 +22,31 @@ These versions have been successfully tested with the `BenchmarkTask` to check t
 | 2.0.1   | 3.8.5  | 20.0.0 |
 | 2.0.0   | 3.6.0  | 19.0.0 |
 
-## Documentation
+## Architecture
+
+![Architecture](Documentation/img/architecture.svg#left)
+
+## Components
+
+* Master
+* Task Generator
+* Controller
+* Worker
+
+## Features
+
+* Fault Tolerance
+* Load Balancing
+* Scalability
+* Generic Task Interface
+* Distributed Task Execution
+* Task Redispatching
+
+### Supported Tasks
+
+* Benchmarking
+* Lustre OST Migration
+* Lustre OST Monitoring
 
 ### Short Introduction Slides
 
