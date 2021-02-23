@@ -26,6 +26,7 @@ import time
 import sys
 import os
 
+from clush.RangeSet import RangeSet
 from ctrl.critical_section import CriticalSection
 from lfs.lfs_utils import LFSUtils
 from task.xml.task_xml_reader import TaskXmlReader
@@ -49,7 +50,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
         ost_select_list = self._config.get('lustre', 'ost_select_list')
 
         if ost_select_list:
-            self.ost_select_list = ost_select_list.replace(' ', '').split(',')
+            self.ost_select_list = list(RangeSet(ost_select_list).striter())
         else:
             self.ost_select_list = list()
 

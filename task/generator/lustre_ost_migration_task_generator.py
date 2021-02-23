@@ -30,6 +30,7 @@ import os
 from datetime import datetime
 from enum import Enum, unique
 
+from clush.RangeSet import RangeSet
 from lfs.lfs_utils import LFSUtils
 from msg.base_message import BaseMessage
 from task.ost_migrate_task import OstMigrateTask
@@ -74,7 +75,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
             self.lfs_path = self._config.get('lustre', 'fs_path')
 
         ost_targets = self._config.get('migration', 'ost_targets')
-        self.ost_target_list = ost_targets.strip().split(",")
+        self.ost_target_list = list(RangeSet(ost_targets).striter())
 
         self.input_dir = self._config.get('migration', 'input_dir')
 
