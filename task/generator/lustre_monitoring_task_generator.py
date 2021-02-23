@@ -18,9 +18,7 @@
 #
 """Module for task generator"""
 
-import configparser
 import logging
-import signal
 import copy
 import time
 import sys
@@ -82,6 +80,8 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
                     if task_list:
                         self._task_queue.fill(task_list)
 
+                # TODO: Check more frequently for the run condition, since the measure interval will let sleep
+                #       this process before it becomes active again.
                 time.sleep(self.measure_interval)
 
             except InterruptedError:

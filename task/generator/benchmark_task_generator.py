@@ -18,9 +18,7 @@
 #
 """Module for task generator"""
 
-import configparser
 import logging
-import signal
 import time
 import sys
 import os

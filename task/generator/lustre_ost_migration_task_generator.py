@@ -18,10 +18,8 @@
 #
 """Module for task generator"""
 
-import configparser
 import operator
 import logging
-import signal
 import random
 import time
 import sys

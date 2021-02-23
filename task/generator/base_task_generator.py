@@ -62,6 +62,6 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
     def _signal_handler_terminate(self, signum, frame):
         # pylint: disable=unused-argument
 
-        logging.debug("%s retrieved signal to terminate." % self._name)
+        logging.info(f"{self._name} retrieved signal to terminate.")
         self._run_flag = False
 

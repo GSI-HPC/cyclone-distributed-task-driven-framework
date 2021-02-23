@@ -165,7 +165,7 @@ class AlertIOTask(IOTask):
 
         except Exception as err:
 
-            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exc_type, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error(f"Caught exception (type: {exc_type}) in AlertIOTask: {err} "

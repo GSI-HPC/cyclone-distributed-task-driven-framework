@@ -102,17 +102,17 @@ def signal_handler(signum, frame):
 
     if signum == signal.SIGHUP:
 
-        logging.info('Retrieved hang-up signal.')
+        logging.info("Master retrieved hang-up signal.")
         stop_task_distribution()
 
     if signum == signal.SIGINT:
 
-        logging.info('Retrieved interrupt program signal.')
+        logging.info("Master retrieved interrupt program signal.")
         stop_task_distribution()
 
     if signum == signal.SIGTERM:
 
-        logging.info('Retrieved signal to terminate.')
+        logging.info("Master Retrieved signal to terminate.")
         stop_task_distribution()
 
 
