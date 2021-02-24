@@ -54,6 +54,8 @@ function checkDependencies {
 
 function runLinter {
     logInfo "Started code linting..."
+    # pylint cannot handle '.' for current directory, so all files are passed.
+    # See issue: https://github.com/PyCQA/pylint/issues/352
     ($CMD_FIND . -name "*.py" | $CMD_XARGS -I {} $CMD_PYLINT {}) > $OUTPUT_LINTER
     logInfo "Output written to: $OUTPUT_LINTER"
     logInfo "Finished code linting"
