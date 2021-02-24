@@ -50,23 +50,5 @@ class ControllerConfigFileReader:
 
     def validate(self):
 
-        if not self.pid_file:
-            raise ConfigValueError("No PID file was specified!")
-
-        if not self.request_retry_wait_duration:
-            raise ConfigValueError("No request retry wait duration was specified!")
-
-        if not self.max_num_request_retries:
-            raise ConfigValueError("max_num_request_retries is not set!")
-
-        if not self.comm_target:
-            raise ConfigValueError("No communication target was specified!")
-
-        if not self.comm_port:
-            raise ConfigValueError("No communication port was specified!")
-
-        if not self.poll_timeout:
-            raise ConfigValueError("No polling timeout was specified!")
-
         if self.worker_count < 1 or self.worker_count > 1000:
             raise ConfigValueError(f"Not supported worker count detected: {self.worker_count}")

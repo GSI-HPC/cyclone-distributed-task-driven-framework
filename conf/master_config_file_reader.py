@@ -49,29 +49,3 @@ class MasterConfigFileReader:
         self.task_gen_module = config.get('task_generator', 'module')
         self.task_gen_class = config.get('task_generator', 'class')
         self.task_gen_config_file = config.get('task_generator', 'config_file')
-
-    def validate(self):
-
-        if not self.version:
-            raise ConfigValueError("No version number was specified!")
-
-        if not self.pid_file:
-            raise ConfigValueError("No PID file was specified!")
-
-        if not self.controller_timeout:
-            raise ConfigValueError("No controller timeout was set!")
-
-        if not self.controller_wait_duration:
-            raise ConfigValueError("No controller wait duration was set!")
-
-        if not self.task_resend_timeout:
-            raise ConfigValueError("No task resend timeout was set!")
-
-        if not self.comm_target:
-            raise ConfigValueError("No communication target was specified!")
-
-        if not self.comm_port:
-            raise ConfigValueError("No communication port was specified!")
-
-        if not self.poll_timeout:
-            raise ConfigValueError("No polling timeout was specified!")
