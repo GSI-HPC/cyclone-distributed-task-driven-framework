@@ -174,6 +174,8 @@ def start_worker(worker_handle_dict, worker_state_table):
         logging.debug("Waiting for worker to be READY - Waiting seconds: %i", wait_time)
         time.sleep(wait_time)
 
+    return False
+
 
 def stop_run_condition():
 
