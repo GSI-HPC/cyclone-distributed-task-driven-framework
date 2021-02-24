@@ -1,6 +1,7 @@
 *.log
 *.pyc
 *.pid
+*.out
 
 *.vscode
 .idea
