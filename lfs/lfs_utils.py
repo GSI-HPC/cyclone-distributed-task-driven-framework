@@ -67,7 +67,7 @@ class LFSUtils:
 
         try:
 
-            regex_str = target + "\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
+            regex_str = target + r"\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
             logging.debug("Using regex for `lfs check osts`: %s", regex_str)
             pattern = re.compile(regex_str)
 
@@ -96,10 +96,10 @@ class LFSUtils:
                         ost_list.append(LFSOstItem(target, ost, state, False))
 
                 else:
-                    logging.warning(f"No regex match for line: {line}")
+                    logging.warning("No regex match for line: %s", line)
 
         except Exception as err:
-            logging.error(f"Exception occurred: {err}")
+            logging.error("Exception occurred: %s", err)
 
         return ost_list
 
@@ -166,7 +166,7 @@ class LFSUtils:
                 raise RuntimeError('Empty filename!')
 
             if skip and self.is_file_stripped(filename):
-                logging.info(f"SKIPPED|{filename}")
+                logging.info("SKIPPED|%s", filename)
             else:
 
                 args = [self.lfs_bin, 'migrate']
@@ -186,24 +186,23 @@ class LFSUtils:
                 subprocess.run(args, check=True, stderr=subprocess.PIPE)
                 elapsed_time = datetime.now() - start_time
 
-                logging.info(f"SUCCESS|{filename}|{elapsed_time}")
+                logging.info("SUCCESS|%s|%s", filename, elapsed_time)
 
         except subprocess.CalledProcessError as err:
 
-            rc = err.returncode
             stderr = ''
 
             if err.stderr:
                 stderr = err.stderr.decode('UTF-8')
 
-            logging.info(f"FAILED|{filename}|{rc}|{stderr}")
+            logging.info("FAILED|%s|%s|%s", filename, err.returncode, stderr)
 
     def retrieve_ost_fill_level(self, fs_path):
 
         if not fs_path:
             raise RuntimeError("Lustre file system path is not set!")
 
-        regex = "(\d{1,3})%.*\[OST:([0-9]{1,4})\]"
+        regex = r"(\d{1,3})%.*\[OST:([0-9]{1,4})\]"
 
         pattern = re.compile(regex)
 
