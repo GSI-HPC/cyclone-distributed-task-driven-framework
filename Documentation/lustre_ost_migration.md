@@ -8,19 +8,19 @@ Migrate files on Lustre between multiple OSTs to adjust or rebalance its fill st
 
 [Configuration File for Task Generator](../Configuration/lustre_ost_migration_task_generator.conf)
 
-Section: **control**
+### Section: **control**
 
 | Name        | Value  | Description                                      |
 | ----------- | ------ | ------------------------------------------------ |
 | local\_mode | on/off | Specifies if local or productive mode is enabled |
 
-Section: **control.local_mode**
+### Section: **control.local_mode**
 
 | Name        | Value  | Description                                     |
 | ----------- | ------ | ----------------------------------------------- |
 | num\_osts   | Number | Specifies the number of Lustre OSTs to simulate |
 
-Section: **control.threshold**
+### Section: **control.threshold**
 
 | Name                | Value  | Description                                                                     |
 | ------------------- | ------ | ------------------------------------------------------------------------------- |
@@ -28,7 +28,7 @@ Section: **control.threshold**
 | reload\_files       | Number | Time period in seconds when to reload input files                               |
 | print\_caches       | Number | Time period in seconds when to print the caches with number of files to migrate |
 
-Section: **migration**
+### Section: **migration**
 
 | Name                 | Value    | Description                                                                |
 | -------------------- | -------- | -------------------------------------------------------------------------- |
@@ -36,7 +36,7 @@ Section: **migration**
 | ost\_fill\_threshold | Number   | Lustre OST fill level threshold                                            |
 | ost\_targets         | RangeSet | List of decimal OST indexes comma separated and ranges defined with hyphen |
 
-Section: **lustre**
+### Section: **lustre**
 
 | Name      | Value  | Description            |
 | --------- | ------ | ---------------------- |
