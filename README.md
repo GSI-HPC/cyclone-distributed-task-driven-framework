@@ -6,7 +6,7 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 
 ### Required
 
-**Python** - Standard Library  
+**Python** - Standard Library
 **Python bindings for 0MQ (pyzmq)** - Interprocess communication between master and controller.
 
 ### Optional
@@ -45,7 +45,7 @@ These versions have been successfully tested with the `BenchmarkTask` to check t
 ### Supported Tasks
 
 * Benchmarking
-* Lustre OST Migration
+* [Lustre OST Migration](Documentation/lustre_ost_migration.md)
 * Lustre OST Monitoring
 
 ### Short Introduction Slides
