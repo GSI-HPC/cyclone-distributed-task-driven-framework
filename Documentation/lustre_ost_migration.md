@@ -6,7 +6,7 @@ Migrate files on Lustre between multiple OSTs to adjust or rebalance its fill st
 
 ## Configuration
 
-[Configuration File for Task Generator](Configuration/lustre_ost_migration_task_generator.conf)
+[Configuration File for Task Generator](../Configuration/lustre_ost_migration_task_generator.conf)
 
 Section: **control**
 
