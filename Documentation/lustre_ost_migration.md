@@ -30,11 +30,12 @@ Migrate files on Lustre between multiple OSTs to adjust or rebalance its fill st
 
 ### Section: **migration**
 
-| Name                 | Value    | Description                                                                |
-| -------------------- | -------- | -------------------------------------------------------------------------- |
-| input\_dir           | Path     | Path to input directory where to process input file lists from             |
-| ost\_fill\_threshold | Number   | Lustre OST fill level threshold                                            |
-| ost\_targets         | RangeSet | List of decimal OST indexes comma separated and ranges defined with hyphen |
+| Name                         | Value    | Description                                                                 |
+| ---------------------------- | -------- | --------------------------------------------------------------------------- |
+| input\_dir                   | Path     | Path to input directory where to process input file lists from              |
+| ost\_fill\_threshold\_source | Number   | Lustre OST fill level threshold in percentage for reducing down source OSTs |
+| ost\_fill\_threshold\_target | Number   | Lustre OST fill level threshold in percentage for filling up target OSTs    |
+| ost\_targets                 | RangeSet | List of decimal OST indexes comma separated and ranges defined with hyphen  |
 
 ### Section: **lustre**
 
@@ -51,8 +52,3 @@ of the task generators config file:
 [migration]
 input_dir = ...
 ```
-
-## Balancing
-
-* Source OST must be below specified threshold
-* Target OST must be above specified threshold

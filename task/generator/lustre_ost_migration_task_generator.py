@@ -44,6 +44,7 @@ class LustreOstMigrateItem:
         self.filename = filename
 
 
+# TODO: Add description!
 @unique
 class OSTState(Enum):
 
@@ -77,7 +78,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.input_dir = self._config.get('migration', 'input_dir')
 
-        self.ost_fill_threshold = self._config.getint('migration', 'ost_fill_threshold')
+        self.ost_fill_level_threshold_source = self._config.getint('migration', 'ost_fill_level_threshold_source')
+        self.ost_fill_level_threshold_target = self._config.getint('migration', 'ost_fill_level_threshold_target')
 
         self.ost_cache_dict = dict()
 
@@ -88,7 +90,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
     def run(self):
 
-        logging.info(f"{self._name} active!")
+        logging.info("%s active!", self._name)
 
         try:
 
@@ -156,17 +158,17 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         self._update_ost_fill_level_dict()
                         elapsed_time = datetime.now() - start_time
 
-                        logging.info(f"Elapsed time: {elapsed_time} - Number of OSTs: {len(self.ost_fill_level_dict)}")
+                        logging.info("Elapsed time: %s - Number of OSTs: %i", elapsed_time, len(self.ost_fill_level_dict))
 
                         if logging.root.isEnabledFor(logging.DEBUG):
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
-                                logging.debug("OST: %s - Fill Level: %i", ost, fill_level)
+                                logging.info("OST: %s - Fill Level: %i", ost, fill_level)
 
-                        for ost in self.ost_source_state_dict.keys():
+                        for ost in self.ost_source_state_dict:
                             self._update_ost_source_state_dict(ost)
 
-                        for ost in self.ost_target_state_dict.keys():
+                        for ost in self.ost_target_state_dict:
                             self._update_ost_target_state_dict(ost)
 
                     if last_run_time >= next_time_reload_files:
@@ -188,8 +190,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         if ost_cache_ids:
 
                             for source_ost in sorted(ost_cache_ids, key=int):
-
-                                logging.info(f"OST: {source_ost} - Size: {len(self.ost_cache_dict[source_ost])}")
+                                logging.info("OST: %s - Size: %i", source_ost, len(self.ost_cache_dict[source_ost]))
                         else:
                             logging.info("All OST caches empty")
 
@@ -209,14 +210,11 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {exc_value}")
-
-            logging.info(f"{self._name} exited!")
-
+            logging.error("Exception in %s (line: %i): %s", filename, exc_tb.tb_lineno, exc_value)
+            logging.info("%s exited!", self._name)
             sys.exit(1)
 
-        logging.info(f"{self._name} finished!")
-
+        logging.info("%s finished!", self._name)
         sys.exit(0)
 
     def _process_input_files(self):
@@ -240,7 +238,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         if file_counter:
             self._allocate_ost_caches()
 
-        logging.info(f"Count of processed input files: {file_counter}")
+        logging.info("Count of processed input files: %i", file_counter)
 
     def _load_input_file(self, file_path):
 
@@ -254,7 +252,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                 stripped_line = line.strip()
 
                 if BaseMessage.field_separator in stripped_line:
-                    logging.warning(f"Skipped line: {line}")
+                    logging.warning("Skipped line: %s", line)
                     skipped_counter += 1
                     continue
 
@@ -271,17 +269,16 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                     loaded_counter += 1
 
                 except ValueError as error:
-                    logging.warning(f"Skipped line: {line} ({error})")
+                    logging.warning("Skipped line: %s (%s)", line, error)
                     skipped_counter += 1
 
-            logging.info(f"Processed file: {file_path} - Loaded: {loaded_counter} - Skipped: {skipped_counter}")
+            logging.info("Processed file: %s - Loaded: %i - Skipped: %i", file_path, loaded_counter, skipped_counter)
 
     def _allocate_ost_caches(self):
 
         for ost, cache in self.ost_cache_dict.items():
 
             if cache:
-
                 if ost not in self.ost_source_state_dict:
                     self._update_ost_source_state_dict(ost)
 
@@ -341,12 +338,18 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         if operator_func:
 
             if ost not in self.ost_fill_level_dict:
-                raise RuntimeError(f"OST not found in ost_fill_level_dict: {ost}")
+                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
 
-            fill_level = self.ost_fill_level_dict[ost]
+            if operator_func is operator.gt:
+                ost_fill_level_threshold = self.ost_fill_level_threshold_source
+            elif operator_func is operator.lt:
+                ost_fill_level_threshold = self.ost_fill_level_threshold_target
+            else:
+                raise RuntimeError("operator_func is not supported: %s" % operator_func)
 
-            # operator_func = operator.lt or operator.gt
-            if operator_func(fill_level, self.ost_fill_threshold):
+            ost_fill_level = self.ost_fill_level_dict[ost]
+
+            if operator_func(ost_fill_level, ost_fill_level_threshold):
 
                 if ost in ost_state_dict:
 
