@@ -32,6 +32,7 @@ from task.task_factory import TaskFactory
 from task.generator.base_task_generator import BaseTaskGenerator
 
 
+# TODO: Rename Class to LustreOSTMonitoringTaskGenerator
 class LustreMonitoringTaskGenerator(BaseTaskGenerator):
     """Class for Lustre Monitoring Task Generator"""
 
@@ -54,6 +55,10 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         self.local_mode = self._config.getboolean('control', 'local_mode')
         self.measure_interval = self._config.getfloat('control', 'measure_interval')
+
+    # TODO: Create implement validate_config()
+    def validate_config(self):
+        pass
 
     def run(self):
 
