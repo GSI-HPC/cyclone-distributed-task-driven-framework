@@ -22,3 +22,8 @@ class ConfigValueError(Exception):
 
     def __init__(self, message):
         super().__init__(f"{message}")
+
+class ConfigValueOutOfRangeError(Exception):
+
+    def __init__(self, name, min_="", max_=""):
+        super().__init__(f"Config value is out of range ({min_}-{max_}): {name}")

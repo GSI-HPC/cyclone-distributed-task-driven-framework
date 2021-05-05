@@ -47,21 +47,24 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         signal.siginterrupt(signal.SIGUSR1, True)
 
     def start(self):
+        """Start forked BaseTaskGenerator process after initialization by the Master process."""
 
+        self.validate_config()
+
+        logging.info("%s started!", self._name)
         self._run_flag = True
-
-        logging.info(f"{self._name} started!")
-
-        # Start forked BaseTaskGenerator process after initialization by the Master process.
         super().start()
 
     @abc.abstractmethod
     def run(self):
         raise NotImplementedError("Must be implemented in specific TaskGenerator class!")
 
+    @abc.abstractmethod
+    def validate_config(self):
+        raise NotImplementedError("Must be implemented in specific TaskGenerator class!")
+
     def _signal_handler_terminate(self, signum, frame):
         # pylint: disable=unused-argument
 
-        logging.info(f"{self._name} retrieved signal to terminate.")
+        logging.info("%s retrieved signal to terminate.", self._name)
         self._run_flag = False
-

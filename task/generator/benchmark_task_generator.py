@@ -23,6 +23,7 @@ import time
 import sys
 import os
 
+from conf.config_value_error import ConfigValueOutOfRangeError
 from ctrl.critical_section import CriticalSection
 from task.benchmark_task import BenchmarkTask
 from task.generator.base_task_generator import BaseTaskGenerator
@@ -36,7 +37,21 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
         super().__init__(task_queue, result_queue, config_file)
 
         self._num_tasks = self._config.getint('control', 'num_tasks')
-        self._poll_time_ms = self._config.getint('control', 'poll_time_ms') / 1000.0
+        self._poll_time_ms = self._config.getint('control', 'poll_time_ms')
+
+    def validate_config(self):
+
+        min_num_tasks = 1
+        max_num_tasks = 100000000
+
+        if not min_num_tasks <= self._num_tasks <= max_num_tasks:
+            raise ConfigValueOutOfRangeError("num_tasks", min_num_tasks, max_num_tasks)
+
+        min_poll_time_ms = 1
+        max_poll_time_ms = 10000
+
+        if not min_poll_time_ms <= self._poll_time_ms <= max_poll_time_ms:
+            raise ConfigValueOutOfRangeError("poll_time_ms", min_poll_time_ms, max_poll_time_ms)
 
     def run(self):
 
@@ -75,8 +90,8 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
                         logging.debug("Task completed with TID: %s", tid)
                     else:
 
-                        logging.debug("Polling (%ss)", self._poll_time_ms)
-                        time.sleep(self._poll_time_ms)
+                        logging.debug("Polling (%ims)", self._poll_time_ms)
+                        time.sleep(self._poll_time_ms / 1000.0)
                 else:
                     self._run_flag = False
 

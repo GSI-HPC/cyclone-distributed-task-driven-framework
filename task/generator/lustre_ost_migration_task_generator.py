@@ -29,6 +29,7 @@ from datetime import datetime
 from enum import Enum, unique
 
 from clush.RangeSet import RangeSet
+from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
 from lfs.lfs_utils import LFSUtils
 from msg.base_message import BaseMessage
 from task.ost_migrate_task import OstMigrateTask
@@ -63,15 +64,15 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.local_mode = self._config.getboolean('control', 'local_mode')
 
-        self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
-        self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
-        self.threshold_print_caches = self._config.getint('control.threshold', 'print_caches')
-
         if self.local_mode:
             self.num_osts = self._config.getint('control.local_mode', 'num_osts')
         else:
             self.lfs_utils = LFSUtils("/usr/bin/lfs")
             self.lfs_path = self._config.get('lustre', 'fs_path')
+
+        self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
+        self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
+        self.threshold_print_caches = self._config.getint('control.threshold', 'print_caches')
 
         ost_targets = self._config.get('migration', 'ost_targets')
         self.ost_target_list = list(RangeSet(ost_targets).striter())
@@ -87,6 +88,59 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         self.ost_target_state_dict = dict()
 
         self.ost_fill_level_dict = dict()
+
+    def validate_config(self):
+
+        if self.local_mode:
+
+            min_num_osts = 1
+            max_num_osts = 1000
+
+            if not min_num_osts <= self.num_osts <= max_num_osts:
+                raise ConfigValueOutOfRangeError("num_osts", min_num_osts, max_num_osts)
+
+        else:
+            if not os.path.isdir(self.lfs_path):
+                raise ConfigValueError("lfs_path does not point to a directory: %s" % self.lfs_path)
+
+        min_threshold_seconds = 1
+        max_threshold_seconds = 3600
+
+        if not min_threshold_seconds <= self.threshold_update_fill_level <= max_threshold_seconds:
+            raise ConfigValueOutOfRangeError("update_fill_level", min_threshold_seconds, max_threshold_seconds)
+
+        if not min_threshold_seconds <= self.threshold_reload_files <= max_threshold_seconds:
+            raise ConfigValueOutOfRangeError("reload_files", min_threshold_seconds, max_threshold_seconds)
+
+        if not min_threshold_seconds <= self.threshold_print_caches <= max_threshold_seconds:
+            raise ConfigValueOutOfRangeError("print_caches", min_threshold_seconds, max_threshold_seconds)
+
+        if not os.path.isdir(self.input_dir):
+            raise ConfigValueError("input_dir does not point to a directory: %s" % self.input_dir)
+
+        min_ost_fill_threshold_source = 0
+        min_ost_fill_threshold_target = 0
+        max_ost_fill_threshold = 90
+
+        if not min_ost_fill_threshold_source <= self.ost_fill_level_threshold_source <= max_ost_fill_threshold:
+            raise ConfigValueOutOfRangeError("ost_fill_level_threshold_source",
+                                             min_ost_fill_threshold_source,
+                                             max_ost_fill_threshold)
+
+        if not min_ost_fill_threshold_target <= self.ost_fill_level_threshold_target <= max_ost_fill_threshold:
+            raise ConfigValueOutOfRangeError("ost_fill_level_threshold_target",
+                                             min_ost_fill_threshold_target,
+                                             max_ost_fill_threshold)
+
+        min_ost_target_index = 0
+        max_ost_target_index = 1000
+
+        if not min_ost_target_index <= int(self.ost_target_list[0]) <= max_ost_target_index:
+            raise ConfigValueOutOfRangeError("min(ost_targets)", min_ost_target_index, max_ost_target_index)
+
+        if len(self.ost_target_list) > 1 and \
+            not min_ost_target_index <= int(self.ost_target_list[-1]) <= max_ost_target_index:
+            raise ConfigValueOutOfRangeError("max(ost_targets)", min_ost_target_index, max_ost_target_index)
 
     def run(self):
 
