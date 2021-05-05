@@ -19,7 +19,7 @@ These versions have been successfully tested with the `BenchmarkTask` to check t
 
 | Cyclone | Python | pyzmq  |
 | :-----: | :----: | :----: |
-| 2.0.1   | 3.8.5  | 20.0.0 |
+| 2.0.2   | 3.8.5  | 20.0.0 |
 | 2.0.0   | 3.6.0  | 19.0.0 |
 
 ## Architecture
