@@ -296,37 +296,49 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
     def _load_input_file(self, file_path):
 
-        with open(file_path, mode="r", encoding="UTF-8") as file:
+        loaded_counter = 0
+        skipped_counter = 0
 
-            loaded_counter = 0
-            skipped_counter = 0
+        try:
 
-            for line in file:
+            logging.debug("Loading input file: %s", file_path)
 
-                stripped_line = line.strip()
+            with open(file_path, mode="r", errors="replace") as file:
 
-                if BaseMessage.field_separator in stripped_line:
-                    logging.warning("Skipped line: %s", line)
-                    skipped_counter += 1
-                    continue
+                # Test with file encoding="ascii" and content "ẞ"
 
-                try:
+                # TODO: Catch error lines and do not skip whole file.
+                #       Probably use file descriptor directly instead...
+                #       Also then remove errors="replace" in open.
+                for line in file:
 
-                    ost, filename = stripped_line.split()
-                    migrate_item = LustreOstMigrateItem(ost, filename)
+                    try:
 
-                    if ost not in self.ost_cache_dict:
-                        self.ost_cache_dict[ost] = list()
+                        stripped_line = line.strip()
 
-                    self.ost_cache_dict[ost].append(migrate_item)
+                        if BaseMessage.field_separator in stripped_line:
+                            logging.warning("Skipped line: %s", line)
+                            skipped_counter += 1
+                            continue
 
-                    loaded_counter += 1
+                        ost, filename = stripped_line.split()
+                        migrate_item = LustreOstMigrateItem(ost, filename)
 
-                except ValueError as error:
-                    logging.warning("Skipped line: %s (%s)", line, error)
-                    skipped_counter += 1
+                        if ost not in self.ost_cache_dict:
+                            self.ost_cache_dict[ost] = list()
 
-            logging.info("Processed file: %s - Loaded: %i - Skipped: %i", file_path, loaded_counter, skipped_counter)
+                        self.ost_cache_dict[ost].append(migrate_item)
+
+                        loaded_counter += 1
+
+                    except ValueError as error:
+                        logging.warning("Skipped line: %s (%s)", line, error)
+                        skipped_counter += 1
+
+        except Exception as error:
+            logging.error("Error loading input file %s:\n%s", file_path, error)
+
+        logging.info("Input file: %s - Loaded: %i - Skipped: %i", file_path, loaded_counter, skipped_counter)
 
     def _allocate_ost_caches(self):
 
