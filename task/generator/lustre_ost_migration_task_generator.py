@@ -303,14 +303,20 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
             logging.debug("Loading input file: %s", file_path)
 
-            with open(file_path, mode="r", errors="replace") as file:
+            with open(file_path, mode="r", errors="replace") as file_:
 
                 # Test with file encoding="ascii" and content "ẞ"
 
                 # TODO: Catch error lines and do not skip whole file.
                 #       Probably use file descriptor directly instead...
                 #       Also then remove errors="replace" in open.
-                for line in file:
+
+                # while(cond)
+                #     try:
+                #         file_.readline()
+                #     except UnicodeDecodeError as error
+
+                for line in file_:
 
                     try:
 
@@ -336,7 +342,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         skipped_counter += 1
 
         except Exception as error:
-            logging.error("Error loading input file %s:\n%s", file_path, error)
+            logging.error("Aborted loading of input file %s:\n%s", file_path, error)
 
         logging.info("Input file: %s - Loaded: %i - Skipped: %i", file_path, loaded_counter, skipped_counter)
 
