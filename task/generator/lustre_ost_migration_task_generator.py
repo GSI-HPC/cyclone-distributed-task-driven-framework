@@ -156,11 +156,22 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
             next_time_reload_files = int(time.time()) + self.threshold_reload_files
             next_time_print_caches = int(time.time()) + self.threshold_print_caches
 
+            # CAUTION: If target list changes, this must be recognized as well.
+            # TODO: Improve that, so changes are recongized for sure.
+            target_ost_key_list = list(self.ost_target_state_dict)
+            len_target_ost_key_list = len(target_ost_key_list)
+            next_target_ost_key_index = 0
+
             while self._run_flag:
 
                 try:
 
+                    counter_checked_target_osts = 0
+
                     for source_ost in self.ost_source_state_dict:
+
+                        if counter_checked_target_osts == len_target_ost_key_list:
+                            break
 
                         if self.ost_source_state_dict[source_ost] == OSTState.READY:
 
@@ -168,7 +179,14 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                             if ost_cache:
 
-                                for target_ost, target_state in self.ost_target_state_dict.items():
+                                while(next_target_ost_key_index < len_target_ost_key_list):
+
+                                    target_ost = target_ost_key_list[next_target_ost_key_index]
+
+                                    next_target_ost_key_index +=1
+                                    counter_checked_target_osts += 1
+
+                                    target_state = self.ost_target_state_dict[target_ost]
 
                                     if target_state == OSTState.READY:
 
@@ -189,6 +207,9 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                                         self.ost_target_state_dict[target_ost] = OSTState.BLOCKED
 
                                         break
+
+                                if next_target_ost_key_index == len_target_ost_key_list:
+                                    next_target_ost_key_index = 0
 
                     while not self._result_queue.is_empty():
 
