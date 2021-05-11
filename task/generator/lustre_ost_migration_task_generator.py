@@ -174,11 +174,11 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                                         item = ost_cache.pop()
 
-                                        if self.local_mode:
-                                            task = EmptyTask()
+                                        # TODO: Use one initialized task instead.
+                                        if not self.local_mode:
+                                            task = OstMigrateTask(source_ost, target_ost, item.filename)
                                         else:
-                                            task = OstMigrateTask(
-                                                source_ost, target_ost, item.filename)
+                                            task = EmptyTask()
 
                                         task.tid = f"{source_ost}:{target_ost}"
 
