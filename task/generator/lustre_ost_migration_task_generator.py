@@ -174,7 +174,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                     if next_source_ost_key_index >= len(self._source_ost_key_list):
                         next_source_ost_key_index = 0
 
-                    while(next_source_ost_key_index < len(self._source_ost_key_list)):
+                    while next_source_ost_key_index < len(self._source_ost_key_list):
 
                         if counter_checked_target_osts == len_target_ost_key_list:
                             break
@@ -188,7 +188,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                             if ost_cache:
 
-                                while(next_target_ost_key_index < len_target_ost_key_list):
+                                while next_target_ost_key_index < len_target_ost_key_list:
 
                                     target_ost = target_ost_key_list[next_target_ost_key_index]
                                     next_target_ost_key_index +=1
