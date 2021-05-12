@@ -89,6 +89,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.ost_fill_level_dict = dict()
 
+        self._source_ost_key_list = list()
+
     def validate_config(self):
 
         if self.local_mode:
@@ -156,11 +158,12 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
             next_time_reload_files = int(time.time()) + self.threshold_reload_files
             next_time_print_caches = int(time.time()) + self.threshold_print_caches
 
-            # CAUTION: If target list changes, this must be recognized as well.
-            # TODO: Improve that, so changes are recongized for sure.
+            # CAUTION: If target ost list changes, this must be recognized.
             target_ost_key_list = list(self.ost_target_state_dict)
             len_target_ost_key_list = len(target_ost_key_list)
+
             next_target_ost_key_index = 0
+            next_source_ost_key_index = 0
 
             while self._run_flag:
 
@@ -168,10 +171,16 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                     counter_checked_target_osts = 0
 
-                    for source_ost in self.ost_source_state_dict:
+                    if next_source_ost_key_index >= len(self._source_ost_key_list):
+                        next_source_ost_key_index = 0
+
+                    while(next_source_ost_key_index < len(self._source_ost_key_list)):
 
                         if counter_checked_target_osts == len_target_ost_key_list:
                             break
+
+                        source_ost = self._source_ost_key_list[next_source_ost_key_index]
+                        next_source_ost_key_index += 1
 
                         if self.ost_source_state_dict[source_ost] == OSTState.READY:
 
@@ -182,7 +191,6 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                                 while(next_target_ost_key_index < len_target_ost_key_list):
 
                                     target_ost = target_ost_key_list[next_target_ost_key_index]
-
                                     next_target_ost_key_index +=1
                                     counter_checked_target_osts += 1
 
@@ -375,6 +383,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                 if ost not in self.ost_source_state_dict:
                     self._update_ost_source_state_dict(ost)
 
+        self._source_ost_key_list = list(self.ost_source_state_dict)
+
     def _deallocate_empty_ost_caches(self):
 
         empty_ost_cache_ids = None
@@ -397,6 +407,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                 del self.ost_cache_dict[ost]
                 del self.ost_source_state_dict[ost]
+
+        self._source_ost_key_list = list(self.ost_source_state_dict)
 
     def _init_ost_target_state_dict(self):
 
