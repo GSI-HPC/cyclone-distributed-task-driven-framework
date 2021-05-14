@@ -20,11 +20,12 @@
 
 import os
 import re
-import sys
+import yaml
 import logging
 import subprocess
 
 from datetime import datetime
+from enum import Enum
 
 
 class LFSOstItem:
@@ -50,6 +51,16 @@ class LFSOstItem:
         # Cut and convert to hex but keep the decimal index as str!
         self._ost_idx = str(int(ost[3:], 16))
 
+class StripeField(str, Enum):
+
+    LMM_STRIPE_COUNT = "lmm_stripe_count"
+    LMM_STRIPE_OFFSET = "lmm_stripe_offset"
+
+class StripeInfo:
+
+    def __init__(self, count, index):
+        self.count = count
+        self.index = index
 
 # TODO: Make Singleton...?
 class LFSUtils:
@@ -122,30 +133,40 @@ class LFSUtils:
         # TODO Use subprocess.run() with Python3.5
         subprocess.check_output(args, stderr=subprocess.STDOUT).decode('UTF-8')
 
-    def is_file_stripped(self, filename):
+    def stripe_info(self, filename) -> StripeInfo:
         """
         Raises
         ------
         subprocess.CalledProcessError
             If execution of 'lfs getstripe' returns an error.
+
+        RuntimeError
+            If a field is not found in retrieved stripe info for given file.
+
+        Returns
+        -------
+        A StripeInfo object.
         """
 
-        args = [self.lfs_bin, 'getstripe', '-c', filename]
+        args = [self.lfs_bin, 'getstripe', '-c', '-i', '-y', filename]
+        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
-        process_result = subprocess.run(args,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE,
-                                        check=True)
+        # TODO: Write a test that checks on dict type and content...
+        fields = yaml.safe_load(result.stdout)
 
-        stripe_count = int(process_result.stdout)
-
-        if stripe_count == 1:
-            return False
-        elif stripe_count > 1:
-            return True
+        lmm_stripe_count = 0
+        if StripeField.LMM_STRIPE_COUNT in fields:
+            lmm_stripe_count = fields[StripeField.LMM_STRIPE_COUNT]
         else:
-            func_name = sys._getframe().f_code.co_name
-            raise RuntimeError(f"[{func_name}] Undefined stripe count returned for '{filename}': {stripe_count}")
+            raise RuntimeError(f"Field {StripeField.LMM_STRIPE_COUNT} not found in stripe info: {result.stdout}")
+
+        lmm_stripe_offset = 0
+        if StripeField.LMM_STRIPE_OFFSET in fields:
+            lmm_stripe_offset = fields[StripeField.LMM_STRIPE_OFFSET]
+        else:
+            raise RuntimeError(f"Field {StripeField.LMM_STRIPE_OFFSET} not found in stripe info: {result.stdout}")
+
+        return StripeInfo(lmm_stripe_count, lmm_stripe_offset)
 
     def migrate_file(self, filename, idx=None, block=False, skip=True):
         """
@@ -160,12 +181,14 @@ class LFSUtils:
                 - if migration of file failed
         """
 
+        if not filename:
+            raise RuntimeError('Empty filename provided.')
+
         try:
 
-            if not filename:
-                raise RuntimeError('Empty filename!')
+            stripe_info = self.stripe_info(filename)
 
-            if skip and self.is_file_stripped(filename):
+            if skip and stripe_info.count > 1:
                 logging.info("SKIPPED|%s", filename)
             else:
 
