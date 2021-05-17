@@ -45,7 +45,7 @@ class LFSOstItem:
     @ost_idx.setter
     def ost_idx(self, ost):
 
-        if ost[0:3] != "OST":
+        if ost[0:3] != 'OST':
             raise RuntimeError(f"OST word not found in argument: {ost}")
 
         # Cut and convert to hex but keep the decimal index as str!
@@ -53,8 +53,8 @@ class LFSOstItem:
 
 class StripeField(str, Enum):
 
-    LMM_STRIPE_COUNT = "lmm_stripe_count"
-    LMM_STRIPE_OFFSET = "lmm_stripe_offset"
+    LMM_STRIPE_COUNT = 'lmm_stripe_count'
+    LMM_STRIPE_OFFSET = 'lmm_stripe_offset'
 
 class StripeInfo:
 
@@ -168,11 +168,13 @@ class LFSUtils:
 
         return StripeInfo(lmm_stripe_count, lmm_stripe_offset)
 
-    def migrate_file(self, filename, idx=None, block=False, skip=True):
+    def migrate_file(self, filename, source_idx=None, target_idx=None, block=False, skip=True) -> None:
         """
         Processor function to process a file.
 
         Prints the following messages on STDOUT:
+            * IGNORED|{filename}
+                - if file has stripe index not equal source index
             * SKIPPED|{filename}
                 - if skip option enabled and file stripe count > 1
             * SUCCESS|{filename}|{time_time_elapsed}
@@ -180,6 +182,17 @@ class LFSUtils:
             * FAILED|{filename}|{return_code}|{error_message}
                 - if migration of file failed
         """
+
+        if not isinstance(filename, str):
+            raise RuntimeError('filename must be a str value.')
+        if source_idx and not isinstance(source_idx, int):
+            raise RuntimeError('source_idx must be an int value.')
+        if target_idx and not isinstance(target_idx, int):
+            raise RuntimeError('target_idx must be an int value.')
+        if block and not isinstance(block, bool):
+            raise RuntimeError('block must be a bool value.')
+        if skip and not isinstance(skip, bool):
+            raise RuntimeError('skip must be a bool value.')
 
         if not filename:
             raise RuntimeError('Empty filename provided.')
@@ -190,6 +203,8 @@ class LFSUtils:
 
             if skip and stripe_info.count > 1:
                 logging.info("SKIPPED|%s", filename)
+            elif source_idx and stripe_info.index != source_idx:
+                logging.info("IGNORED|%s", filename)
             else:
 
                 args = [self.lfs_bin, 'migrate']
@@ -199,9 +214,9 @@ class LFSUtils:
                 else:
                     args.append('--non-block')
 
-                if idx:
+                if target_idx:
                     args.append('-o')
-                    args.append(idx)
+                    args.append(str(target_idx))
 
                 args.append(filename)
 

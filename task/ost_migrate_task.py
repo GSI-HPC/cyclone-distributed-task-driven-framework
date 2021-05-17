@@ -34,14 +34,21 @@ class OstMigrateTask(BaseTask):
 
         self.lfs_utils = LFSUtils("/usr/bin/lfs")
 
-        self.source_ost = source_ost
-        self.target_ost = target_ost
+        if not source_ost.isnumeric():
+            raise RuntimeError('source_ost must be numeric value.')
+        if not target_ost.isnumeric():
+            raise RuntimeError('target_ost must be numeric value.')
+        if not filename:
+            raise RuntimeError('filename must be set.')
+
+        self.source_ost = int(source_ost)
+        self.target_ost = int(target_ost)
         self.filename = filename
 
     def execute(self):
 
         try:
-            self.lfs_utils.migrate_file(self.filename, self.target_ost)
+            self.lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost)
 
         except Exception as err:
 
