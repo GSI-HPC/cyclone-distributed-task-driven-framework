@@ -168,7 +168,7 @@ class LFSUtils:
 
         return StripeInfo(lmm_stripe_count, lmm_stripe_offset)
 
-    def migrate_file(self, filename, source_idx=None, target_idx=None, block=False, skip=True) -> None:
+    def migrate_file(self, filename, source_idx=None, target_idx=-1, block=False, skip=True) -> None:
         """
         Processor function to process a file.
 
@@ -177,7 +177,7 @@ class LFSUtils:
                 - if file has stripe index not equal source index
             * SKIPPED|{filename}
                 - if skip option enabled and file stripe count > 1
-            * SUCCESS|{filename}|{time_time_elapsed}
+            * SUCCESS|{filename}|{ost_source_index}|{ost_target_index}|{time_time_elapsed}
                 - if migration of file was successful
             * FAILED|{filename}|{return_code}|{error_message}
                 - if migration of file failed
@@ -187,7 +187,7 @@ class LFSUtils:
             raise RuntimeError('filename must be a str value.')
         if source_idx and not isinstance(source_idx, int):
             raise RuntimeError('source_idx must be an int value.')
-        if target_idx and not isinstance(target_idx, int):
+        if not isinstance(target_idx, int):
             raise RuntimeError('target_idx must be an int value.')
         if block and not isinstance(block, bool):
             raise RuntimeError('block must be a bool value.')
@@ -214,8 +214,8 @@ class LFSUtils:
                 else:
                     args.append('--non-block')
 
-                if target_idx:
-                    args.append('-o')
+                if target_idx > -1:
+                    args.append('-i')
                     args.append(str(target_idx))
 
                 args.append(filename)
@@ -224,7 +224,7 @@ class LFSUtils:
                 subprocess.run(args, check=True, stderr=subprocess.PIPE)
                 elapsed_time = datetime.now() - start_time
 
-                logging.info("SUCCESS|%s|%s", filename, elapsed_time)
+                logging.info("SUCCESS|%s|%i|%i|%s", filename, stripe_info.index, target_idx, elapsed_time)
 
         except subprocess.CalledProcessError as err:
 
