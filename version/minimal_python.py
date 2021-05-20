@@ -25,8 +25,8 @@ import sys
 class MinimalPython(int, Enum):
 
     MAJOR = 3
-    MINOR = 8
-    MICRO = 5
+    MINOR = 6
+    MICRO = 8
 
     # See: https://docs.python.org/3/c-api/apiabiversion.html#apiabiversion
     FINAL_RELEASE_LEVEL = 240 # 0xF0
