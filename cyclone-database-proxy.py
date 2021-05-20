@@ -28,7 +28,7 @@ from ctrl.pid_control import PIDControl
 from comm.database_proxy_handler import DatabaseProxyCommHandler
 from conf.database_proxy_config_file_reader import DatabaseProxyConfigFileReader
 from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
-
+from version.minimal_python import MinimalPython
 
 RUN_FLAG = True
 
@@ -109,6 +109,8 @@ def signal_handler(signum, frame):
 
 def main():
 
+    MinimalPython.check()
+
     error = False
 
     try:
@@ -138,8 +140,6 @@ def main():
 
                     logging.info("Started")
                     logging.info(f"Database Proxy PID: {pid_control.pid()}")
-
-                    logging.debug("Version: %s", config_file_reader.version)
 
                     signal.signal(signal.SIGHUP, signal_handler)
                     signal.signal(signal.SIGINT, signal_handler)

@@ -39,7 +39,8 @@ from msg.message_type import MessageType
 from msg.acknowledge import Acknowledge
 from msg.task_assign import TaskAssign
 from msg.wait_command import WaitCommand
-from version import VERSION
+from version import cyclone
+from version.minimal_python import MinimalPython
 
 
 TASK_DISTRIBUTION = True
@@ -141,6 +142,8 @@ def create_task_generator(task_queue, result_queue, config_file_reader):
 
 def main():
 
+    MinimalPython.check()
+
     error_count = 0
     max_error_count = 100
 
@@ -151,7 +154,7 @@ def main():
         args = init_arg_parser()
 
         if args.print_version:
-            print(f"Version {VERSION}")
+            print(f"Version {cyclone.VERSION}")
             sys.exit()
 
         config_file_reader = MasterConfigFileReader(args.config_file)
@@ -169,7 +172,7 @@ def main():
 
                 logging.info("Started")
                 logging.info(f"Master PID: {pid_control.pid()}")
-                logging.info(f"Version: {VERSION}")
+                logging.info(f"Version: {cyclone.VERSION}")
 
                 signal.signal(signal.SIGHUP, signal_handler)
                 signal.signal(signal.SIGINT, signal_handler)

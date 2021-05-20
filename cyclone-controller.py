@@ -40,7 +40,8 @@ from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.heartbeat import Heartbeat
 from task.poisen_pill import PoisenPill
-from version import VERSION
+from version import cyclone
+from version.minimal_python import MinimalPython
 
 
 RUN_CONDITION = True
@@ -206,12 +207,14 @@ def signal_handler(signum, frame):
 
 def main():
 
+    MinimalPython.check()
+
     try:
 
         args = init_arg_parser()
 
         if args.print_version:
-            print(f"Version {VERSION}")
+            print(f"Version {cyclone.VERSION}")
             sys.exit()
 
         config_file_reader = ControllerConfigFileReader(args.config_file)
@@ -230,7 +233,7 @@ def main():
                 logging.info("Started")
                 logging.info(f"Controller PID: {pid_control.pid()}")
 
-                logging.debug("Version: %s", VERSION)
+                logging.debug("Version: %s", cyclone.VERSION)
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 signal.signal(signal.SIGHUP, signal_handler)
