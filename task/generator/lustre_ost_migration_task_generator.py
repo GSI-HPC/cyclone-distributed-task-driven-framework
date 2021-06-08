@@ -450,7 +450,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
     def _update_ost_state_dict(self, ost, ost_state_dict, operator_func=None):
 
-        if operator_func:
+        if operator_func is not None:
 
             if ost not in self.ost_fill_level_dict:
                 raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)

@@ -185,7 +185,7 @@ class LFSUtils:
 
         if not isinstance(filename, str):
             raise RuntimeError('filename must be a str value.')
-        if source_idx and not isinstance(source_idx, int):
+        if source_idx is not None and not isinstance(source_idx, int):
             raise RuntimeError('source_idx must be an int value.')
         if not isinstance(target_idx, int):
             raise RuntimeError('target_idx must be an int value.')
@@ -203,7 +203,7 @@ class LFSUtils:
 
             if skip and stripe_info.count > 1:
                 logging.info("SKIPPED|%s", filename)
-            elif source_idx and stripe_info.index != source_idx:
+            elif source_idx is not None and stripe_info.index != source_idx:
                 logging.info("IGNORED|%s", filename)
             else:
 
