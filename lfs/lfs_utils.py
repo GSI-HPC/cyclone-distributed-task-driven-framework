@@ -240,8 +240,8 @@ class LFSUtils:
         if not fs_path:
             raise RuntimeError("Lustre file system path is not set!")
 
+        # TODO: Use as class variable.
         regex = r"(\d{1,3})%.*\[OST:([0-9]{1,4})\]"
-
         pattern = re.compile(regex)
 
         args = ['sudo', self.lfs_bin, 'df', fs_path]

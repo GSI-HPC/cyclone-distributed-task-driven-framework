@@ -23,6 +23,7 @@ import logging
 import random
 import time
 import sys
+import re
 import os
 
 from datetime import datetime
@@ -68,7 +69,11 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
             self.num_osts = self._config.getint('control.local_mode', 'num_osts')
         else:
             self.lfs_utils = LFSUtils("/usr/bin/lfs")
-            self.lfs_path = self._config.get('lustre', 'fs_path')
+
+        self.lfs_path = self._config.get('lustre', 'fs_path')
+
+        regex = rf"^(\d+) ({self.lfs_path}.*)$"
+        self.pattern = re.compile(regex)
 
         self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
         self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
@@ -89,7 +94,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.ost_fill_level_dict = dict()
 
-        self._source_ost_key_list = list()
+        self.source_ost_key_list = list()
 
     def validate_config(self):
 
@@ -171,15 +176,15 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                     counter_checked_target_osts = 0
 
-                    if next_source_ost_key_index >= len(self._source_ost_key_list):
+                    if next_source_ost_key_index >= len(self.source_ost_key_list):
                         next_source_ost_key_index = 0
 
-                    while next_source_ost_key_index < len(self._source_ost_key_list):
+                    while next_source_ost_key_index < len(self.source_ost_key_list):
 
                         if counter_checked_target_osts == len_target_ost_key_list:
                             break
 
-                        source_ost = self._source_ost_key_list[next_source_ost_key_index]
+                        source_ost = self.source_ost_key_list[next_source_ost_key_index]
                         next_source_ost_key_index += 1
 
                         if self.ost_source_state_dict[source_ost] == OSTState.READY:
@@ -347,16 +352,21 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                 for line in file_:
 
+                    stripped_line = line.strip()
+
                     try:
 
-                        stripped_line = line.strip()
-
                         if BaseMessage.field_separator in stripped_line:
-                            logging.warning("Skipped line: %s", line)
-                            skipped_counter += 1
-                            continue
+                            raise RuntimeError('File separator found in line')
 
-                        ost, filename = stripped_line.split()
+                        match = self.pattern.search(stripped_line)
+
+                        if not match:
+                            raise RuntimeError('Regex did not match in line')
+
+                        ost = match.group(1)
+                        filename = match.group(2)
+
                         migrate_item = LustreOstMigrateItem(ost, filename)
 
                         if ost not in self.ost_cache_dict:
@@ -366,8 +376,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                         loaded_counter += 1
 
-                    except ValueError as error:
-                        logging.warning("Skipped line: %s (%s)", line, error)
+                    except RuntimeError as error:
+                        logging.warning("Skipped line (%s): %s", error, stripped_line)
                         skipped_counter += 1
 
         except Exception as error:
@@ -383,7 +393,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                 if ost not in self.ost_source_state_dict:
                     self._update_ost_source_state_dict(ost)
 
-        self._source_ost_key_list = list(self.ost_source_state_dict)
+        self.source_ost_key_list = list(self.ost_source_state_dict)
 
     def _deallocate_empty_ost_caches(self):
 
@@ -408,7 +418,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                 del self.ost_cache_dict[ost]
                 del self.ost_source_state_dict[ost]
 
-        self._source_ost_key_list = list(self.ost_source_state_dict)
+        self.source_ost_key_list = list(self.ost_source_state_dict)
 
     def _init_ost_target_state_dict(self):
 
