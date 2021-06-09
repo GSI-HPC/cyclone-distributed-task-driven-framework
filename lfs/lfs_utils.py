@@ -175,6 +175,7 @@ class LFSUtils:
         Prints the following messages on STDOUT:
             * IGNORED|{filename}
                 - if file has stripe index not equal source index
+                - if file has stripe index equal target index
             * SKIPPED|{filename}
                 - if skip option enabled and file stripe count > 1
             * SUCCESS|{filename}|{ost_source_index}|{ost_target_index}|{time_time_elapsed}
@@ -205,6 +206,8 @@ class LFSUtils:
                 logging.info("SKIPPED|%s", filename)
             elif source_idx is not None and stripe_info.index != source_idx:
                 logging.info("IGNORED|%s", filename)
+            elif target_idx is not None and stripe_info.index == target_idx:
+                logging.info("IGNORED|%s", filename)
             else:
 
                 args = [self.lfs_bin, 'migrate']
@@ -217,6 +220,10 @@ class LFSUtils:
                 if target_idx > -1:
                     args.append('-i')
                     args.append(str(target_idx))
+
+                if stripe_info.count > 0:
+                    args.append('-c')
+                    args.append(str(stripe_info.count))
 
                 args.append(filename)
 
