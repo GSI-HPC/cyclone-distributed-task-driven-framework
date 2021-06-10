@@ -21,6 +21,7 @@
 import operator
 import logging
 import random
+import copy
 import time
 import sys
 import re
@@ -33,9 +34,9 @@ from clush.RangeSet import RangeSet
 from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
 from lfs.lfs_utils import LFSUtils
 from msg.base_message import BaseMessage
-from task.ost_migrate_task import OstMigrateTask
-from task.empty_task import EmptyTask
 from task.generator.base_task_generator import BaseTaskGenerator
+from task.xml.task_xml_reader import TaskXmlReader
+from task.task_factory import TaskFactory
 
 
 class LustreOstMigrateItem:
@@ -78,6 +79,9 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
         self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
         self.threshold_print_caches = self._config.getint('control.threshold', 'print_caches')
+
+        self.task_file = self._config.get('task', 'task_file')
+        self.task_name = self._config.get('task', 'task_name')
 
         ost_targets = self._config.get('migration', 'ost_targets')
         self.ost_target_list = list(RangeSet(ost_targets).striter())
@@ -155,6 +159,13 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         try:
 
+            task_xml_info = TaskXmlReader.read_task_definition(self.task_file, self.task_name)
+
+            logging.debug("Loaded task information from XML: %s.%s",
+                           task_xml_info.class_module, task_xml_info.class_name)
+
+            task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
+
             self._update_ost_fill_level_dict()
             self._init_ost_target_state_dict()
             self._process_input_files()
@@ -205,13 +216,16 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                                         item = ost_cache.pop()
 
-                                        # TODO: Use one initialized task instead.
-                                        if not self.local_mode:
-                                            task = OstMigrateTask(source_ost, target_ost, item.filename)
-                                        else:
-                                            task = EmptyTask()
-
+                                        task = copy.copy(task_skeleton)
                                         task.tid = f"{source_ost}:{target_ost}"
+
+                                        # Could provice an interface for initialization of different migrate tasks
+                                        # e.g. task.initialize(...)
+                                        if not self.local_mode:
+
+                                            task.source_ost = source_ost
+                                            task.target_ost = target_ost
+                                            task.filename = item.filename
 
                                         logging.debug("Pushing task with TID to task queue: %s", task.tid)
                                         self._task_queue.push(task)

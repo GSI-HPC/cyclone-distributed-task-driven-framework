@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<tasks>
+
+	<task name="EmptyTask">
+		<class module="task.empty_task" name="EmptyTask"/>
+	</task>
+
+	<task name="OstMigrateTask">
+
+		<class module="task.ost_migrate_task" name="OstMigrateTask"/>
+
+		<property>
+			<block>False</block>
+			<skip>True</skip>
+		</property>
+
+	</task>
+
+</tasks>

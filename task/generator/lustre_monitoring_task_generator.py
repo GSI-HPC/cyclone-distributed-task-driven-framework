@@ -40,7 +40,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         super().__init__(task_queue, result_queue, config_file)
 
-        self.task_file = self._config.get('task', 'task_def_file')
+        self.task_file = self._config.get('task', 'task_file')
         self.task_name = self._config.get('task', 'task_name')
 
         self.lfs_bin = self._config.get('lustre', 'lfs_bin')
@@ -108,7 +108,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         task_xml_info = TaskXmlReader.read_task_definition(self.task_file, self.task_name)
 
-        logging.debug("Loaded Task Information from XML: %s.%s", task_xml_info.class_module, task_xml_info.class_name)
+        logging.debug("Loaded task information from XML: %s.%s", task_xml_info.class_module, task_xml_info.class_name)
 
         task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
 

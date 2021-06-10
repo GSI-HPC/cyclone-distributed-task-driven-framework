@@ -21,6 +21,7 @@
 import os
 import sys
 import logging
+import distutils.util
 
 from lfs.lfs_utils import LFSUtils
 from task.base_task import BaseTask
@@ -28,31 +29,72 @@ from task.base_task import BaseTask
 
 class OstMigrateTask(BaseTask):
 
-    def __init__(self, source_ost, target_ost, filename):
+    def __init__(self, block, skip):
 
         super().__init__()
 
-        self.lfs_utils = LFSUtils("/usr/bin/lfs")
+        if block is None:
+            raise RuntimeError('block parameter must be a set.')
 
-        if not source_ost.isnumeric():
-            raise RuntimeError('source_ost must be numeric value.')
-        if not target_ost.isnumeric():
-            raise RuntimeError('target_ost must be numeric value.')
-        if not filename:
-            raise RuntimeError('filename must be set.')
+        if skip is None:
+            raise RuntimeError('skip parameter must be a set.')
 
-        self.source_ost = int(source_ost)
-        self.target_ost = int(target_ost)
-        self.filename = filename
+        if not isinstance(block, str):
+            raise TypeError('block argument must be str type.')
+
+        if not isinstance(skip, str):
+            raise TypeError('skip argument must be str type.')
+
+        # TODO: TaskFactory should validate values and create concrete data types.
+        # bool values should be expected here instead.
+        self.block = bool(distutils.util.strtobool(block))
+        self.skip = bool(distutils.util.strtobool(skip))
+
+        self._lfs_utils = LFSUtils('/usr/bin/lfs')
+
+        self._source_ost = None
+        self._target_ost = None
+        self._filename = None
 
     def execute(self):
 
         try:
-            self.lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost)
+            self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip)
 
         except Exception as err:
 
             _, _, exc_tb = sys.exc_info()
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
-            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
+            logging.error("Exception in %s (line: %i): %s", filename, exc_tb.tb_lineno, err)
+
+    @property
+    def source_ost(self):
+        return self._source_ost
+
+    @property
+    def target_ost(self):
+        return self._target_ost
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @source_ost.setter
+    def source_ost(self, idx):
+        self._source_ost = int(idx)
+
+    @target_ost.setter
+    def target_ost(self, idx):
+        self._target_ost = int(idx)
+
+    @filename.setter
+    def filename(self, filename):
+
+        if not filename:
+            raise RuntimeError('filename not set.')
+
+        if not isinstance(filename, str):
+            raise RuntimeError('filename must be a string.')
+
+        self._filename = filename
