@@ -47,8 +47,8 @@ class OstMigrateTask(BaseTask):
 
         # TODO: TaskFactory should validate values and create concrete data types.
         # bool values should be expected here instead.
-        self.block = bool(distutils.util.strtobool(block))
-        self.skip = bool(distutils.util.strtobool(skip))
+        self._block = bool(distutils.util.strtobool(block))
+        self._skip = bool(distutils.util.strtobool(skip))
 
         self._lfs_utils = LFSUtils('/usr/bin/lfs')
 
@@ -59,7 +59,7 @@ class OstMigrateTask(BaseTask):
     def execute(self):
 
         try:
-            self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip)
+            self._lfs_utils.migrate_file(self._filename, self._source_ost, self._target_ost, self._block, self._skip)
 
         except Exception as err:
 
