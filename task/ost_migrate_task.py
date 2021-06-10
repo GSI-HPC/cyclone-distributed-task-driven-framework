@@ -29,35 +29,40 @@ from task.base_task import BaseTask
 
 class OstMigrateTask(BaseTask):
 
+    # TODO: TaskFactory should set parameter from XML file explicitly and set remaining constructor parameter to None.
+    #       So it is not mandatory to specify all constructor parameter in the XML file.
+    #       Alternatively an interface for XML object creation could be introduced?
     def __init__(self, filename, source_ost, target_ost, block, skip):
 
         super().__init__()
 
-        if block is None:
-            raise RuntimeError('block parameter must be a set.')
+        if filename:
+            self.filename = filename
+        else:
+            self._filename = ''
 
-        if skip is None:
-            raise RuntimeError('skip parameter must be a set.')
+        if source_ost:
+            self.source_ost = source_ost
+        else:
+            self.source_ost = ''
 
-        if not isinstance(block, str):
-            raise TypeError('block argument must be str type.')
+        if target_ost:
+            self.target_ost = target_ost
+        else:
+            self._target_ost = ''
 
-        if not isinstance(skip, str):
-            raise TypeError('skip argument must be str type.')
-
-        self._filename = filename
-        self._source_ost = source_ost
-        self._target_ost = target_ost
-
-        self._block = bool(distutils.util.strtobool(block))
-        self._skip = bool(distutils.util.strtobool(skip))
+        # Always set:
+        # 1. Object serialization.
+        # 2. Object creation from XML file.
+        self.block = block
+        self.skip = skip
 
         self._lfs_utils = LFSUtils('/usr/bin/lfs')
 
     def execute(self):
 
         try:
-            self._lfs_utils.migrate_file(self._filename, self._source_ost, self._target_ost, self._block, self._skip)
+            self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip)
 
         except Exception as err:
 
@@ -85,6 +90,28 @@ class OstMigrateTask(BaseTask):
     @property
     def filename(self):
         return self._filename
+
+    @block.setter
+    def block(self, block):
+
+        if block is None:
+            raise RuntimeError('block parameter must be a set.')
+
+        if not isinstance(block, str):
+            raise TypeError('block argument must be str type.')
+
+        self._block = bool(distutils.util.strtobool(block))
+
+    @skip.setter
+    def skip(self, skip):
+
+        if skip is None:
+            raise RuntimeError('skip parameter must be a set.')
+
+        if not isinstance(skip, str):
+            raise TypeError('skip argument must be str type.')
+
+        self._skip = bool(distutils.util.strtobool(skip))
 
     @source_ost.setter
     def source_ost(self, idx):

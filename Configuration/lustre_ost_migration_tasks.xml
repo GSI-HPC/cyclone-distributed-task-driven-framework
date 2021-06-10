@@ -13,7 +13,7 @@
 
 			<filename></filename>
 			<source_ost></source_ost>
-			</target_ost></target_ost>
+			<target_ost></target_ost>
 
 			<block>False</block>
 			<skip>True</skip>
