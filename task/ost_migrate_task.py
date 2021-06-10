@@ -29,9 +29,6 @@ from task.base_task import BaseTask
 
 class OstMigrateTask(BaseTask):
 
-    # TODO: TaskFactory should set parameter from XML file explicitly and set remaining constructor parameter to None.
-    #       So it is not mandatory to specify all constructor parameter in the XML file.
-    #       Alternatively an interface for XML object creation could be introduced?
     def __init__(self, filename, source_ost, target_ost, block, skip):
 
         super().__init__()
@@ -51,9 +48,6 @@ class OstMigrateTask(BaseTask):
         else:
             self._target_ost = ''
 
-        # Always set:
-        # 1. Object serialization.
-        # 2. Object creation from XML file.
         self.block = block
         self.skip = skip
 
