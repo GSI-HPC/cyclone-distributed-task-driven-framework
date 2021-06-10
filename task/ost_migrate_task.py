@@ -45,8 +45,6 @@ class OstMigrateTask(BaseTask):
         if not isinstance(skip, str):
             raise TypeError('skip argument must be str type.')
 
-        # TODO: TaskFactory should validate values and create concrete data types.
-        # bool values should be expected here instead.
         self._block = bool(distutils.util.strtobool(block))
         self._skip = bool(distutils.util.strtobool(skip))
 
@@ -67,6 +65,14 @@ class OstMigrateTask(BaseTask):
             filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
 
             logging.error("Exception in %s (line: %i): %s", filename, exc_tb.tb_lineno, err)
+
+    @property
+    def block(self):
+        return self._block
+
+    @property
+    def skip(self):
+        return self._skip
 
     @property
     def source_ost(self):
