@@ -18,4 +18,4 @@
 #
 
 
-VERSION = "2.0.4-dirty"
+VERSION = "2.0.4"
