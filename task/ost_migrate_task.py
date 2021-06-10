@@ -44,7 +44,7 @@ class OstMigrateTask(BaseTask):
         if source_ost:
             self.source_ost = source_ost
         else:
-            self.source_ost = ''
+            self._source_ost = ''
 
         if target_ost:
             self.target_ost = target_ost
