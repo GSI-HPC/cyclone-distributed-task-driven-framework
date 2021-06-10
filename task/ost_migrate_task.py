@@ -29,7 +29,7 @@ from task.base_task import BaseTask
 
 class OstMigrateTask(BaseTask):
 
-    def __init__(self, block, skip):
+    def __init__(self, filename, source_ost, target_ost, block, skip):
 
         super().__init__()
 
@@ -45,14 +45,14 @@ class OstMigrateTask(BaseTask):
         if not isinstance(skip, str):
             raise TypeError('skip argument must be str type.')
 
+        self._filename = filename
+        self._source_ost = source_ost
+        self._target_ost = target_ost
+
         self._block = bool(distutils.util.strtobool(block))
         self._skip = bool(distutils.util.strtobool(skip))
 
         self._lfs_utils = LFSUtils('/usr/bin/lfs')
-
-        self._source_ost = None
-        self._target_ost = None
-        self._filename = None
 
     def execute(self):
 
