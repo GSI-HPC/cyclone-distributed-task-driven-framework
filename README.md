@@ -49,6 +49,14 @@ These versions have been successfully tested with the `BenchmarkTask` to check t
 * [Lustre OST Migration](Documentation/lustre_ost_migration.md)
 * Lustre OST Monitoring
 
+### How to Create a Task
+
+1. Create a specific task class that inherites from `BaseTask` and implements the `execute` method.
+2. The constructor of the new task class must contain each property that should be serialized to the controller instances.
+3. A XML task file can be used to preinitalize the class properties.
+
+> Check the OstMigrateTask class for an example implementation.
+
 ### Short Introduction Slides
 
 Short introduction slides can be downloaded [here](https://www.eofs.eu/_media/events/lad17/05_gabriele_iannetti_task_driven_framework_for_lustre_monitoring.pdf) from the Lustre Administrators and Developers Workshop (LAD) 2017.

@@ -28,6 +28,13 @@ Migrate files on Lustre between OSTs.
 | reload\_files       | Number | 1-3600 | Time period in seconds when to reload input files                               |
 | print\_caches       | Number | 1-3600 | Time period in seconds when to print the caches with number of files to migrate |
 
+### Section: **task**
+
+| Name       | Type   | Value  | Description           |
+| ---------- | ------ | ------ | --------------------- |
+| task\_file | String | Path   | Path to task XML file |
+| task\_name | String | Path   | Name of task to load  |
+
 ### Section: **migration**
 
 | Name                         | Type     | Value | Description                                                                 |
