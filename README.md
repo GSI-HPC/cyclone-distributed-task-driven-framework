@@ -30,7 +30,7 @@ These versions have been successfully tested with the `BenchmarkTask` to check t
 ## Components
 
 * Master
-* Task Generator
+* Task Generator (attached to Master)
 * Controller
 * Worker
 
