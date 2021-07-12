@@ -57,13 +57,8 @@ class OstMigrateTask(BaseTask):
 
         try:
             self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip)
-
         except Exception as err:
-
-            _, _, exc_tb = sys.exc_info()
-            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-            logging.error("Exception in %s (line: %i): %s", filename, exc_tb.tb_lineno, err)
+            logging.error("[OstMigrateTask] Failed to migrate file: %s - Error: %s", self._filename, err)
 
     @property
     def block(self):
