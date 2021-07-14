@@ -73,8 +73,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.lfs_path = self._config.get('lustre', 'fs_path')
 
-        regex = rf"^(\d+) ({self.lfs_path}.*)$"
-        self.pattern = re.compile(regex)
+        self._regex = rf"^(\d+) ({self.lfs_path}.*)$"
+        self.pattern = re.compile(self._regex)
 
         self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
         self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
@@ -376,7 +376,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         match = self.pattern.search(stripped_line)
 
                         if not match:
-                            raise RuntimeError('Regex did not match in line')
+                            raise RuntimeError("Regex did not match in line '%s'" % self._regex)
 
                         ost = match.group(1)
                         filename = match.group(2)
