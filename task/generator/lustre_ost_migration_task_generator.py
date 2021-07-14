@@ -371,12 +371,12 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                     try:
 
                         if BaseMessage.field_separator in stripped_line:
-                            raise RuntimeError('File separator found in line')
+                            raise RuntimeError('File separator found')
 
                         match = self.pattern.search(stripped_line)
 
                         if not match:
-                            raise RuntimeError("Regex did not match in line '%s'" % self._regex)
+                            raise RuntimeError("Regex '%s' did not match" % self._regex)
 
                         ost = match.group(1)
                         filename = match.group(2)
@@ -391,7 +391,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         loaded_counter += 1
 
                     except RuntimeError as error:
-                        logging.warning("Skipped line (%s): %s", error, stripped_line)
+                        logging.warning("Skipped line - %s: %s", error, stripped_line)
                         skipped_counter += 1
 
         except Exception as error:
