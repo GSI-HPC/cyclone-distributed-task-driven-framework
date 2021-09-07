@@ -161,7 +161,7 @@ class TaskFactory:
         elif len_body_items == 15:
             task = dynamic_class(body_items[0], body_items[1], body_items[2], body_items[3], body_items[4],
                                  body_items[5], body_items[6], body_items[7], body_items[8], body_items[9],
-                                 body_items[10], body_items[11], body_items[12], body_items[14])
+                                 body_items[10], body_items[11], body_items[12], body_items[13], body_items[14])
         else:
             raise RuntimeError(f"No task instantiation supported for: '{dynamic_class.__name__}'!")
 
