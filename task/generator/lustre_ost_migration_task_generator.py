@@ -370,6 +370,9 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                     try:
 
+                        if not stripped_line:
+                            continue
+
                         if BaseMessage.field_separator in stripped_line:
                             raise RuntimeError('File separator found')
 
