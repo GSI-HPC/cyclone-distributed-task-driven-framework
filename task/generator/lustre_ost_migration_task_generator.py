@@ -345,31 +345,22 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
     def _load_input_file(self, file_path):
 
         loaded_counter = 0
-        skipped_counter = 0
+        error_counter = 0
 
         try:
 
             logging.debug("Loading input file: %s", file_path)
 
-            with open(file_path, mode="r", errors="replace") as file_:
+            with open(file_path, mode="rb") as reader:
 
-                # Test with file encoding="ascii" and content "ẞ"
-
-                # TODO: Catch error lines and do not skip whole file.
-                #       Probably use file descriptor directly instead...
-                #       Also then remove errors="replace" in open.
-
-                # while(cond)
-                #     try:
-                #         file_.readline()
-                #     except UnicodeDecodeError as error
-
-                for line in file_:
+                for raw_line in reader:
 
                     try:
 
-                        if not line:
+                        if not raw_line:
                             continue
+
+                        line = raw_line.decode(errors='strict')
 
                         if BaseMessage.field_separator in line:
                             raise RuntimeError('File separator found')
@@ -391,14 +382,20 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                         loaded_counter += 1
 
+                    except UnicodeDecodeError:
+                        line = raw_line.decode(errors='replace')
+                        logging.error("Decoding failed for line: %s", line)
+                        error_counter += 1
+                        continue
+
                     except RuntimeError as error:
-                        logging.warning("Skipped line - %s: %s", error, line)
-                        skipped_counter += 1
+                        logging.error("Failed line - %s: %s", error, line)
+                        error_counter += 1
 
         except Exception as error:
             logging.error("Aborted loading of input file %s:\n%s", file_path, error)
 
-        logging.info("Input file: %s - Loaded: %i - Skipped: %i", file_path, loaded_counter, skipped_counter)
+        logging.info("Input file: %s - Loaded: %i - Failed: %i", file_path, loaded_counter, error_counter)
 
     def _allocate_ost_caches(self):
 
