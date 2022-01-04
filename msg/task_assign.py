@@ -53,13 +53,16 @@ class TaskAssign(BaseMessage):
             if count_message_items < 4:
                 raise RuntimeError(f"Invalid header size found in message: '{value}'")
 
-            header = message_items[0] \
-                + BaseMessage.field_separator \
-                + message_items[1] \
-                + BaseMessage.field_separator \
-                + message_items[2] \
-                + BaseMessage.field_separator \
-                + message_items[3]
+            task_type   = message_items[0]
+            task_module = message_items[1]
+            task_class  = message_items[2]
+            task_id     = message_items[3]
+
+            header = \
+                task_type   + BaseMessage.field_separator + \
+                task_module + BaseMessage.field_separator + \
+                task_class  + BaseMessage.field_separator + \
+                task_id
 
             len_header = len(header)
 
@@ -103,12 +106,10 @@ class TaskAssign(BaseMessage):
         if not task.tid:
             raise RuntimeError(f"Attribute tid not set for task: {task_class}")
 
-        header = MessageType.TASK_ASSIGN() \
-            + BaseMessage.field_separator \
-            + task_class.__module__ \
-            + BaseMessage.field_separator \
-            + task_class.__name__ \
-            + BaseMessage.field_separator \
+        header = \
+            MessageType.TASK_ASSIGN() + BaseMessage.field_separator \
+            + task_class.__module__   + BaseMessage.field_separator \
+            + task_class.__name__     + BaseMessage.field_separator \
             + task.tid
 
         return header
