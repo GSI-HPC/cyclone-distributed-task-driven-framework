@@ -17,15 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import logging
 import multiprocessing
 
 from task.base_task import BaseTask
 
-
-# TODO: Rename to PoisonPill
-class PoisenPill(BaseTask):
+class PoisonPill(BaseTask):
 
     def __init__(self):
 
@@ -34,8 +31,8 @@ class PoisenPill(BaseTask):
         # Since the monitoring is Lustre specific and a task is bound to an OST,
         # an tid has to be set even for a pseudo task like this one.
         # In more detail: The tid is pushed after executing a task into the result queue.
-        # TODO: Check if the Poisen Pill might just be quit the worker anyway without accessing the result queue.
-        self.tid = f"POISEN_PILL_{multiprocessing.current_process().name}"
+        # TODO: Check if the Poison Pill might just be quit the worker anyway without accessing the result queue.
+        self.tid = f"POISON_PILL_{multiprocessing.current_process().name}"
 
     def execute(self):
-        logging.debug("Worker retrieved poisen pill: '%s'", multiprocessing.current_process().name)
+        logging.debug("Worker retrieved poison pill: '%s'", multiprocessing.current_process().name)

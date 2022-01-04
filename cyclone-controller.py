@@ -39,7 +39,7 @@ from msg.message_type import MessageType
 from msg.task_finished import TaskFinished
 from msg.task_request import TaskRequest
 from msg.heartbeat import Heartbeat
-from task.poisen_pill import PoisenPill
+from task.poison_pill import PoisonPill
 from version import cyclone
 from version.minimal_python import MinimalPython
 
@@ -449,7 +449,7 @@ def main():
 
                     try:
 
-                        logging.info("Shutting down all worker...")
+                        logging.info("Shutting down worker...")
 
                         all_worker_down = False
 
@@ -463,7 +463,7 @@ def main():
 
                                     os.kill(worker_handle_dict[worker_id].pid, signal.SIGUSR1)
 
-                                    task_queue.push(PoisenPill())
+                                    task_queue.push(PoisonPill())
 
                                     logging.debug("Waiting for worker to complete: %s",
                                                   worker_handle_dict[worker_id].name)
@@ -479,7 +479,7 @@ def main():
                                 time.sleep(1)
 
                     except Exception as err:
-                        logging.error(f"Caught exception terminating Worker: {err}")
+                        logging.error(f"Caught exception terminating worker: {err}")
 
             else:
 
