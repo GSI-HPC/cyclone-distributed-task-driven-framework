@@ -28,11 +28,7 @@ class PoisonPill(BaseTask):
 
         super().__init__()
 
-        # Since the monitoring is Lustre specific and a task is bound to an OST,
-        # an tid has to be set even for a pseudo task like this one.
-        # In more detail: The tid is pushed after executing a task into the result queue.
-        # TODO: Check if the Poison Pill might just be quit the worker anyway without accessing the result queue.
-        self.tid = f"POISON_PILL_{multiprocessing.current_process().name}"
+        self.tid = "POISON_PILL"
 
     def execute(self):
-        logging.debug("Worker retrieved poison pill: '%s'", multiprocessing.current_process().name)
+        logging.debug("Worker retrieved poison pill: %s", multiprocessing.current_process().name)
