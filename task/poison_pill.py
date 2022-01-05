@@ -23,6 +23,7 @@ import multiprocessing
 from task.base_task import BaseTask
 
 class PoisonPill(BaseTask):
+    """PoisonPill is used to push a pseudo task into the task queue for the workers to be freed from blocking access."""
 
     def __init__(self):
 
