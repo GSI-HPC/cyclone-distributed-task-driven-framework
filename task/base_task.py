@@ -24,13 +24,14 @@ import abc
 class BaseTask(metaclass=abc.ABCMeta):
     """Base task class to be implemented so a task can be executed by a worker."""
 
-    def __init__(self):
+    def __init__(self, tid=None):
 
         super().__init__()
 
-        # TODO: Should have no property and setter method,
-        #       since the attribute is private.
-        self._tid = None
+        if tid:
+            self.tid = tid
+        else:
+            self._tid = None
 
     @abc.abstractmethod
     def execute(self):

@@ -126,8 +126,7 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
         for i in range(self._num_tasks):
 
             # TODO: Add optional/mandatory parameter for TID on the BaseTask class?
-            task = BenchmarkTask()
-            task.tid = str(i)
+            task = BenchmarkTask(str(i))
             task_list.append(task)
 
         if logging.root.isEnabledFor(logging.DEBUG):

@@ -26,10 +26,7 @@ class PoisonPill(BaseTask):
     """PoisonPill is used to push a pseudo task into the task queue for the workers to be freed from blocking access."""
 
     def __init__(self):
-
-        super().__init__()
-
-        self.tid = "POISON_PILL"
+        super().__init__("POISON_PILL")
 
     def execute(self):
         logging.debug("Worker retrieved poison pill: %s", multiprocessing.current_process().name)

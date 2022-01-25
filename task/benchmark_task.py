@@ -23,8 +23,10 @@ import time
 
 from task.base_task import BaseTask
 
-
 class BenchmarkTask(BaseTask):
+
+    def __init__(self, tid):
+        super().__init__(tid)
 
     def execute(self):
 
