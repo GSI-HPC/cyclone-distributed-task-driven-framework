@@ -119,7 +119,7 @@ class TaskAssign(BaseMessage):
 
         body = None
 
-        args_list = inspect.getargspec(task_class.__init__).args
+        args_list = inspect.getfullargspec(task_class.__init__).args
         len_args_list = len(args_list)
 
         # Skip first parameter 'self' of the __init__ method which is a convention in Python for that method.
