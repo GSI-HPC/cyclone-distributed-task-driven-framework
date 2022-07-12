@@ -28,7 +28,7 @@ import datetime
 from task.base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
-from lfs.lfs_utils import LFSUtils
+from lfs.lfs_utils import LfsUtils
 
 
 class IOTask(BaseTask):
@@ -67,7 +67,7 @@ class IOTask(BaseTask):
         self.payload_block = str()
         self.payload_rest_block = str()
 
-        self.lfs_utils = LFSUtils(lfs_bin)
+        self.lfs_utils = LfsUtils(lfs_bin)
 
         if self.db_proxy_target != '' and self.db_proxy_port != '':
             self.db_proxy_endpoint = f"tcp://{self.db_proxy_target}:{self.db_proxy_port}"
@@ -77,17 +77,35 @@ class IOTask(BaseTask):
         if not (self.write_file_sync == 'on' or self.write_file_sync == 'off'):
             raise RuntimeError("Value for parameter write_file_sync must be either 'on' or 'off'!")
 
+    @property
+    def ost_idx(self):
+        return self._ost_idx
+
+    @ost_idx.setter
+    def ost_idx(self, ost_idx):
+
+        type_ost_idx = type(ost_idx)
+
+        if type_ost_idx is int:
+            self._ost_idx = ost_idx
+        elif type_ost_idx is str and ost_idx:
+            self._ost_idx = int(ost_idx)
+        else:
+            self._ost_idx = None
+
     def execute(self):
 
         try:
 
             if self.lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                logging.debug("Found active OST-IDX: %s", self.ost_idx)
+                str_ost_idx = str(self.ost_idx)
+
+                logging.debug("Found active OST-IDX: %s", str_ost_idx)
 
                 self._initialize_payload()
 
-                file_path = self.target_dir + os.path.sep + self.ost_idx + "_perf_test.tmp"
+                file_path = self.target_dir + os.path.sep + str_ost_idx + "_perf_test.tmp"
 
                 with AutoRemoveFile(file_path):
 
@@ -105,7 +123,7 @@ class IOTask(BaseTask):
                     ost_perf_result = \
                         OSTPerfResult(read_timestamp,
                                       write_timestamp,
-                                      self.ost_idx,
+                                      str_ost_idx,
                                       self.total_size_bytes,
                                       read_throughput,
                                       write_throughput,
@@ -113,12 +131,12 @@ class IOTask(BaseTask):
                                       write_duration)
             else:
 
-                logging.debug("Found non-active OST: %s", self.ost_idx)
+                logging.debug("Found non-active OST: %s", str_ost_idx)
 
                 timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
                 ost_perf_result = \
-                    OSTPerfResult(timestamp, timestamp, self.ost_idx, self.total_size_bytes, 0, 0, 0, 0)
+                    OSTPerfResult(timestamp, timestamp, str_ost_idx, self.total_size_bytes, 0, 0, 0, 0)
 
             if ost_perf_result:
 

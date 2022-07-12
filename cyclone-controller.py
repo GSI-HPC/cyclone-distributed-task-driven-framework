@@ -440,16 +440,13 @@ def main():
                     except Exception as err:
 
                         RUN_CONDITION = False
-                        exc_type, _, exc_tb = sys.exc_info()
-                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logging.error(f"Caught exception (type: {exc_type}) in main loop: {err} "
-                                      f"- {filename} (line: {exc_tb.tb_lineno})")
+                        logging.exception('Caught exception in main loop')
 
                 if not RUN_CONDITION:
 
                     try:
 
-                        logging.info("Shutting down worker...")
+                        logging.info('Shutting down worker...')
 
                         all_worker_down = False
 
@@ -478,19 +475,16 @@ def main():
                                 logging.debug('Waiting for worker to shutdown...')
                                 time.sleep(1)
 
-                    except Exception as err:
-                        logging.error(f"Caught exception terminating worker: {err}")
+                    except Exception:
+                        logging.exception('Caught exception terminating worker')
 
             else:
 
                 logging.error(f"Another instance might be already running (PID file: {config_file_reader.pid_file})!")
                 sys.exit(1)
 
-    except Exception as err:
-
-        exc_type, _, exc_tb = sys.exc_info()
-        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
+    except Exception:
+        logging.error('Caught exception')
         sys.exit(1)
 
     logging.info('Finished')

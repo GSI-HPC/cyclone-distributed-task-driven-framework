@@ -362,9 +362,7 @@ def main():
                     except Exception as err:
 
                         error_count += 1
-                        _, _, exc_tb = sys.exc_info()
-                        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        logging.error(f"Caught exception in main loop: {err} - {filename} (line: {exc_tb.tb_lineno})")
+                        logging.exception(f"Caught exception in main loop")
 
                         stop_task_distribution()
 
@@ -379,9 +377,7 @@ def main():
     except Exception as err:
 
         error_count += 1
-        _, _, exc_tb = sys.exc_info()
-        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f"Caught exception in main block: {err} - {filename} (line: {exc_tb.tb_lineno})")
+        logging.exception(f"Caught exception in main block")
 
     try:
 

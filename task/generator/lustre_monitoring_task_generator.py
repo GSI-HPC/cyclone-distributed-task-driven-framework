@@ -21,12 +21,11 @@
 import logging
 import copy
 import time
-import sys
 import os
 
 from clush.RangeSet import RangeSet
 from ctrl.critical_section import CriticalSection
-from lfs.lfs_utils import LFSUtils
+from lfs.lfs_utils import LfsUtils
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 from task.generator.base_task_generator import BaseTaskGenerator
@@ -49,7 +48,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
         ost_select_list = self._config.get('lustre', 'ost_select_list')
 
         if ost_select_list:
-            self.ost_select_list = list(RangeSet(ost_select_list).striter())
+            self.ost_select_list = [int(i) for i in list(RangeSet(ost_select_list).striter())]
         else:
             self.ost_select_list = list()
 
@@ -93,15 +92,11 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
                 logging.error("Caught InterruptedError exception.")
 
             except Exception as err:
-
-                _, _, exc_tb = sys.exc_info()
-                filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-                logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
-                logging.info("LustreMonitoringTaskGenerator exited!")
+                logging.exception("Caught exception in %s", self._name)
+                logging.info("%s exited!", self._name)
                 os._exit(1)
 
-        logging.info("LustreMonitoringTaskGenerator finished!")
+        logging.info("%s finished!", self._name)
         os._exit(0)
 
     def _create_task_list(self, ost_idx_list):
@@ -142,7 +137,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         ost_idx_list = list()
 
-        lfs_utils = LFSUtils(self.lfs_bin)
+        lfs_utils = LfsUtils(self.lfs_bin)
         ost_item_list = lfs_utils.create_ost_item_list(self.target)
 
         for ost_item in ost_item_list:
@@ -188,7 +183,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
         max_ost_idx = 100
 
         for ost_idx in range(max_ost_idx):
-            ost_idx_list.append(str(ost_idx))
+            ost_idx_list.append(ost_idx)
 
         if self.ost_select_list:
 

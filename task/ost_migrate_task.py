@@ -18,13 +18,12 @@
 #
 
 
-import os
-import sys
-import logging
-import distutils.util
-
-from lfs.lfs_utils import LFSUtils
+from lfs.lfs_utils import LfsUtils
 from task.base_task import BaseTask
+
+import distutils.util
+import logging
+
 
 
 class OstMigrateTask(BaseTask):
@@ -33,6 +32,10 @@ class OstMigrateTask(BaseTask):
 
         super().__init__()
 
+        # TODO: Rethink about object creation by the task factory with empty XML fields...
+        # Initialization here for empty files is a bit unhandy.
+
+        # Set later during runtime before task dispatch
         if filename:
             self.filename = filename
         else:
@@ -48,17 +51,18 @@ class OstMigrateTask(BaseTask):
         else:
             self._target_ost = ''
 
+        # Set on initialization based on the XML file
         self.block = block
         self.skip = skip
 
-        self._lfs_utils = LFSUtils('/usr/bin/lfs')
+        self._lfs_utils = LfsUtils()
 
     def execute(self):
 
         try:
-            self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip)
-        except Exception as err:
-            logging.error("[OstMigrateTask] Failed to migrate file: %s - Error: %s", self._filename, err)
+            logging.info(self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip))
+        except Exception:
+            logging.exception("[OstMigrateTask] Failed to migrate file: %s", self.filename)
 
     @property
     def block(self):

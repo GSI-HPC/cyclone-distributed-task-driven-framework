@@ -24,14 +24,13 @@ import abc
 class BaseTask(metaclass=abc.ABCMeta):
     """Base task class to be implemented so a task can be executed by a worker."""
 
-    def __init__(self, tid=None):
+    # TODO: Think about refactoring, if tid should be passed by init method and loaded by the XML-based task generation.
+    def __init__(self):
+        """CAUTION: Initialization of a task with parameters must be in sync with the XML task definition."""
 
         super().__init__()
 
-        if tid:
-            self.tid = tid
-        else:
-            self._tid = None
+        self._tid = None
 
     @abc.abstractmethod
     def execute(self):
@@ -43,11 +42,13 @@ class BaseTask(metaclass=abc.ABCMeta):
 
     @tid.setter
     def tid(self, tid):
+        """CAUTION: task id (tid) must be set for each task object before execution."""
 
-        if type(tid) is not str:
-            raise ValueError('Argument tid must be str type!')
-
-        if not tid:
+        if tid is None:
             raise ValueError('Argument tid must be set!')
 
-        self._tid = tid
+        if type(tid) is str:
+            self._tid = tid
+        else:
+            self._tid = str(tid)
+

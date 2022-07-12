@@ -18,6 +18,9 @@
 #
 """Module for task generator"""
 
+
+from datetime import datetime
+from enum import Enum, unique
 import operator
 import logging
 import random
@@ -27,12 +30,10 @@ import sys
 import re
 import os
 
-from datetime import datetime
-from enum import Enum, unique
-
 from clush.RangeSet import RangeSet
+
 from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
-from lfs.lfs_utils import LFSUtils
+from lfs.lfs_utils import LfsUtils
 from msg.base_message import BaseMessage
 from task.generator.base_task_generator import BaseTaskGenerator
 from task.xml.task_xml_reader import TaskXmlReader
@@ -69,7 +70,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         if self.local_mode:
             self.num_osts = self._config.getint('control.local_mode', 'num_osts')
         else:
-            self.lfs_utils = LFSUtils("/usr/bin/lfs")
+            self.lfs_utils = LfsUtils()
 
         self.lfs_path = self._config.get('lustre', 'fs_path')
 
@@ -91,19 +92,17 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         self.ost_fill_level_threshold_source = self._config.getint('migration', 'ost_fill_level_threshold_source')
         self.ost_fill_level_threshold_target = self._config.getint('migration', 'ost_fill_level_threshold_target')
 
-        self.ost_cache_dict = dict()
-
-        self.ost_source_state_dict = dict()
-        self.ost_target_state_dict = dict()
-
-        self.ost_fill_level_dict = dict()
-
-        self.source_ost_key_list = list()
+        self.ost_cache_dict = {}
+        self.ost_source_state_dict = {}
+        self.ost_target_state_dict = {}
+        self.ost_fill_level_dict = {}
+        self.source_ost_key_list = []
 
     def validate_config(self):
 
         if self.local_mode:
 
+            # TODO: Move up as private constant into the class
             min_num_osts = 1
             max_num_osts = 1000
 
@@ -112,8 +111,9 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         else:
             if not os.path.isdir(self.lfs_path):
-                raise ConfigValueError("lfs_path does not point to a directory: %s" % self.lfs_path)
+                raise ConfigValueError(f"lfs_path does not point to a directory: {self.lfs_path}")
 
+        # TODO: Move up as private constant into the class
         min_threshold_seconds = 1
         max_threshold_seconds = 3600
 
@@ -127,8 +127,9 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
             raise ConfigValueOutOfRangeError("print_caches", min_threshold_seconds, max_threshold_seconds)
 
         if not os.path.isdir(self.input_dir):
-            raise ConfigValueError("input_dir does not point to a directory: %s" % self.input_dir)
+            raise ConfigValueError(f"input_dir does not point to a directory: {self.input_dir}")
 
+        # TODO: Move up as private constant into the class
         min_ost_fill_threshold_source = 0
         min_ost_fill_threshold_target = 0
         max_ost_fill_threshold = 90
@@ -143,15 +144,12 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                                              min_ost_fill_threshold_target,
                                              max_ost_fill_threshold)
 
-        min_ost_target_index = 0
-        max_ost_target_index = 1000
-
-        if not min_ost_target_index <= int(self.ost_target_list[0]) <= max_ost_target_index:
-            raise ConfigValueOutOfRangeError("min(ost_targets)", min_ost_target_index, max_ost_target_index)
+        if not LfsUtils.MIN_OST_INDEX <= int(self.ost_target_list[0]) <= LfsUtils.MAX_OST_INDEX:
+            raise ConfigValueOutOfRangeError("min(ost_targets)", LfsUtils.MIN_OST_INDEX, LfsUtils.MAX_OST_INDEX)
 
         if len(self.ost_target_list) > 1 and \
-            not min_ost_target_index <= int(self.ost_target_list[-1]) <= max_ost_target_index:
-            raise ConfigValueOutOfRangeError("max(ost_targets)", min_ost_target_index, max_ost_target_index)
+            not LfsUtils.MIN_OST_INDEX <= int(self.ost_target_list[-1]) <= LfsUtils.MAX_OST_INDEX:
+            raise ConfigValueOutOfRangeError("max(ost_targets)", LfsUtils.MIN_OST_INDEX, LfsUtils.MAX_OST_INDEX)
 
     def run(self):
 
@@ -305,14 +303,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                     logging.error("Caught InterruptedError exception.")
 
         except Exception:
-
-            exc_info = sys.exc_info()
-            exc_value = exc_info[1]
-            exc_tb = exc_info[2]
-
-            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-            logging.error("Exception in %s (line: %i): %s", filename, exc_tb.tb_lineno, exc_value)
+            logging.exception("Caught exception in %s", self._name)
             logging.info("%s exited!", self._name)
             sys.exit(1)
 
@@ -368,7 +359,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         match = self.pattern.search(line)
 
                         if not match:
-                            raise RuntimeError("Regex '%s' did not match" % self._regex)
+                            raise RuntimeError(f"Regex '{self._regex}' did not match")
 
                         ost = match.group(1)
                         filename = match.group(2)
@@ -376,7 +367,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         migrate_item = LustreOstMigrateItem(ost, filename)
 
                         if ost not in self.ost_cache_dict:
-                            self.ost_cache_dict[ost] = list()
+                            self.ost_cache_dict[ost] = []
 
                         self.ost_cache_dict[ost].append(migrate_item)
 
@@ -419,7 +410,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         or self.ost_source_state_dict[ost] == OSTState.LOCKED:
 
                     if not empty_ost_cache_ids:
-                        empty_ost_cache_ids = list()
+                        empty_ost_cache_ids = []
 
                     empty_ost_cache_ids.append(ost)
 
@@ -465,14 +456,14 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         if operator_func is not None:
 
             if ost not in self.ost_fill_level_dict:
-                raise RuntimeError("OST not found in ost_fill_level_dict: %s" % ost)
+                raise RuntimeError(f"OST not found in ost_fill_level_dict: {ost}")
 
             if operator_func is operator.gt:
                 ost_fill_level_threshold = self.ost_fill_level_threshold_source
             elif operator_func is operator.lt:
                 ost_fill_level_threshold = self.ost_fill_level_threshold_target
             else:
-                raise RuntimeError("operator_func is not supported: %s" % operator_func)
+                raise RuntimeError(f"operator_func is not supported: {operator_func}")
 
             ost_fill_level = self.ost_fill_level_dict[ost]
 
