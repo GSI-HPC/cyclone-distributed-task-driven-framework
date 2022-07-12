@@ -93,7 +93,7 @@ def init_logging(log_filename, enable_debug):
 
 def create_worker_ids(worker_count):
 
-    worker_ids = list()
+    worker_ids = []
 
     for i in range(0, worker_count):
         worker_ids.append(f"WORKER_{i}")
@@ -103,7 +103,7 @@ def create_worker_ids(worker_count):
 
 def create_worker_state_table(worker_ids):
 
-    worker_state_table = dict()
+    worker_state_table = {}
     len_worker_ids = len(worker_ids)
 
     for i in range(0, len_worker_ids):
@@ -124,7 +124,7 @@ def create_worker(worker_state_table,
                   result_queue,
                   cond_result_queue):
 
-    worker_handle_dict = dict()
+    worker_handle_dict = {}
 
     for worker_id in worker_state_table.keys():
 
@@ -437,7 +437,7 @@ def main():
                                     comm_handler.reconnect()
                                     request_retry_count += 1
 
-                    except Exception as err:
+                    except Exception:
 
                         RUN_CONDITION = False
                         logging.exception('Caught exception in main loop')

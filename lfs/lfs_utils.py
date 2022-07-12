@@ -85,8 +85,8 @@ class MigrateResult:
     Format per result:
     * DISPLACED|filename|time_elapsed|source_index|target_index
       - if file was migrated successfully, but ost target index is different
-    * FAILED|filename|time_elapsed|error_code|error_message|source_index|target_index
-      - if migration process for file failed
+    * FAILED|filename|time_elapsed|source_index|target_index|error_message
+      - if migration process failed for file
     * IGNORED|filename
       - if file has stripe index not equal source index
       - if file has stripe index equal target index
@@ -106,12 +106,16 @@ class MigrateResult:
 
         return arg
 
-    def __init__(self, state, filename, time_elapsed=None, source_idx=None, target_idx=None, error_code=None, error_msg=''):
+    def __init__(self, state, filename, time_elapsed, source_idx=None, target_idx=None, error_msg=None):
+
+        # TODO: Check on data types and value if required?
+        if filename is None or not filename:
+            raise LfsUtilsError('Argument filename must be set.')
+
+        if time_elapsed is None:
+            raise LfsUtilsError('Argument time_elapsed must be set.')
 
         if MigrateState.DISPLACED == state:
-
-            if not time_elapsed:
-                raise LfsUtilsError(f"State {MigrateState.DISPLACED} requires time_elapsed to be set.")
 
             source_index = __class__.__conv_none__(source_idx)
             target_index = __class__.__conv_none__(target_idx)
@@ -120,17 +124,13 @@ class MigrateResult:
 
         elif MigrateState.FAILED == state:
 
-            if not time_elapsed:
-                raise LfsUtilsError(f"State {MigrateState.FAILED} requires time_elapsed to be set.")
-            if not error_code:
-                raise LfsUtilsError(f"State {MigrateState.FAILED} requires error_code to be set.")
             if not error_msg:
                 raise LfsUtilsError(f"State {MigrateState.FAILED} requires error_msg to be set.")
 
             source_index = __class__.__conv_none__(source_idx)
             target_index = __class__.__conv_none__(target_idx)
 
-            self._result = f"{MigrateState.FAILED}|{filename}|{time_elapsed}|{error_code}|{error_msg}|{source_index}|{target_index}"
+            self._result = f"{MigrateState.FAILED}|{filename}|{time_elapsed}|{source_index}|{target_index}|{error_msg}"
 
         elif MigrateState.IGNORED == state:
             self._result = f"{MigrateState.IGNORED}|{filename}"
@@ -139,9 +139,6 @@ class MigrateResult:
             self._result = f"{MigrateState.SKIPPED}|{filename}"
 
         elif state == MigrateState.SUCCESS:
-
-            if not time_elapsed:
-                raise LfsUtilsError(f"State {MigrateState.SUCCESS} requires time_elapsed to be set.")
 
             source_index = __class__.__conv_none__(source_idx)
             target_index = __class__.__conv_none__(target_idx)
@@ -274,8 +271,10 @@ class LfsUtils:
 
     def migrate_file(self, filename, source_idx=None, target_idx=None, block=False, skip=True) -> MigrateResult:
 
-        pre_ost_idx = None
+        state        = None
+        pre_ost_idx  = None
         post_ost_idx = None
+        error_msg    = None
 
         start_time = datetime.now()
 
@@ -286,56 +285,57 @@ class LfsUtils:
             pre_ost_idx = pre_stripe_info.index
 
             if skip and pre_stripe_info.count > 1:
-                return MigrateResult(MigrateState.SKIPPED, filename)
-            if source_idx is not None and pre_ost_idx != source_idx:
-                return MigrateResult(MigrateState.IGNORED, filename)
-            if target_idx is not None and pre_ost_idx == target_idx:
-                return MigrateResult(MigrateState.IGNORED, filename)
-
-            args = [self.lfs, 'migrate']
-
-            if block:
-                args.append('--block')
+                state = MigrateState.SKIPPED
+            elif source_idx is not None and pre_ost_idx != source_idx:
+                state = MigrateState.IGNORED
+            elif target_idx is not None and pre_ost_idx == target_idx:
+                state = MigrateState.IGNORED
             else:
-                args.append('--non-block')
 
-            # TODO: Check OST min and max index
-            if target_idx is not None and target_idx >= 0:
-                args.append('-i')
-                args.append(str(target_idx))
+                args = [self.lfs, 'migrate']
 
-            if pre_stripe_info.count > 0:
-                args.append('-c')
-                args.append(str(pre_stripe_info.count))
+                if block:
+                    args.append('--block')
+                else:
+                    args.append('--non-block')
 
-            args.append(filename)
+                # TODO: Check OST min and max index
+                if target_idx is not None and target_idx >= 0:
+                    args.append('-i')
+                    args.append(str(target_idx))
 
-            subprocess.run(args, check=True, capture_output=True)
-            time_elapsed = datetime.now() - start_time
+                if pre_stripe_info.count > 0:
+                    args.append('-c')
+                    args.append(str(pre_stripe_info.count))
 
-            post_ost_idx = self.stripe_info(filename).index
+                args.append(filename)
 
-            if target_idx is not None and target_idx != post_ost_idx:
-                return MigrateResult(MigrateState.DISPLACED, filename, time_elapsed, pre_ost_idx, post_ost_idx)
+                # Save target OST index in case of migration failure.
+                post_ost_idx = target_idx
 
-            return MigrateResult(MigrateState.SUCCESS, filename, time_elapsed, pre_ost_idx, post_ost_idx)
+                subprocess.run(args, check=True, capture_output=True)
+
+                post_ost_idx = self.stripe_info(filename).index
+
+                if target_idx is not None and target_idx != post_ost_idx:
+                    state = MigrateState.DISPLACED
+                else:
+                    state = MigrateState.SUCCESS
 
         except subprocess.CalledProcessError as err:
 
-            time_elapsed = datetime.now() - start_time
-
-            stderr = ''
-
             if err.stderr:
-                stderr = err.stderr.decode('UTF-8')
+                error_msg = err.stderr.decode('UTF-8')
 
-            return MigrateResult(MigrateState.FAILED, filename, time_elapsed, pre_ost_idx, post_ost_idx, err.returncode, stderr)
+            state = MigrateState.FAILED
 
         except LfsUtilsError as err:
+            error_msg = str(err)
+            state = MigrateState.FAILED
 
-            time_elapsed = datetime.now() - start_time
+        time_elapsed = datetime.now() - start_time
 
-            return MigrateResult(MigrateState.FAILED, filename, time_elapsed, pre_ost_idx, post_ost_idx, -1, stderr)
+        return MigrateResult(state, filename, time_elapsed, pre_ost_idx, post_ost_idx, error_msg)
 
     def retrieve_ost_fill_level(self, fs_path) -> dict:
 

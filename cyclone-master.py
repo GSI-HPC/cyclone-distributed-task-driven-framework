@@ -184,8 +184,8 @@ def main():
 
                 comm_handler.connect()
 
-                controller_heartbeat_dict = dict()
-                task_status_dict = dict()
+                controller_heartbeat_dict = {}
+                task_status_dict = {}
 
                 controller_timeout = config_file_reader.controller_timeout
                 controller_wait_duration = config_file_reader.controller_wait_duration
@@ -359,7 +359,7 @@ def main():
                                 if check_all_controller_down(len(controller_heartbeat_dict)):
                                     run_flag = False
 
-                    except Exception as err:
+                    except Exception:
 
                         error_count += 1
                         logging.exception(f"Caught exception in main loop")
@@ -374,7 +374,7 @@ def main():
                 logging.error(f"Another instance might be already running (PID file: {config_file_reader.pid_file})!")
                 sys.exit(1)
 
-    except Exception as err:
+    except Exception:
 
         error_count += 1
         logging.exception(f"Caught exception in main block")
