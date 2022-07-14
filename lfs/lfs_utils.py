@@ -37,27 +37,37 @@ VERSION='0.0.2'
 class LfsUtilsError(Exception):
     """Exception class LfsUtils specific errors."""
 
-class LfsOstItem:
+class LfsComponentType(str, Enum):
 
-    def __init__(self, target, ost, state, active):
+    MDT = 'MDT'
+    OST = 'OST'
+
+class LfsComponentCollection:
+
+    def __init__(self) -> None:
+
+        self.mdts = {}
+        self.osts = {}
+
+
+class LfsComponentState:
+
+    def __init__(self, target, name, type, state, active):
 
         self.target = target
-        self.ost = ost
+        self.name = name
+        self.type = type
         self.state = state
         self.active = active
-        self.ost_idx = ost
+        self.idx = name
 
     @property
-    def ost_idx(self):
-        return self._ost_idx
+    def idx(self):
+        return self._idx
 
-    @ost_idx.setter
-    def ost_idx(self, ost):
-
-        if ost[0:3] != 'OST':
-            raise LfsUtilsError(f"OST word not found in argument: {ost}")
-
-        self._ost_idx = int(ost[3:], 16)
+    @idx.setter
+    def idx(self, name):
+        self._idx = int(name[3:], 16)
 
 class StripeField(str, Enum):
 
@@ -150,7 +160,7 @@ class MigrateResult:
 
 class LfsUtils:
 
-    _REGEX_STR_OST_STATE = r"\-(OST[a-z0-9]+)\-[a-z0-9-]+\s(.+)"
+    _REGEX_STR_COMP_STATE = r"(.+)\-((OST|MDT){1}[a-z0-9]+)\-[a-z0-9-]+\s(.+)\."
     _REGEX_STR_OST_FILL_LEVEL = r"(\d{1,3})%.*\[OST:([0-9]{1,4})\]"
     _REGEX_STR_OST_CONN_UUID = r"ost_conn_uuid=([\d\.]+)@"
 
@@ -165,50 +175,64 @@ class LfsUtils:
         self.lfs = lfs
         self.lctl = lctl
 
-    # TODO: Return dict for multiple targets with proper OST items.
-    def create_ost_item_list(self, target) -> list:
+    def retrieve_component_states(self, file=None) -> dict:
 
-        try:
+        comp_states = {}
+
+        if file:
+            with open(file, 'r', encoding='UTF-8') as file_handle:
+                output = file_handle.read()
+        else:
             args = ['sudo', self.lfs, 'check', 'osts']
-            result = subprocess.run(args, check=True, capture_output=True)
-        except subprocess.CalledProcessError as err:
-            # pylint: disable=W0707
-            raise LfsUtilsError(err.stderr.decode('UTF-8'))
+            output = subprocess.run(args, check=True, capture_output=True).stdout.decode('UTF-8')
 
-        ost_list = []
+        logging.debug("Using regex for `lfs check osts`: %s", LfsUtils._REGEX_STR_COMP_STATE)
+        pattern = re.compile(LfsUtils._REGEX_STR_COMP_STATE)
 
-        regex_str = target + LfsUtils._REGEX_STR_OST_STATE
-        logging.debug("Using regex for `lfs check osts`: %s", regex_str)
-        pattern = re.compile(regex_str)
+        for line in output.split('\n'):
 
-        for line in result.stdout.decode('UTF-8').strip().split('\n'):
+            stripped_line = line.strip()
 
-            match = pattern.match(line.strip())
+            if not stripped_line:
+                continue
+
+            match = pattern.match(stripped_line)
 
             if match:
 
-                ost = match.group(1)
-                state = match.group(2)
+                target    = match.group(1)
+                comp_name = match.group(2)
+                comp_type = match.group(3)
+                state     = match.group(4)
 
-                if state == 'active.':
-                    ost_list.append(LfsOstItem(target, ost, state, True))
+                if target not in comp_states:
+                    comp_states[target] = LfsComponentCollection()
+
+                if LfsComponentType.OST == comp_type:
+
+                    handle_comp_type = LfsComponentType.OST
+                    handle_comp_state_col_item = comp_states[target].osts
+
                 else:
-                    ost_list.append(LfsOstItem(target, ost, state, False))
+
+                    handle_comp_type = LfsComponentType.MDT
+                    handle_comp_state_col_item = comp_states[target].mdts
+
+                if state == 'active':
+                    active = True
+                else:
+                    active = False
+
+                comp_state_item = LfsComponentState(target, comp_name, handle_comp_type, state, active)
+                handle_comp_state_col_item[comp_state_item.idx] = comp_state_item
 
             else:
                 logging.warning("No regex match for line: %s", line)
 
-        return ost_list
+        return comp_states
 
-    # TODO: Return boolean
-    def is_ost_idx_active(self, target, ost_idx):
-
-        for ost_item in self.create_ost_item_list(target):
-
-            if ost_item.ost_idx == ost_idx:
-                return ost_item.active
-
-        raise LfsUtilsError(f"Index {ost_idx} not found on target {target}")
+    def is_ost_idx_active(self, target, idx, file=None) -> bool:
+        return self.retrieve_component_states(file)[target].osts[idx].active
 
     def set_stripe(self, ost_idx, file_path):
 

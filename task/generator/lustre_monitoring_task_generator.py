@@ -50,7 +50,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
         if ost_select_list:
             self.ost_select_list = [int(i) for i in list(RangeSet(ost_select_list).striter())]
         else:
-            self.ost_select_list = list()
+            self.ost_select_list = []
 
         self.local_mode = self._config.getboolean('control', 'local_mode')
         self.measure_interval = self._config.getfloat('control', 'measure_interval')
@@ -91,7 +91,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
             except InterruptedError:
                 logging.error("Caught InterruptedError exception.")
 
-            except Exception as err:
+            except Exception:
                 logging.exception("Caught exception in %s", self._name)
                 logging.info("%s exited!", self._name)
                 os._exit(1)
@@ -107,7 +107,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         task_skeleton = TaskFactory().create_from_xml_info(task_xml_info)
 
-        task_list = list()
+        task_list = []
 
         logging.debug("Creating task list...")
 
@@ -135,20 +135,14 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
     def _create_ost_idx_list(self):
 
-        ost_idx_list = list()
-
-        lfs_utils = LfsUtils(self.lfs_bin)
-        ost_item_list = lfs_utils.create_ost_item_list(self.target)
-
-        for ost_item in ost_item_list:
-            ost_idx_list.append(ost_item.ost_idx)
+        ost_idx_list = LfsUtils(self.lfs_bin).retrieve_component_states()[self.target].osts.keys()
 
         if not ost_idx_list:
-            raise RuntimeError("OST list is empty!")
+            raise RuntimeError("OST idx list is empty!")
 
         if self.ost_select_list:
 
-            select_ost_idx_list = list()
+            select_ost_idx_list = []
 
             for select_ost_idx in self.ost_select_list:
 
@@ -178,7 +172,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
     def _create_local_ost_idx_list(self):
 
-        ost_idx_list = list()
+        ost_idx_list = []
 
         max_ost_idx = 100
 
@@ -187,7 +181,7 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         if self.ost_select_list:
 
-            select_ost_idx_list = list()
+            select_ost_idx_list = []
 
             for select_ost_idx in self.ost_select_list:
 
