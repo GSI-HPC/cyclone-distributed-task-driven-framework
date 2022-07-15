@@ -5,6 +5,15 @@
 		<class module="task.empty_task" name="EmptyTask"/>
 	</task>
 
+	<task name="OstFileCreationCheckTask">
+		<class module="task.ost_file_creation_check_task" name="OstFileCreationCheckTask"/>
+		<property>
+			<lfs_target>fs-name</lfs_target>
+			<target_dir>/lustre/nyx/hpc/lfsmon/ost_file_creation_check_monitoring</target_dir>
+			<ost_idx></ost_idx>
+		</property>
+	</task>
+
 	<task name="IOTask">
 
 		<class module="task.io_task" name="IOTask"/>
@@ -15,7 +24,7 @@
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
-			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring/</target_dir>
+			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring</target_dir>
 			<lfs_bin>/usr/bin/lfs</lfs_bin>
 			<lfs_target>fs-name</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
@@ -40,7 +49,7 @@
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
-			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring/</target_dir>
+			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring</target_dir>
 			<lfs_bin>/usr/bin/lfs</lfs_bin>
 			<lfs_target>fs-name</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>

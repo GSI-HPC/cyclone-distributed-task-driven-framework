@@ -31,13 +31,15 @@ from task.task_factory import TaskFactory
 from task.generator.base_task_generator import BaseTaskGenerator
 
 
-# TODO: Rename Class to LustreOSTMonitoringTaskGenerator
-class LustreMonitoringTaskGenerator(BaseTaskGenerator):
+class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
     """Class for Lustre Monitoring Task Generator"""
 
     def __init__(self, task_queue, result_queue, config_file):
 
         super().__init__(task_queue, result_queue, config_file)
+
+        self.local_mode = self._config.getboolean('control', 'local_mode')
+        self.measure_interval = self._config.getfloat('control', 'measure_interval')
 
         self.task_file = self._config.get('task', 'task_file')
         self.task_name = self._config.get('task', 'task_name')
@@ -45,15 +47,12 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
         self.lfs_bin = self._config.get('lustre', 'lfs_bin')
         self.target = self._config.get('lustre', 'target')
 
+        self.ost_select_list = []
+
         ost_select_list = self._config.get('lustre', 'ost_select_list')
 
         if ost_select_list:
-            self.ost_select_list = [int(i) for i in list(RangeSet(ost_select_list).striter())]
-        else:
-            self.ost_select_list = []
-
-        self.local_mode = self._config.getboolean('control', 'local_mode')
-        self.measure_interval = self._config.getfloat('control', 'measure_interval')
+            self.ost_select_list.extend([int(i) for i in list(RangeSet(ost_select_list).striter())])
 
     # TODO: Create implement validate_config()
     def validate_config(self):
@@ -70,9 +69,10 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
                 ost_idx_list = None
 
                 if self.local_mode:
-                    ost_idx_list = self._create_local_ost_idx_list()
+                    ost_idx_list = __class__.build_index_list(self.ost_select_list, list(range(0, 100)))
                 else:
-                    ost_idx_list = self._create_ost_idx_list()
+                    ost_avail_list = LfsUtils(self.lfs_bin).retrieve_component_states()[self.target].osts.keys()
+                    ost_idx_list = __class__.build_index_list(self.ost_select_list, ost_avail_list)
 
                 task_list = self._create_task_list(ost_idx_list)
 
@@ -133,76 +133,31 @@ class LustreMonitoringTaskGenerator(BaseTaskGenerator):
 
         return task_list
 
-    def _create_ost_idx_list(self):
+    @staticmethod
+    def build_index_list(selected_indexes: list, available_indexes: list) -> list:
 
-        ost_idx_list = LfsUtils(self.lfs_bin).retrieve_component_states()[self.target].osts.keys()
+        len_selected_indexes  = len(selected_indexes)
+        len_available_indexes = len(available_indexes)
 
-        if not ost_idx_list:
-            raise RuntimeError("OST idx list is empty!")
+        if not len_available_indexes:
+            raise RuntimeError('Available indexes list is empty')
 
-        if self.ost_select_list:
+        if not len_selected_indexes:
+            return available_indexes
 
-            select_ost_idx_list = []
+        if len_selected_indexes > len_available_indexes:
+            raise RuntimeError('Selected indexes list is not allowed to be greater than available indexes list')
 
-            for select_ost_idx in self.ost_select_list:
+        built_index_list = []
 
-                found_select_ost_idx = False
+        for selected_idx in selected_indexes:
 
-                for ost_idx in ost_idx_list:
+            if selected_idx in available_indexes:
+                built_index_list.append(selected_idx)
+            else:
+                raise RuntimeError(f"Selected index {selected_idx} not found in available indexes list")
 
-                    if select_ost_idx == ost_idx:
+        if not built_index_list:
+            raise RuntimeError("Built indexes list is not allowed to be empty when selecting indexes")
 
-                        select_ost_idx_list.append(ost_idx)
-
-                        found_select_ost_idx = True
-
-                        logging.debug("Found OST from selected list: %s", select_ost_idx)
-
-                        break
-
-                if found_select_ost_idx is False:
-                    raise RuntimeError(f"OST to select was not found in ost_info_list: {select_ost_idx}")
-
-            if not select_ost_idx_list:
-                raise RuntimeError("Select OST info list is not allowed to be empty when selecting OSTs!")
-
-            return select_ost_idx_list
-
-        return ost_idx_list
-
-    def _create_local_ost_idx_list(self):
-
-        ost_idx_list = []
-
-        max_ost_idx = 100
-
-        for ost_idx in range(max_ost_idx):
-            ost_idx_list.append(ost_idx)
-
-        if self.ost_select_list:
-
-            select_ost_idx_list = []
-
-            for select_ost_idx in self.ost_select_list:
-
-                found_select_ost_idx = False
-
-                for ost_idx in ost_idx_list:
-
-                    if select_ost_idx == ost_idx:
-
-                        logging.debug("Found OST-IDX from selected list: %s", select_ost_idx)
-
-                        if not found_select_ost_idx:
-                            found_select_ost_idx = True
-
-                        select_ost_idx_list.append(ost_idx)
-
-                        break
-
-                if not found_select_ost_idx:
-                    raise RuntimeError(f"OST-IDX to select was not found in ost_info_list: {select_ost_idx}")
-
-            return select_ost_idx_list
-
-        return ost_idx_list
+        return built_index_list
