@@ -24,11 +24,13 @@ import logging
 import multiprocessing
 import signal
 
+from ctrl.shared_queue import SharedQueue
+
 
 class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
     """Base class for Task Generator"""
 
-    def __init__(self, task_queue, result_queue, config_file):
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
 
         super().__init__()
 
@@ -46,7 +48,7 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         signal.signal(signal.SIGUSR1, self._signal_handler_terminate)
         signal.siginterrupt(signal.SIGUSR1, True)
 
-    def start(self):
+    def start(self) -> None:
         """Start forked BaseTaskGenerator process after initialization by the Master process."""
 
         self.validate_config()
@@ -56,14 +58,14 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         super().start()
 
     @abc.abstractmethod
-    def run(self):
+    def run(self) -> None:
         raise NotImplementedError("Must be implemented in specific TaskGenerator class!")
 
     @abc.abstractmethod
-    def validate_config(self):
+    def validate_config(self) -> None:
         raise NotImplementedError("Must be implemented in specific TaskGenerator class!")
 
-    def _signal_handler_terminate(self, signum, frame):
+    def _signal_handler_terminate(self, signum, frame) -> None:
         # pylint: disable=unused-argument
 
         logging.info("%s retrieved signal to terminate.", self._name)

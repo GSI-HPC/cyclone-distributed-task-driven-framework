@@ -25,6 +25,7 @@ import os
 
 from clush.RangeSet import RangeSet
 from ctrl.critical_section import CriticalSection
+from ctrl.shared_queue import SharedQueue
 from lfs.lfs_utils import LfsUtils
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
@@ -34,7 +35,7 @@ from task.generator.base_task_generator import BaseTaskGenerator
 class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
     """Class for Lustre Monitoring Task Generator"""
 
-    def __init__(self, task_queue, result_queue, config_file):
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
 
         super().__init__(task_queue, result_queue, config_file)
 
@@ -55,10 +56,10 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
             self.ost_select_list.extend([int(i) for i in list(RangeSet(ost_select_list).striter())])
 
     # TODO: Create implement validate_config()
-    def validate_config(self):
+    def validate_config(self) -> None:
         pass
 
-    def run(self):
+    def run(self) -> None:
 
         logging.info(f"{self._name} active!")
 
@@ -99,7 +100,7 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
         logging.info("%s finished!", self._name)
         os._exit(0)
 
-    def _create_task_list(self, ost_idx_list):
+    def _create_task_list(self, ost_idx_list: list) -> None:
 
         task_xml_info = TaskXmlReader.read_task_definition(self.task_file, self.task_name)
 

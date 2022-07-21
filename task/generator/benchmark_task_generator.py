@@ -25,6 +25,7 @@ import os
 
 from conf.config_value_error import ConfigValueOutOfRangeError
 from ctrl.critical_section import CriticalSection
+from ctrl.shared_queue import SharedQueue
 from task.benchmark_task import BenchmarkTask
 from task.generator.base_task_generator import BaseTaskGenerator
 
@@ -32,14 +33,14 @@ from task.generator.base_task_generator import BaseTaskGenerator
 class BenchmarkTaskGenerator(BaseTaskGenerator):
     """Class for Benchmark Task Generator"""
 
-    def __init__(self, task_queue, result_queue, config_file):
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
 
         super().__init__(task_queue, result_queue, config_file)
 
         self._num_tasks = self._config.getint('control', 'num_tasks')
         self._poll_time_ms = self._config.getint('control', 'poll_time_ms')
 
-    def validate_config(self):
+    def validate_config(self) -> None:
 
         min_num_tasks = 1
         max_num_tasks = 100000000
@@ -53,7 +54,7 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
         if not min_poll_time_ms <= self._poll_time_ms <= max_poll_time_ms:
             raise ConfigValueOutOfRangeError("poll_time_ms", min_poll_time_ms, max_poll_time_ms)
 
-    def run(self):
+    def run(self) -> None:
 
         logging.info(f"{self._name} active!")
 
@@ -116,7 +117,7 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
         logging.info(f"{self._name} finished!")
         os._exit(0)
 
-    def _create_task_list(self):
+    def _create_task_list(self) -> None:
 
         task_list = list()
 

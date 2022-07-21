@@ -87,7 +87,7 @@ class AlertIOTask(IOTask):
                     if os.path.exists(file_path):
                         os.remove(file_path)
 
-                    self.lfs_utils.set_stripe(str_ost_idx, file_path)
+                    self.lfs_utils.set_ost_file_stripe(file_path, str_ost_idx)
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 

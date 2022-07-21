@@ -18,12 +18,11 @@
 #
 
 
-from lfs.lfs_utils import LfsUtils
-from task.base_task import BaseTask
-
 import distutils.util
 import logging
 
+from task.base_task import BaseTask
+from lfs.lfs_utils import LfsUtils
 
 
 class OstMigrateTask(BaseTask):

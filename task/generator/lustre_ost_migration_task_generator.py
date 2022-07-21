@@ -29,12 +29,14 @@ import time
 import sys
 import re
 import os
+from typing import Dict
 
 from clush.RangeSet import RangeSet
 
 from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
 from lfs.lfs_utils import LfsUtils
 from msg.base_message import BaseMessage
+from ctrl.shared_queue import SharedQueue
 from task.generator.base_task_generator import BaseTaskGenerator
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
@@ -42,7 +44,7 @@ from task.task_factory import TaskFactory
 
 class LustreOstMigrateItem:
 
-    def __init__(self, ost, filename):
+    def __init__(self, ost: int, filename: str) -> None:
 
         self.ost = ost
         self.filename = filename
@@ -52,16 +54,16 @@ class LustreOstMigrateItem:
 @unique
 class OSTState(Enum):
 
-    READY = 1
-    LOCKED = 2
-    BLOCKED = 3
+    READY        = 1
+    LOCKED       = 2
+    BLOCKED      = 3
     PENDING_LOCK = 4
 
 
 class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
     """Class for LustreOSTMigrationTaskGenerator"""
 
-    def __init__(self, task_queue, result_queue, config_file):
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
 
         super().__init__(task_queue, result_queue, config_file)
 
@@ -72,11 +74,6 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         else:
             self.lfs_utils = LfsUtils()
 
-        self.lfs_path = self._config.get('lustre', 'fs_path')
-
-        self._regex = rf"^(\d+) ({self.lfs_path}.*)$"
-        self.pattern = re.compile(self._regex)
-
         self.threshold_update_fill_level = self._config.getint('control.threshold', 'update_fill_level')
         self.threshold_reload_files = self._config.getint('control.threshold', 'reload_files')
         self.threshold_print_caches = self._config.getint('control.threshold', 'print_caches')
@@ -84,21 +81,30 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         self.task_file = self._config.get('task', 'task_file')
         self.task_name = self._config.get('task', 'task_name')
 
-        ost_targets = self._config.get('migration', 'ost_targets')
-        self.ost_target_list = list(RangeSet(ost_targets).striter())
-
         self.input_dir = self._config.get('migration', 'input_dir')
 
         self.ost_fill_level_threshold_source = self._config.getint('migration', 'ost_fill_level_threshold_source')
         self.ost_fill_level_threshold_target = self._config.getint('migration', 'ost_fill_level_threshold_target')
 
-        self.ost_cache_dict = {}
+        ost_targets = self._config.get('migration', 'ost_targets')
+
+        self.ost_target_list = []
+
+        for ost_target in RangeSet(ost_targets).striter():
+            self.ost_target_list.append(int(ost_target))
+
+        self.lfs_path = self._config.get('lustre', 'fs_path')
+
+        self._regex = rf"^(\d+) ({self.lfs_path}.*)$"
+        self.pattern = re.compile(self._regex)
+
+        self.ost_cache_dict        = {}
         self.ost_source_state_dict = {}
         self.ost_target_state_dict = {}
-        self.ost_fill_level_dict = {}
-        self.source_ost_key_list = []
+        self.ost_fill_level_dict   = {}
+        self.source_ost_key_list   = []
 
-    def validate_config(self):
+    def validate_config(self) -> None:
 
         if self.local_mode:
 
@@ -151,7 +157,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
             not LfsUtils.MIN_OST_INDEX <= int(self.ost_target_list[-1]) <= LfsUtils.MAX_OST_INDEX:
             raise ConfigValueOutOfRangeError("max(ost_targets)", LfsUtils.MIN_OST_INDEX, LfsUtils.MAX_OST_INDEX)
 
-    def run(self):
+    def run(self) -> None:
 
         logging.info("%s active!", self._name)
 
@@ -263,7 +269,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         if logging.root.isEnabledFor(logging.DEBUG):
 
                             for ost, fill_level in self.ost_fill_level_dict.items():
-                                logging.info("OST: %s - Fill Level: %i", ost, fill_level)
+                                logging.info("OST: %i - Fill Level: %i", ost, fill_level)
 
                         for ost in self.ost_source_state_dict:
                             self._update_ost_source_state_dict(ost)
@@ -310,7 +316,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         logging.info("%s finished!", self._name)
         sys.exit(0)
 
-    def _process_input_files(self):
+    def _process_input_files(self) -> None:
 
         file_counter = 0
 
@@ -333,7 +339,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         logging.info("Count of processed input files: %i", file_counter)
 
-    def _load_input_file(self, file_path):
+    def _load_input_file(self, file_path: str) -> None:
 
         loaded_counter = 0
         error_counter = 0
@@ -361,7 +367,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         if not match:
                             raise RuntimeError(f"Regex '{self._regex}' did not match")
 
-                        ost = match.group(1)
+                        ost      = int(match.group(1))
                         filename = match.group(2)
 
                         migrate_item = LustreOstMigrateItem(ost, filename)
@@ -388,7 +394,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         logging.info("Input file: %s - Loaded: %i - Failed: %i", file_path, loaded_counter, error_counter)
 
-    def _allocate_ost_caches(self):
+    def _allocate_ost_caches(self) -> None:
 
         for ost, cache in self.ost_cache_dict.items():
 
@@ -398,7 +404,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.source_ost_key_list = list(self.ost_source_state_dict)
 
-    def _deallocate_empty_ost_caches(self):
+    def _deallocate_empty_ost_caches(self) -> None:
 
         empty_ost_cache_ids = None
 
@@ -423,37 +429,34 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         self.source_ost_key_list = list(self.ost_source_state_dict)
 
-    def _init_ost_target_state_dict(self):
+    def _init_ost_target_state_dict(self) -> None:
 
         for ost in self.ost_target_list:
             self._update_ost_target_state_dict(ost)
 
-    def _update_ost_fill_level_dict(self):
+    def _update_ost_fill_level_dict(self) -> None:
 
         if self.local_mode:
 
             self.ost_fill_level_dict.clear()
 
-            for i in range(self.num_osts):
-
-                ost_idx = str(i)
+            for ost_idx in range(self.num_osts):
                 fill_level = random.randint(40, 60)
 
                 self.ost_fill_level_dict[ost_idx] = fill_level
 
         else:
-            self.ost_fill_level_dict = \
-                self.lfs_utils.retrieve_ost_fill_level(self.lfs_path)
+            self.ost_fill_level_dict = self.lfs_utils.retrieve_ost_disk_usage(self.lfs_path)
 
-    def _update_ost_source_state_dict(self, ost):
+    def _update_ost_source_state_dict(self, ost: int) -> None:
         self._update_ost_state_dict(ost, self.ost_source_state_dict, operator.gt)
 
-    def _update_ost_target_state_dict(self, ost):
+    def _update_ost_target_state_dict(self, ost: int) -> None:
         self._update_ost_state_dict(ost, self.ost_target_state_dict, operator.lt)
 
-    def _update_ost_state_dict(self, ost, ost_state_dict, operator_func=None):
+    def _update_ost_state_dict(self, ost: int, ost_state_dict: Dict[int, int], operator_func = None) -> None:
 
-        if operator_func is not None:
+        if operator_func:
 
             if ost not in self.ost_fill_level_dict:
                 raise RuntimeError(f"OST not found in ost_fill_level_dict: {ost}")

@@ -28,7 +28,7 @@ from task.base_task import BaseTask
 
 class OstFileCreationCheckTask(BaseTask):
 
-    def __init__(self, lfs_target, target_dir, ost_idx):
+    def __init__(self, lfs_target: str, target_dir: str, ost_idx: str) -> None:
 
         super().__init__()
 
@@ -54,7 +54,7 @@ class OstFileCreationCheckTask(BaseTask):
         else:
             self._ost_idx = None
 
-    def execute(self):
+    def execute(self) -> None:
 
         try:
 
@@ -71,7 +71,7 @@ class OstFileCreationCheckTask(BaseTask):
                     if os.path.exists(file_path):
                         os.remove(file_path)
 
-                    self._lfs_utils.set_stripe(self.ost_idx, file_path)
+                    self._lfs_utils.set_ost_file_stripe(file_path, self.ost_idx)
 
                     current_ost_idx = int(self._lfs_utils.stripe_info(file_path).index)
 

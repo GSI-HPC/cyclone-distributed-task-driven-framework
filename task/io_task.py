@@ -112,7 +112,7 @@ class IOTask(BaseTask):
                     if os.path.exists(file_path):
                         os.remove(file_path)
 
-                    self.lfs_utils.set_stripe(self.ost_idx, file_path)
+                    self.lfs_utils.set_ost_file_stripe(file_path, self.ost_idx)
 
                     write_timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                     write_duration, write_throughput = self._write_file(file_path)
@@ -253,11 +253,9 @@ class IOTask(BaseTask):
 
                     return tuple((duration, throughput))
 
-                else:
-                    raise RuntimeError(f"File is empty: {file_path}")
+                raise RuntimeError(f"File is empty or not same as expected total size: {file_path}")
 
-            else:
-                raise RuntimeError(f"No file to be read could be found under: {file_path}")
+            raise RuntimeError(f"No file to be read could be found under: {file_path}")
 
         except Exception:
             logging.error("Caught exception in IOTask during read file")
