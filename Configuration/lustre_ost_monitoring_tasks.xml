@@ -8,8 +8,10 @@
 	<task name="OstFileCreationCheckTask">
 		<class module="task.ost_file_creation_check_task" name="OstFileCreationCheckTask"/>
 		<property>
-			<lfs_target>fs-name</lfs_target>
-			<target_dir>/lustre/nyx/hpc/lfsmon/ost_file_creation_check_monitoring</target_dir>
+			<lfs_target>hebe</lfs_target>
+			<target_base_dir>/lustre/hebe/hpc/lfsmon/ost_file_creation_check_monitoring</target_base_dir>
+			<target_mdt_sub_dir>mdt</target_mdt_sub_dir>
+			<mdt_index_rangeset>0-2</mdt_index_rangeset>
 			<ost_idx></ost_idx>
 		</property>
 	</task>
@@ -26,7 +28,7 @@
 			<write_file_sync>on</write_file_sync>
 			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring</target_dir>
 			<lfs_bin>/usr/bin/lfs</lfs_bin>
-			<lfs_target>fs-name</lfs_target>
+			<lfs_target>nyx</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
 			<db_proxy_port>5777</db_proxy_port>
 
@@ -51,7 +53,7 @@
 			<write_file_sync>on</write_file_sync>
 			<target_dir>/lustre/nyx/hpc/lfsmon/ost_perf_monitoring</target_dir>
 			<lfs_bin>/usr/bin/lfs</lfs_bin>
-			<lfs_target>fs-name</lfs_target>
+			<lfs_target>nyx</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
 			<db_proxy_port>5777</db_proxy_port>
 

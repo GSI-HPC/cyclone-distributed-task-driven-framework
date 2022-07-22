@@ -18,8 +18,12 @@
 #
 
 
+from datetime import datetime
+
 import logging
 import os
+
+from clush.RangeSet import RangeSet
 
 from lfs.lfs_utils import LfsUtils
 from util.auto_remove_file import AutoRemoveFile
@@ -28,15 +32,21 @@ from task.base_task import BaseTask
 
 class OstFileCreationCheckTask(BaseTask):
 
-    def __init__(self, lfs_target: str, target_dir: str, ost_idx: str) -> None:
+    def __init__(self, lfs_target: str, target_base_dir: str, target_mdt_sub_dir: str, mdt_index_rangeset: str, ost_idx: str) -> None:
 
         super().__init__()
 
-        self.lfs_target = lfs_target
-        self.target_dir = target_dir
-        self.ost_idx    = ost_idx
+        self.lfs_target         = lfs_target
+        self.target_base_dir    = target_base_dir
+        self.target_mdt_sub_dir = target_mdt_sub_dir
+        self.mdt_index_rangeset = mdt_index_rangeset
+        self.ost_idx            = ost_idx
 
-        self._lfs_utils = LfsUtils()
+        self._lfs_utils         = LfsUtils()
+        self._mdt_index_list    = []
+
+        for mdt_index in RangeSet(mdt_index_rangeset).striter():
+            self._mdt_index_list.append(int(mdt_index))
 
     @property
     def ost_idx(self) -> int:
@@ -58,31 +68,48 @@ class OstFileCreationCheckTask(BaseTask):
 
         try:
 
+            str_ost_idx = str(self.ost_idx)
+
             if self._lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                str_ost_idx = str(self.ost_idx)
-
+                # TODO: Introduce different debug level... for internal framework and task specific messages.
                 logging.debug("Found active OST-IDX: %s", str_ost_idx)
 
-                file_path = f"{self.target_dir}{os.path.sep}{str_ost_idx}_file_creation_check.tmp"
+                # TODO: Could run in parallel for each MDT or be a seperate task for each MDT+OST...
+                for mdt_index in self._mdt_index_list:
 
-                with AutoRemoveFile(file_path):
+                    try:
 
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
+                        str_mdt_idx = str(mdt_index)
 
-                    self._lfs_utils.set_ost_file_stripe(file_path, self.ost_idx)
+                        file_path = f"{self.target_base_dir}{os.path.sep}{self.target_mdt_sub_dir}{str_mdt_idx}{os.path.sep}{str_ost_idx}_file_creation_check.tmp"
 
-                    current_ost_idx = int(self._lfs_utils.stripe_info(file_path).index)
+                        with AutoRemoveFile(file_path):
+                            if os.path.exists(file_path):
+                                os.remove(file_path)
 
-                    if self.ost_idx == current_ost_idx:
-                        logging.info(f"OK|{file_path}|{str_ost_idx}")
-                    else:
-                        logging.info(f"FAILED|{file_path}|{str_ost_idx}|{current_ost_idx}")
+                        start_time = datetime.now()
+                        self._lfs_utils.set_ost_file_stripe(file_path, self.ost_idx)
+                        elapsed_time = datetime.now() - start_time
+
+                        current_ost_idx = int(self._lfs_utils.stripe_info(file_path).index)
+
+                        if self.ost_idx == current_ost_idx:
+                            output = f"OK|{file_path}|{str_mdt_idx}|{str_ost_idx}"
+                        else:
+                            output = f"FAIL|{file_path}|{str_mdt_idx}|{str_ost_idx}|{current_ost_idx}"
+
+                        logging.info(f"{output}|{elapsed_time}")
+
+                    except Exception as err:
+
+                        if file_path and str_mdt_idx:
+                            logging.error(f"ERROR|{file_path}|{str_mdt_idx}|{str_ost_idx}|{err}")
+
+                        logging.exception("Caught exception in OstFileCreationCheckTask during inner loop")
 
             else:
-                logging.debug("Found non-active OST: %s", str_ost_idx)
+                logging.info(f"IGNORE|{str_ost_idx}")
 
-        except Exception as err:
-            logging.info(f"ERROR|{file_path}|{str_ost_idx}|{err}")
+        except Exception:
             logging.exception("Caught exception in OstFileCreationCheckTask")
