@@ -40,7 +40,7 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
         super().__init__(task_queue, result_queue, config_file)
 
         self.local_mode = self._config.getboolean('control', 'local_mode')
-        self.measure_interval = self._config.getfloat('control', 'measure_interval')
+        self.measure_interval = self._config.getint('control', 'measure_interval')
 
         self.task_file = self._config.get('task', 'task_file')
         self.task_name = self._config.get('task', 'task_name')
