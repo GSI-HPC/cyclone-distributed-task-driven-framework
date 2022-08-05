@@ -10,22 +10,26 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import abc
 import socket
 import zmq
 
-
 class BaseHandler(metaclass=abc.ABCMeta):
 
-    def __init__(self, target, port, poll_timeout):
+    def __init__(self, target: str, port: int, timeout: int) -> None:
+        """
+        Parameters
+        ----------
+        timeout : int
+            Timeout is specified in milliseconds
+        """
 
         super().__init__()
 
@@ -38,17 +42,17 @@ class BaseHandler(metaclass=abc.ABCMeta):
         if not port in range(1024, 65535):
             raise RuntimeError('Communication port must be a number between 1024 and 65535!')
 
-        if poll_timeout <= 0:
-            raise RuntimeError('No valid poll timeout is set!')
+        if timeout <= 0:
+            raise RuntimeError('No valid timeout is set!')
 
-        self.target = target
-        self.port = port
-        self.poll_timeout = poll_timeout
+        self.target  = target
+        self.port    = port
+        self.timeout = timeout
 
         self.endpoint = "tcp://" + self.target + ":" + str(self.port)
-        self.context = None
-        self.socket = None
-        self.poller = None
+        self.context  = None
+        self.socket   = None
+        self.poller   = None
 
         self.is_connected = False
 
@@ -58,10 +62,10 @@ class BaseHandler(metaclass=abc.ABCMeta):
             raise RuntimeError("Fully qualified domain name is not meaningful!")
 
     @abc.abstractmethod
-    def connect(self):
+    def connect(self) -> None:
         return None
 
-    def disconnect(self):
+    def disconnect(self) -> None:
 
         if self.is_connected:
 
@@ -79,14 +83,14 @@ class BaseHandler(metaclass=abc.ABCMeta):
 
             self.is_connected = False
 
-    def reconnect(self):
+    def reconnect(self) -> None:
 
         self.disconnect()
         self.connect()
 
     def recv_string(self):
 
-        events = dict(self.poller.poll(self.poll_timeout))
+        events = dict(self.poller.poll(self.timeout))
 
         if events.get(self.socket) == zmq.POLLIN:
 
@@ -97,5 +101,6 @@ class BaseHandler(metaclass=abc.ABCMeta):
 
         return None
 
-    def send_string(self, message):
+    def send_string(self, message: str) -> None:
         self.socket.send_string(message)
+

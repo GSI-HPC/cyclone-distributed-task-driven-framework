@@ -10,11 +10,11 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
 
@@ -52,15 +52,14 @@ class TaskFactory:
             raise RuntimeError(f"Signature of '{xml_info.class_module}::{xml_info.class_name}::init({arg_spec.args})' "
                                f"has different size to provided property list of '{xml_info.class_properties}'!")
 
-        # Skip the self argument at position 0
-        arg_index = 1
+        arg_index = 1   # Skip the self argument at position 0
 
         for property_name in xml_info.class_properties.keys():
 
             if property_name != arg_spec_args[arg_index]:
 
                 raise RuntimeError(f"Signature of '{xml_info.class_module}::{xml_info.class_name}"
-                                   f"::init({arg_spec.args})' does not contain property name '{property_name}'!")
+                                   f"::init({arg_spec.args})' does not match XML property list '{xml_info.class_properties.keys()}'")
 
             arg_index += 1
 

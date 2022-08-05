@@ -76,6 +76,7 @@ class PIDControl:
 
         return -1
 
+    # TODO change to int for pid not str
     def pid(self):
         return self._pid
 

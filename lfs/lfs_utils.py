@@ -19,7 +19,6 @@
 #
 # https://github.com/gabrieleiannetti/lfs-utils
 
-
 from enum import Enum
 from datetime import datetime, timedelta
 from typing import Dict
@@ -31,9 +30,7 @@ import socket
 import subprocess
 import yaml
 
-
 VERSION = '0.0.2'
-
 
 class LfsUtilsError(Exception):
     """Exception class LfsUtils specific errors."""
@@ -42,6 +39,9 @@ class LfsComponentType(str, Enum):
 
     MDT = 'MDT'
     OST = 'OST'
+
+    def __str__(self) -> str:
+        return self.value
 
 class LfsComponentState:
 
@@ -82,6 +82,9 @@ class StripeField(str, Enum):
     LMM_STRIPE_COUNT = 'lmm_stripe_count'
     LMM_STRIPE_OFFSET = 'lmm_stripe_offset'
 
+    def __str__(self) -> str:
+        return self.value
+
 class StripeInfo:
 
     def __init__(self, filename: str, count: int, index: int) -> None:
@@ -97,6 +100,9 @@ class MigrateState(str, Enum):
     SKIPPED   = 'SKIPPED'
     SUCCESS   = 'SUCCESS'
     FAILED    = 'FAILED'
+
+    def __str__(self) -> str:
+        return self.value
 
 class MigrateResult:
     '''
