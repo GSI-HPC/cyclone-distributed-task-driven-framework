@@ -24,6 +24,7 @@ import abc
 class BaseMessage(metaclass=abc.ABCMeta):
     """Base message of all messages send over the message passing interface."""
 
+    # TODO global constant variable
     field_separator = '|'
 
     def __init__(self, header, body):

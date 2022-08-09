@@ -25,7 +25,7 @@ import time
 import os
 
 from ctrl.pid_control import PIDControl
-from comm.database_proxy_handler import DatabaseProxyCommHandler
+from comm.proxy_handler import ProxyCommHandler
 from conf.database_proxy_config_file_reader import DatabaseProxyConfigFileReader
 from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from version.minimal_python import MinimalPython
@@ -123,7 +123,7 @@ def main():
 
         # TODO: Check Exception with *with* statement.
         with PIDControl(config_file_reader.pid_file) as pid_control, \
-            DatabaseProxyCommHandler(
+            ProxyCommHandler(
                 config_file_reader.comm_target,
                 config_file_reader.comm_port,
                 config_file_reader.poll_timeout) as comm_handler, \

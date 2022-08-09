@@ -127,7 +127,7 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
 
             task = copy.copy(task_skeleton)
 
-            task.tid = ost_idx
+            task.tid     = ost_idx
             task.ost_idx = ost_idx
 
             task_list.append(task)

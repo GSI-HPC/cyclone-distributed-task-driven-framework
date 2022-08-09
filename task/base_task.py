@@ -26,7 +26,7 @@ class BaseTask(metaclass=abc.ABCMeta):
 
     # TODO: Think about refactoring, if tid should be passed by init method and loaded by the XML-based task generation.
     def __init__(self):
-        """CAUTION: Initialization of a task with parameters must be in sync with the XML task definition."""
+        """CAUTION: Initialization of a task with parameters must be in sync with the XML task definition and be all of type str."""
 
         super().__init__()
 
