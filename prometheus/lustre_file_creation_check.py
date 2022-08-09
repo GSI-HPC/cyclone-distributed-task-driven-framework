@@ -76,11 +76,11 @@ class LustreFileCreationMetricProcessor:
         self.check_metrics = defaultdict(lambda: defaultdict(dict))
 
         self.metric_error_name = 'cyclone_lustre_file_creation_error'
-        self.metric_error_help = f"# HELP {self.metric_error_name} Indicates if an error occured during the Lustre File Creation Check."
+        self.metric_error_help = f"# HELP {self.metric_error_name} Indicates if an error occured during the Lustre File Creation Check (0=False/1=True)."
         self.metric_error_type = f"# TYPE {self.metric_error_name} gauge"
 
         self.metric_check_name = 'cyclone_lustre_file_creation_check'
-        self.metric_check_help = f"# HELP {self.metric_check_name} Indicates if the Lustre File Creation Check per MDT and OST succeeded."
+        self.metric_check_help = f"# HELP {self.metric_check_name} Indicates if the Lustre File Creation Check per MDT and OST succeeded (0=False/1=True)."
         self.metric_check_type = f"# TYPE {self.metric_check_name} gauge"
 
     def process(self, msg: str) -> None:
