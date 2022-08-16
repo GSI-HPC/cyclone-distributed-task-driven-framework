@@ -84,7 +84,7 @@ class TestTaskXmlReader(unittest.TestCase):
     def test_empty_task(self):
 
         task_xml_info = \
-            TaskXmlReader.read_task_definition('Configuration/lustre_monitoring_tasks.xml', 'EmptyTask')
+            TaskXmlReader.read_task_definition('Configuration/lustre_ost_monitoring_tasks.xml', 'EmptyTask')
 
         task = TaskFactory().create_from_xml_info(task_xml_info)
         task.execute()
@@ -94,10 +94,20 @@ class TestTaskXmlReader(unittest.TestCase):
     def test_io_task(self):
 
         task_xml_info = \
-            TaskXmlReader.read_task_definition('Configuration/lustre_monitoring_tasks.xml', 'IOTask')
+            TaskXmlReader.read_task_definition('Configuration/lustre_ost_monitoring_tasks.xml', 'IOTask')
 
-        with self.assertRaises(RuntimeError):
-            TaskFactory().create_from_xml_info(task_xml_info)
+        task = TaskFactory().create_from_xml_info(task_xml_info)
+
+        self.assertEqual(task.write_file_sync, 'on')
+
+    def test_lustre_file_creation_check_task(self):
+
+        task_xml_info = \
+            TaskXmlReader.read_task_definition('Configuration/lustre_ost_monitoring_tasks.xml', 'LustreFileCreationCheckTask')
+
+        task = TaskFactory().create_from_xml_info(task_xml_info)
+
+        self.assertEqual(task.pushgateway_timeout, 10000)
 
 if __name__ == '__main__':
     unittest.main()

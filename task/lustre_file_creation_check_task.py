@@ -32,17 +32,18 @@ from task.base_task import BaseTask
 
 class LustreFileCreationCheckTask(BaseTask):
 
-    def __init__(self, lfs_target: str, target_base_dir: str, target_mdt_sub_dir: str, mdt_index_rangeset: str, ost_idx: str, pushgateway_name: str, pushgateway_port: str) -> None:
+    def __init__(self, lfs_target: str, target_base_dir: str, target_mdt_sub_dir: str, mdt_index_rangeset: str, ost_idx: str, pushgateway_name: str, pushgateway_port: str, pushgateway_timeout: str) -> None:
 
         super().__init__()
 
-        self.lfs_target         = lfs_target
-        self.target_base_dir    = target_base_dir
-        self.target_mdt_sub_dir = target_mdt_sub_dir
-        self.mdt_index_rangeset = mdt_index_rangeset
-        self.ost_idx            = ost_idx
-        self.pushgateway_name   = pushgateway_name
-        self.pushgateway_port   = pushgateway_port
+        self.lfs_target          = lfs_target
+        self.target_base_dir     = target_base_dir
+        self.target_mdt_sub_dir  = target_mdt_sub_dir
+        self.mdt_index_rangeset  = mdt_index_rangeset
+        self.ost_idx             = ost_idx
+        self.pushgateway_name    = pushgateway_name
+        self.pushgateway_port    = pushgateway_port
+        self.pushgateway_timeout = pushgateway_timeout
 
         self._lfs_utils         = LfsUtils()
         self._mdt_index_list    = []
@@ -57,11 +58,11 @@ class LustreFileCreationCheckTask(BaseTask):
     @ost_idx.setter
     def ost_idx(self, ost_idx: str) -> None:
 
-        type_ost_idx = type(ost_idx)
+        type_ = type(ost_idx)
 
-        if type_ost_idx is int:
+        if type_ is int:
             self._ost_idx = ost_idx
-        elif type_ost_idx is str and ost_idx:
+        elif type_ is str and ost_idx:
             self._ost_idx = int(ost_idx)
         else:
             self._ost_idx = None
@@ -73,14 +74,30 @@ class LustreFileCreationCheckTask(BaseTask):
     @pushgateway_port.setter
     def pushgateway_port(self, pushgateway_port: str) -> None:
 
-        type_pushgateway_port = type(pushgateway_port)
+        type_ = type(pushgateway_port)
 
-        if type_pushgateway_port is int:
+        if type_ is int:
             self._pushgateway_port = pushgateway_port
-        elif type_pushgateway_port is str and pushgateway_port:
+        elif type_ is str and pushgateway_port:
             self._pushgateway_port = int(pushgateway_port)
         else:
             self._pushgateway_port = None
+
+    @property
+    def pushgateway_timeout(self) -> int:
+        return self._pushgateway_timeout
+
+    @pushgateway_timeout.setter
+    def pushgateway_timeout(self, pushgateway_timeout: str) -> None:
+
+        type_ = type(pushgateway_timeout)
+
+        if type_ is int:
+            self._pushgateway_timeout = pushgateway_timeout
+        elif type_ is str and pushgateway_timeout:
+            self._pushgateway_timeout = int(pushgateway_timeout)
+        else:
+            self._pushgateway_timeout = None
 
     def execute(self) -> None:
 
@@ -96,7 +113,7 @@ class LustreFileCreationCheckTask(BaseTask):
                 comm_handler = None
 
                 if self.pushgateway_name and self.pushgateway_port:
-                    comm_handler = TaskCommHandler(self.pushgateway_name, self.pushgateway_port, 10000)
+                    comm_handler = TaskCommHandler(self.pushgateway_name, self.pushgateway_port, self.pushgateway_timeout)
                     comm_handler.connect()
 
                 # TODO: Could run in parallel for each MDT or be a seperate task for each MDT+OST...

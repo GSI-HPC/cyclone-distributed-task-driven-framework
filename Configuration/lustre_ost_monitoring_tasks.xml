@@ -15,6 +15,7 @@
 			<ost_idx></ost_idx> <!-- set during runtime -->
 			<pushgateway_name>hostname</pushgateway_name>
 			<pushgateway_port>5888</pushgateway_port>
+			<pushgateway_timeout>10000</pushgateway_timeout>
 		</property>
 	</task>
 
