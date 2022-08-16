@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2020 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2022 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,23 +17,22 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import abc
+import time
 
-class InterruptableSleep(metaclass=abc.ABCMeta):
-    """Base class for all interruptable sleep classes."""
+from .interruptable_sleep import InterruptableSleep
+
+class SecondsSleep(InterruptableSleep):
 
     def __init__(self) -> None:
-
         super().__init__()
 
-        self._do_sleep = False
+    def sleep(self, seconds: int) -> None:
 
-    @abc.abstractmethod
-    def sleep(self) -> None:
-        raise NotImplementedError('Must be implemented in subclass!')
+        self._do_sleep = True
 
-    def interrupt(self) -> None:
+        for _ in range(0, seconds):
 
-        if self._do_sleep:
-            self._do_sleep = False
+            if not self._do_sleep:
+                break
 
+            time.sleep(1)

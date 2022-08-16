@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for task generator"""
 
@@ -25,7 +25,7 @@ import multiprocessing
 import signal
 
 from ctrl.shared_queue import SharedQueue
-
+from util.interruptable_sleep import InterruptableSleep
 
 class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
     """Base class for Task Generator"""
@@ -43,6 +43,9 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         self._name = self.__class__.__name__
         self._run_flag = False
 
+        self._interruptable_sleep : InterruptableSleep
+
+        # !!! CAUTION !!!
         # Use the SIGUSR1 instead of SIGTERM signal, since the signal handler will be passed by class inheritance.
         # Otherwise a task generator would catch SIGTERM with the master's PID, so the master would ignore it.
         signal.signal(signal.SIGUSR1, self._signal_handler_terminate)
@@ -70,3 +73,5 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
 
         logging.info("%s retrieved signal to terminate.", self._name)
         self._run_flag = False
+        self._interruptable_sleep.interrupt()
+

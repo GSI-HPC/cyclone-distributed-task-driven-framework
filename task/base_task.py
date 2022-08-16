@@ -17,9 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import abc
-
 
 class BaseTask(metaclass=abc.ABCMeta):
     """Base task class to be implemented so a task can be executed by a worker."""
@@ -51,4 +49,3 @@ class BaseTask(metaclass=abc.ABCMeta):
             self._tid = tid
         else:
             self._tid = str(tid)
-

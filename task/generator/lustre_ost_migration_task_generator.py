@@ -18,7 +18,6 @@
 #
 """Module for task generator"""
 
-
 from datetime import datetime
 from enum import Enum, unique
 import operator
@@ -41,7 +40,6 @@ from task.generator.base_task_generator import BaseTaskGenerator
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 
-
 class LustreOstMigrateItem:
 
     def __init__(self, ost: int, filename: str) -> None:
@@ -49,8 +47,6 @@ class LustreOstMigrateItem:
         self.ost = ost
         self.filename = filename
 
-
-# TODO: Add description!
 @unique
 class OSTState(Enum):
 
@@ -59,9 +55,15 @@ class OSTState(Enum):
     BLOCKED      = 3
     PENDING_LOCK = 4
 
-
 class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
     """Class for LustreOSTMigrationTaskGenerator"""
+
+    MIN_THRESHOLD_SEC = 1
+    MAX_THRESHOLD_SEC = 3600
+
+    MIN_OST_FILL_THRESHOLD_SOURCE = 0
+    MIN_OST_FILL_THRESHOLD_TARGET = 0
+    MAX_OST_FILL_THRESHOLD        = 90
 
     def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
 
@@ -108,47 +110,34 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
         if self.local_mode:
 
-            # TODO: Move up as private constant into the class
-            min_num_osts = 1
-            max_num_osts = 1000
-
-            if not min_num_osts <= self.num_osts <= max_num_osts:
-                raise ConfigValueOutOfRangeError("num_osts", min_num_osts, max_num_osts)
+            if not LfsUtils.MIN_OST_INDEX < self.num_osts <= LfsUtils.MAX_OST_INDEX:
+                raise ConfigValueOutOfRangeError("num_osts", LfsUtils.MIN_OST_INDEX, LfsUtils.MAX_OST_INDEX)
 
         else:
             if not os.path.isdir(self.lfs_path):
                 raise ConfigValueError(f"lfs_path does not point to a directory: {self.lfs_path}")
 
-        # TODO: Move up as private constant into the class
-        min_threshold_seconds = 1
-        max_threshold_seconds = 3600
+        if not self.MIN_THRESHOLD_SEC <= self.threshold_update_fill_level <= self.MAX_THRESHOLD_SEC:
+            raise ConfigValueOutOfRangeError("update_fill_level", self.MIN_THRESHOLD_SEC, self.MAX_THRESHOLD_SEC)
 
-        if not min_threshold_seconds <= self.threshold_update_fill_level <= max_threshold_seconds:
-            raise ConfigValueOutOfRangeError("update_fill_level", min_threshold_seconds, max_threshold_seconds)
+        if not self.MIN_THRESHOLD_SEC <= self.threshold_reload_files <= self.MAX_THRESHOLD_SEC:
+            raise ConfigValueOutOfRangeError("reload_files", self.MIN_THRESHOLD_SEC, self.MAX_THRESHOLD_SEC)
 
-        if not min_threshold_seconds <= self.threshold_reload_files <= max_threshold_seconds:
-            raise ConfigValueOutOfRangeError("reload_files", min_threshold_seconds, max_threshold_seconds)
-
-        if not min_threshold_seconds <= self.threshold_print_caches <= max_threshold_seconds:
-            raise ConfigValueOutOfRangeError("print_caches", min_threshold_seconds, max_threshold_seconds)
+        if not self.MIN_THRESHOLD_SEC <= self.threshold_print_caches <= self.MAX_THRESHOLD_SEC:
+            raise ConfigValueOutOfRangeError("print_caches", self.MIN_THRESHOLD_SEC, self.MAX_THRESHOLD_SEC)
 
         if not os.path.isdir(self.input_dir):
             raise ConfigValueError(f"input_dir does not point to a directory: {self.input_dir}")
 
-        # TODO: Move up as private constant into the class
-        min_ost_fill_threshold_source = 0
-        min_ost_fill_threshold_target = 0
-        max_ost_fill_threshold = 90
-
-        if not min_ost_fill_threshold_source <= self.ost_fill_level_threshold_source <= max_ost_fill_threshold:
+        if not self.MIN_OST_FILL_THRESHOLD_SOURCE <= self.ost_fill_level_threshold_source <= self.MAX_OST_FILL_THRESHOLD:
             raise ConfigValueOutOfRangeError("ost_fill_level_threshold_source",
-                                             min_ost_fill_threshold_source,
-                                             max_ost_fill_threshold)
+                                             self.MIN_OST_FILL_THRESHOLD_SOURCE,
+                                             self.MAX_OST_FILL_THRESHOLD)
 
-        if not min_ost_fill_threshold_target <= self.ost_fill_level_threshold_target <= max_ost_fill_threshold:
+        if not self.MIN_OST_FILL_THRESHOLD_TARGET <= self.ost_fill_level_threshold_target <= self.MAX_OST_FILL_THRESHOLD:
             raise ConfigValueOutOfRangeError("ost_fill_level_threshold_target",
-                                             min_ost_fill_threshold_target,
-                                             max_ost_fill_threshold)
+                                             self.MIN_OST_FILL_THRESHOLD_TARGET,
+                                             self.MAX_OST_FILL_THRESHOLD)
 
         if not LfsUtils.MIN_OST_INDEX <= int(self.ost_target_list[0]) <= LfsUtils.MAX_OST_INDEX:
             raise ConfigValueOutOfRangeError("min(ost_targets)", LfsUtils.MIN_OST_INDEX, LfsUtils.MAX_OST_INDEX)
@@ -302,7 +291,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                         self._deallocate_empty_ost_caches()
 
-                    # TODO: adaptive sleep... ???
+                    # TODO: adaptive sleep
                     time.sleep(0.001)
 
                 except InterruptedError:

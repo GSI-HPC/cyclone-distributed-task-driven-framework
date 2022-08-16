@@ -14,13 +14,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for task generator"""
 
 import logging
 import copy
-import time
 import os
 
 from clush.RangeSet import RangeSet
@@ -30,7 +29,7 @@ from lfs.lfs_utils import LfsUtils
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 from task.generator.base_task_generator import BaseTaskGenerator
-
+from util.seconds_sleep import SecondsSleep
 
 class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
     """Class for Lustre Monitoring Task Generator"""
@@ -55,7 +54,8 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
         if ost_select_list:
             self.ost_select_list.extend([int(i) for i in list(RangeSet(ost_select_list).striter())])
 
-    # TODO: Create implement validate_config()
+        self._interruptable_sleep = SecondsSleep()
+
     def validate_config(self) -> None:
         pass
 
@@ -85,9 +85,7 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
                     if task_list:
                         self._task_queue.fill(task_list)
 
-                # TODO: Check more frequently for the run condition, since the measure interval will let sleep
-                #       this process before it becomes active again.
-                time.sleep(self.measure_interval)
+                self._interruptable_sleep.sleep(self.measure_interval)
 
             except InterruptedError:
                 logging.error("Caught InterruptedError exception.")
