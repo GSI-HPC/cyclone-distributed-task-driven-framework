@@ -401,6 +401,8 @@ def main():
     except Exception as err:
 
         error_count += 1
+
+        # TODO Replace all that stuff with logging.exception()
         _, _, exc_tb = sys.exc_info()
         filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")

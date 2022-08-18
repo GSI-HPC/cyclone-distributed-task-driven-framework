@@ -30,7 +30,6 @@ class BaseHandler(metaclass=abc.ABCMeta):
         timeout : int
             Timeout is specified in milliseconds
         """
-
         super().__init__()
 
         if not target:
@@ -50,9 +49,6 @@ class BaseHandler(metaclass=abc.ABCMeta):
         self.timeout = timeout
 
         self.endpoint = "tcp://" + self.target + ":" + str(self.port)
-        self.context  = None
-        self.socket   = None
-        self.poller   = None
 
         self.is_connected = False
 
@@ -60,6 +56,10 @@ class BaseHandler(metaclass=abc.ABCMeta):
 
         if self.fqdn == 'localhost':
             raise RuntimeError("Fully qualified domain name is not meaningful!")
+
+        self.context : zmq.Context
+        self.socket  : zmq.Socket
+        self.poller  : zmq.Poller
 
     @abc.abstractmethod
     def connect(self) -> None:
@@ -103,4 +103,3 @@ class BaseHandler(metaclass=abc.ABCMeta):
 
     def send_string(self, message: str) -> None:
         self.socket.send_string(message)
-
