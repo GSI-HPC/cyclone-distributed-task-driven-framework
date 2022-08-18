@@ -25,12 +25,13 @@ import multiprocessing
 import signal
 
 from ctrl.shared_queue import SharedQueue
+from ctrl.shared_queue_str import SharedQueueStr
 from util.interruptable_sleep import InterruptableSleep
 
 class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
     """Base class for Task Generator"""
 
-    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueueStr, config_file: str) -> None:
 
         super().__init__()
 
@@ -43,7 +44,7 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         self._name = self.__class__.__name__
         self._run_flag = False
 
-        self._interruptable_sleep : InterruptableSleep
+        self._interruptable_sleep = InterruptableSleep()
 
         # !!! CAUTION !!!
         # Use the SIGUSR1 instead of SIGTERM signal, since the signal handler will be passed by class inheritance.

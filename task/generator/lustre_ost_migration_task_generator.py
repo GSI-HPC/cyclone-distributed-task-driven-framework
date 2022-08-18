@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for task generator"""
 
@@ -36,6 +36,7 @@ from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
 from lfs.lfs_utils import LfsUtils
 from msg.base_message import BaseMessage
 from ctrl.shared_queue import SharedQueue
+from ctrl.shared_queue_str import SharedQueueStr
 from task.generator.base_task_generator import BaseTaskGenerator
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
@@ -65,7 +66,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
     MIN_OST_FILL_THRESHOLD_TARGET = 0
     MAX_OST_FILL_THRESHOLD        = 90
 
-    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueueStr, config_file: str) -> None:
 
         super().__init__(task_queue, result_queue, config_file)
 
@@ -236,7 +237,10 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         finished_tid = self._result_queue.pop()
                         logging.debug("Popped TID from result queue: %s", finished_tid)
 
-                        source_ost, target_ost = finished_tid.split(":")
+                        split_result = finished_tid.split(":")
+                        source_ost = int(split_result[0])
+                        target_ost = int(split_result[1])
+
                         self._update_ost_state_dict(source_ost, self.ost_source_state_dict)
                         self._update_ost_state_dict(target_ost, self.ost_target_state_dict)
 
@@ -291,8 +295,10 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                         self._deallocate_empty_ost_caches()
 
-                    # TODO: adaptive sleep
-                    time.sleep(0.001)
+                    if self.ost_cache_dict:
+                        self._interruptable_sleep.sleep(0.001)
+                    else:
+                        self._interruptable_sleep.sleep(1)
 
                 except InterruptedError:
                     logging.error("Caught InterruptedError exception.")

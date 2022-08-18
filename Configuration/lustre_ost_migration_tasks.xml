@@ -6,20 +6,14 @@
 	</task>
 
 	<task name="OstMigrateTask">
-
 		<class module="task.ost_migrate_task" name="OstMigrateTask"/>
-
 		<property>
-
 			<filename></filename>
 			<source_ost></source_ost>
 			<target_ost></target_ost>
-
 			<block>False</block>
 			<skip>True</skip>
-
 		</property>
-
 	</task>
 
 </tasks>

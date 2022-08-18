@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
 
@@ -32,6 +32,7 @@ from ctrl.task_status_item import TaskState
 from ctrl.task_status_item import TaskStatusItem
 from ctrl.pid_control import PIDControl
 from ctrl.shared_queue import SharedQueue
+from ctrl.shared_queue_str import SharedQueueStr
 from ctrl.critical_section import CriticalSection
 from msg.exit_command import ExitCommand
 from msg.message_factory import MessageFactory
@@ -166,7 +167,7 @@ def main():
                                   config_file_reader.comm_port,
                                   config_file_reader.poll_timeout) as comm_handler, \
                 SharedQueue() as task_queue, \
-                SharedQueue() as result_queue:
+                SharedQueueStr() as result_queue:
 
             if pid_control.lock():
 

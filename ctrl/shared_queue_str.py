@@ -17,22 +17,24 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import time
+"""Module for additional control components"""
 
-from .interruptable_sleep import InterruptableSleep
+from ctrl.shared_queue import SharedQueue
 
-class SecondsSleep(InterruptableSleep):
+class SharedQueueStr(SharedQueue):
+    """Typified SharedQueue with str objects"""
 
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
 
-    def sleep(self, seconds: int) -> None:
+    def fill(self, in_list : list[str]):
+        super().fill(in_list)
 
-        self._do_sleep = True
+    def push(self, item : str):
+        super().push(item)
 
-        for _ in range(0, seconds):
+    def pop_nowait(self) -> str:
+        return super().pop_nowait()
 
-            if not self._do_sleep:
-                break
-
-            time.sleep(1)
+    def pop(self) -> str:
+        return super().pop()

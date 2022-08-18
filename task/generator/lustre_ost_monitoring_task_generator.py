@@ -29,7 +29,7 @@ from lfs.lfs_utils import LfsUtils
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory
 from task.generator.base_task_generator import BaseTaskGenerator
-from util.seconds_sleep import SecondsSleep
+from util.interruptable_sleep import InterruptableSleep
 
 class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
     """Class for Lustre Monitoring Task Generator"""
@@ -54,7 +54,7 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
         if ost_select_list:
             self.ost_select_list.extend([int(i) for i in list(RangeSet(ost_select_list).striter())])
 
-        self._interruptable_sleep = SecondsSleep()
+        self._interruptable_sleep = InterruptableSleep()
 
     def validate_config(self) -> None:
         pass
