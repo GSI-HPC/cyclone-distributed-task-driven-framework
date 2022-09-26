@@ -72,8 +72,8 @@ class LustreFileCreationMetricProcessor:
 
     def __init__(self) -> None:
 
-        self.error_metric  = None
-        self.check_metrics = defaultdict(lambda: defaultdict(dict))
+        self.error_metric  = False
+        self.check_metrics = defaultdict[str, dict](lambda: defaultdict[int, dict](dict[int, int]))
 
         self.metric_error_name = 'cyclone_lustre_file_creation_error'
         self.metric_error_help = f"# HELP {self.metric_error_name} Indicates if an error occured during the Lustre File Creation Check (0=False/1=True)."
@@ -103,9 +103,6 @@ class LustreFileCreationMetricProcessor:
                 logging.debug('LustreFileCreationCheckState.FAILED')
                 self.check_metrics[target][mdt_idx][ost_idx] = 0
 
-            if self.error_metric is None:
-                self.error_metric = False
-
         else:
 
             logging.debug('LustreFileCreationCheckState.ERROR')
@@ -115,15 +112,12 @@ class LustreFileCreationMetricProcessor:
 
     def data(self) -> str:
 
-        if self.error_metric is not None and self.check_metrics:
-            return (
-                f"{self._create_error_metric()}"
-                f"{self._create_check_metrics()}")
-        else:
-            return ''
+        return (
+            f"{self._create_error_metric()}"
+            f"{self._create_check_metrics()}")
 
     def clear(self) -> None:
-        self.error_metric  = None
+        self.error_metric = False
         self.check_metrics.clear()
 
     @staticmethod
