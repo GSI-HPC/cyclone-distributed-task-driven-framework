@@ -29,6 +29,7 @@ from lfs.lfs_utils import LfsUtils
 from prometheus.lustre_file_creation_check import LustreFileCreationCheckResult, LustreFileCreationCheckState
 from util.auto_remove_file import AutoRemoveFile
 from task.base_task import BaseTask
+from util.type_conv_with_none import conv_int
 
 class LustreFileCreationCheckTask(BaseTask):
 
@@ -40,64 +41,16 @@ class LustreFileCreationCheckTask(BaseTask):
         self.target_base_dir     = target_base_dir
         self.target_mdt_sub_dir  = target_mdt_sub_dir
         self.mdt_index_rangeset  = mdt_index_rangeset
-        self.ost_idx             = ost_idx
+        self.ost_idx             = conv_int(ost_idx)
         self.pushgateway_name    = pushgateway_name
-        self.pushgateway_port    = pushgateway_port
-        self.pushgateway_timeout = pushgateway_timeout
+        self.pushgateway_port    = conv_int(pushgateway_port)
+        self.pushgateway_timeout = conv_int(pushgateway_timeout)
 
         self._lfs_utils         = LfsUtils()
         self._mdt_index_list    = []
 
         for mdt_idx in RangeSet(mdt_index_rangeset).striter():
             self._mdt_index_list.append(int(mdt_idx))
-
-    @property
-    def ost_idx(self) -> int:
-        return self._ost_idx
-
-    @ost_idx.setter
-    def ost_idx(self, ost_idx: str) -> None:
-
-        type_ = type(ost_idx)
-
-        if type_ is int:
-            self._ost_idx = ost_idx
-        elif type_ is str and ost_idx:
-            self._ost_idx = int(ost_idx)
-        else:
-            self._ost_idx = None
-
-    @property
-    def pushgateway_port(self) -> int:
-        return self._pushgateway_port
-
-    @pushgateway_port.setter
-    def pushgateway_port(self, pushgateway_port: str) -> None:
-
-        type_ = type(pushgateway_port)
-
-        if type_ is int:
-            self._pushgateway_port = pushgateway_port
-        elif type_ is str and pushgateway_port:
-            self._pushgateway_port = int(pushgateway_port)
-        else:
-            self._pushgateway_port = None
-
-    @property
-    def pushgateway_timeout(self) -> int:
-        return self._pushgateway_timeout
-
-    @pushgateway_timeout.setter
-    def pushgateway_timeout(self, pushgateway_timeout: str) -> None:
-
-        type_ = type(pushgateway_timeout)
-
-        if type_ is int:
-            self._pushgateway_timeout = pushgateway_timeout
-        elif type_ is str and pushgateway_timeout:
-            self._pushgateway_timeout = int(pushgateway_timeout)
-        else:
-            self._pushgateway_timeout = None
 
     def execute(self) -> None:
 
