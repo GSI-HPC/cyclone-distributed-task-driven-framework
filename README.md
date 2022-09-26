@@ -16,10 +16,9 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 
 ## Versions
 
-These versions have been successfully tested with the `BenchmarkTask` to check the core functioning of the framework.
-
 | Cyclone | Python | pyzmq  |
 | :-----: | :----: | :----: |
+| 2.0.5   | 3.9.12 | 22.3.0 |
 | 2.0.2   | 3.8.5  | 20.0.0 |
 | 2.0.0   | 3.6.0  | 19.0.0 |
 
