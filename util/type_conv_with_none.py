@@ -17,7 +17,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-def conv_int(arg : str) -> int|None:
+import typing
+
+# TODO: With Python 3.10 use for type hinting instead: -> int|None
+def conv_int(arg : str) -> typing.Optional[int]:
 
     if arg:
         return int(arg)
