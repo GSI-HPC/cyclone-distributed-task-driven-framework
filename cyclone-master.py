@@ -46,7 +46,7 @@ TASK_DISTRIBUTION = True
 
 def init_arg_parser():
 
-    default_config_file = "/etc/cyclone/master.conf"
+    default_config_file = '/etc/cyclone/master.conf'
 
     parser = argparse.ArgumentParser(description='Cyclone Master')
 
@@ -98,24 +98,24 @@ def signal_handler(signum, frame):
 
     if signum == signal.SIGHUP:
 
-        logging.info("Master retrieved hang-up signal.")
+        logging.info('Master retrieved hang-up signal')
         stop_task_distribution()
 
     if signum == signal.SIGINT:
 
-        logging.info("Master retrieved interrupt program signal.")
+        logging.info('Master retrieved interrupt program signal')
         stop_task_distribution()
 
     if signum == signal.SIGTERM:
 
-        logging.info("Master Retrieved signal to terminate.")
+        logging.info('Master Retrieved signal to terminate')
         stop_task_distribution()
 
 def check_all_controller_down(count_active_controller):
 
     if not count_active_controller:
 
-        logging.info('Shutdown of controllers complete!')
+        logging.info('Shutdown of controllers complete')
         return True
 
     logging.debug("Waiting for number of controllers to quit: %i", count_active_controller)
@@ -162,7 +162,7 @@ def main():
 
             if pid_control.lock():
 
-                logging.info("Started")
+                logging.info('Started')
                 logging.info(f"Master PID: {pid_control.pid()}")
                 logging.info(f"Version: {cyclone.VERSION}")
 
@@ -232,7 +232,7 @@ def main():
                                                     controller_wait_duration = 0
 
                                                     # Allow a TaskGenerator to quit itself without notifying the master.
-                                                    logging.info("Task Generator is not alive.")
+                                                    logging.info('Task Generator is not alive')
 
                                     if task:
 
@@ -295,10 +295,10 @@ def main():
                                             result_queue.push(tid)
 
                                         else:
-                                            logging.warning("Retrieved task finished from different controller!")
+                                            logging.warning('Retrieved task finished from different controller')
 
                                     else:
-                                        raise RuntimeError("Inconsistency detected on task finished!")
+                                        raise RuntimeError('Inconsistency detected on task finished')
 
                                     send_msg = Acknowledge()
 
@@ -354,7 +354,7 @@ def main():
                     except Exception:
 
                         error_count += 1
-                        logging.exception(f"Caught exception in main loop")
+                        logging.exception('Caught exception in main loop')
 
                         stop_task_distribution()
 
@@ -369,7 +369,7 @@ def main():
     except Exception:
 
         error_count += 1
-        logging.exception(f"Caught exception in main block")
+        logging.exception('Caught exception in main block')
 
     try:
 
@@ -380,7 +380,7 @@ def main():
             for _ in range(0, 10, 1):
 
                 if task_generator.is_alive():
-                    logging.debug("Waiting for Task Generator to finish...")
+                    logging.debug('Waiting for Task Generator to finish...')
                     time.sleep(1)
                 else:
                     break
@@ -389,16 +389,12 @@ def main():
                 task_generator.terminate()
                 task_generator.join()
 
-    except Exception as err:
+    except Exception:
 
         error_count += 1
+        logging.exception('Caught exception during shutdown of Task Generator')
 
-        # TODO Replace all that stuff with logging.exception()
-        _, _, exc_tb = sys.exc_info()
-        filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
-
-    logging.info("Finished")
+    logging.info('Finished')
 
     if error_count:
         sys.exit(1)
