@@ -29,6 +29,7 @@ from prometheus.lustre_file_creation_check import LustreFileCreationMetricProces
 
 from ctrl.pid_control import PIDControl
 from comm.proxy_handler import ProxyCommHandler
+from version.minimal_python import MinimalPython
 
 run_condition = True
 
@@ -152,6 +153,8 @@ def push_metics(url):
 def main():
 
     try:
+
+        MinimalPython.check()
 
         args = init_arg_parser()
 

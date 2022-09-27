@@ -26,8 +26,8 @@ class MinimalPython(int, Enum):
 
     # See: https://docs.python.org/3/c-api/apiabiversion.html#apiabiversion
     MAJOR = 3
-    MINOR = 6
-    MICRO = 8
+    MINOR = 9
+    MICRO = 12
     FINAL_RELEASE_LEVEL = 240 # 0xF0
 
     def check(major=MAJOR, minor=MINOR, micro=MICRO, final=FINAL_RELEASE_LEVEL):

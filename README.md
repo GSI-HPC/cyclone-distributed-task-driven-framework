@@ -6,13 +6,13 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 
 ### Required
 
-**Python** - Standard Library
-**Python bindings for 0MQ (pyzmq)** - Interprocess communication between master, controller.
+* **Python** - Standard Library
+* **Python bindings for 0MQ (pyzmq)** - Interprocess communication between master, controller.
 
 ### Optional
 
-**YAML parser and emitter for Python (PyYAML)** - Parsing stripe information from Lustre.
-**MySQL Connector Python (mysql)** - For storing task results into a MySQL database.
+* **YAML parser and emitter for Python (PyYAML)** - Parsing stripe information from Lustre.
+* **MySQL Connector Python (mysql)** - For storing task results into a MySQL database.
 
 ## Versions
 

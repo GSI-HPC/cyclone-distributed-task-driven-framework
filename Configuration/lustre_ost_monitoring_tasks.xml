@@ -8,11 +8,11 @@
 	<task name="LustreFileCreationCheckTask">
 		<class module="task.lustre_file_creation_check_task" name="LustreFileCreationCheckTask"/>
 		<property>
+			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
 			<lfs_target>hebe</lfs_target>
 			<target_base_dir>/lustre/hebe/hpc/lfsmon/file_creation_check_monitoring</target_base_dir>
 			<target_mdt_sub_dir>mdt</target_mdt_sub_dir>
 			<mdt_index_rangeset>0-2</mdt_index_rangeset>
-			<ost_idx></ost_idx> <!-- set during runtime -->
 			<pushgateway_name>hostname</pushgateway_name>
 			<pushgateway_port>5888</pushgateway_port>
 			<pushgateway_timeout>10000</pushgateway_timeout>
@@ -25,7 +25,7 @@
 
 		<property>
 
-			<ost_idx></ost_idx> <!-- set during runtime -->
+			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
@@ -50,7 +50,7 @@
 			<mail_receiver>hpc-data@gsi.de</mail_receiver>
 			<mail_threshold>3600</mail_threshold>
 
-			<ost_idx></ost_idx> <!-- set during runtime -->
+			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
