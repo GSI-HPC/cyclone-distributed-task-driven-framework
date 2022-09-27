@@ -26,6 +26,7 @@ import os
 from conf.config_value_error import ConfigValueOutOfRangeError
 from ctrl.critical_section import CriticalSection
 from ctrl.shared_queue import SharedQueue
+from ctrl.shared_queue_str import SharedQueueStr
 from task.benchmark_task import BenchmarkTask
 from task.generator.base_task_generator import BaseTaskGenerator
 
@@ -33,7 +34,7 @@ from task.generator.base_task_generator import BaseTaskGenerator
 class BenchmarkTaskGenerator(BaseTaskGenerator):
     """Class for Benchmark Task Generator"""
 
-    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueue, config_file: str) -> None:
+    def __init__(self, task_queue: SharedQueue, result_queue: SharedQueueStr, config_file: str) -> None:
 
         super().__init__(task_queue, result_queue, config_file)
 
@@ -117,7 +118,7 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
         logging.info(f"{self._name} finished!")
         os._exit(0)
 
-    def _create_task_list(self) -> None:
+    def _create_task_list(self) -> list[BenchmarkTask]:
 
         task_list = list()
 

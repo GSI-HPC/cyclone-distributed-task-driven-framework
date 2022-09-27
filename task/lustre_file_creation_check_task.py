@@ -33,18 +33,18 @@ from util.type_conv_with_none import conv_int
 
 class LustreFileCreationCheckTask(BaseTask):
 
-    def __init__(self, lfs_target: str, target_base_dir: str, target_mdt_sub_dir: str, mdt_index_rangeset: str, ost_idx: str, pushgateway_name: str, pushgateway_port: str, pushgateway_timeout: str) -> None:
+    def __init__(self, ost_idx: str, lfs_target: str, target_base_dir: str, target_mdt_sub_dir: str, mdt_index_rangeset: str, pushgateway_name: str, pushgateway_port: str, pushgateway_timeout: str) -> None:
 
         super().__init__()
 
+        self.ost_idx             = conv_int(ost_idx)
         self.lfs_target          = lfs_target
         self.target_base_dir     = target_base_dir
         self.target_mdt_sub_dir  = target_mdt_sub_dir
         self.mdt_index_rangeset  = mdt_index_rangeset
-        self.ost_idx             = conv_int(ost_idx)
         self.pushgateway_name    = pushgateway_name
-        self.pushgateway_port    = conv_int(pushgateway_port)
-        self.pushgateway_timeout = conv_int(pushgateway_timeout)
+        self.pushgateway_port    = int(pushgateway_port)
+        self.pushgateway_timeout = int(pushgateway_timeout)
 
         self._lfs_utils         = LfsUtils()
         self._mdt_index_list    = []

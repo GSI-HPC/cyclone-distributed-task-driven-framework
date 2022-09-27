@@ -101,11 +101,11 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
         self._regex = rf"^(\d+) ({self.lfs_path}.*)$"
         self.pattern = re.compile(self._regex)
 
-        self.ost_cache_dict        = {}
-        self.ost_source_state_dict = {}
-        self.ost_target_state_dict = {}
-        self.ost_fill_level_dict   = {}
-        self.source_ost_key_list   = []
+        self.ost_cache_dict        = dict[int, list]()
+        self.ost_source_state_dict = dict[int, OSTState]()
+        self.ost_target_state_dict = dict[int, OSTState]()
+        self.ost_fill_level_dict   = dict[int, int]()
+        self.source_ost_key_list   = list[int]()
 
     def validate_config(self) -> None:
 
@@ -401,7 +401,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
     def _deallocate_empty_ost_caches(self) -> None:
 
-        empty_ost_cache_ids = None
+        empty_ost_cache_ids = list[int]()
 
         for ost, cache in self.ost_cache_dict.items():
 
@@ -409,9 +409,6 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
 
                 if self.ost_source_state_dict[ost] == OSTState.READY \
                         or self.ost_source_state_dict[ost] == OSTState.LOCKED:
-
-                    if not empty_ost_cache_ids:
-                        empty_ost_cache_ids = []
 
                     empty_ost_cache_ids.append(ost)
 
@@ -449,7 +446,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
     def _update_ost_target_state_dict(self, ost: int) -> None:
         self._update_ost_state_dict(ost, self.ost_target_state_dict, operator.lt)
 
-    def _update_ost_state_dict(self, ost: int, ost_state_dict: Dict[int, int], operator_func = None) -> None:
+    def _update_ost_state_dict(self, ost: int, ost_state_dict: Dict[int, OSTState], operator_func = None) -> None:
 
         if operator_func:
 

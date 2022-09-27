@@ -64,27 +64,11 @@ class OstMigrateTask(BaseTask):
             logging.exception("[OstMigrateTask] Failed to migrate file: %s", self.filename)
 
     @property
-    def block(self):
+    def block(self) -> bool:
         return self._block
 
-    @property
-    def skip(self):
-        return self._skip
-
-    @property
-    def source_ost(self):
-        return self._source_ost
-
-    @property
-    def target_ost(self):
-        return self._target_ost
-
-    @property
-    def filename(self):
-        return self._filename
-
     @block.setter
-    def block(self, block):
+    def block(self, block) -> None:
 
         if block is None:
             raise RuntimeError('block parameter must be a set.')
@@ -94,8 +78,12 @@ class OstMigrateTask(BaseTask):
 
         self._block = bool(distutils.util.strtobool(block))
 
+    @property
+    def skip(self) -> bool:
+        return self._skip
+
     @skip.setter
-    def skip(self, skip):
+    def skip(self, skip) -> None:
 
         if skip is None:
             raise RuntimeError('skip parameter must be a set.')
@@ -105,16 +93,28 @@ class OstMigrateTask(BaseTask):
 
         self._skip = bool(distutils.util.strtobool(skip))
 
+    @property
+    def source_ost(self) -> int:
+        return self._source_ost
+
     @source_ost.setter
     def source_ost(self, idx):
         self._source_ost = int(idx)
 
+    @property
+    def target_ost(self) -> int:
+        return self._target_ost
+
     @target_ost.setter
-    def target_ost(self, idx):
+    def target_ost(self, idx) -> None:
         self._target_ost = int(idx)
 
+    @property
+    def filename(self) -> str:
+        return self._filename
+
     @filename.setter
-    def filename(self, filename):
+    def filename(self, filename) -> None:
 
         if not filename:
             raise RuntimeError('filename not set.')
