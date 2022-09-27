@@ -29,13 +29,13 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from task.io_task import IOTask
+from task.lustre_io_task import LustreIOTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
 from threading import Timer
 
 
-class AlertIOTask(IOTask):
+class LustreAlertIOTask(LustreIOTask):
 
     def __init__(self,
                  mail_server,

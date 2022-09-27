@@ -30,7 +30,7 @@ from util.auto_remove_file import AutoRemoveFile
 from lfs.lfs_utils import LfsUtils
 
 
-class IOTask(BaseTask):
+class LustreIOTask(BaseTask):
 
     def __init__(self,
                  ost_idx,
