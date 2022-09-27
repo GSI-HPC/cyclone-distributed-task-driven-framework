@@ -16,9 +16,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-CMD_FIND="/usr/bin/find"
-CMD_XARGS="/usr/bin/xargs"
-CMD_PYLINT="/home/$USER/.local/bin/pylint"
+CMD_FIND=`which find`
+CMD_XARGS=`which xargs`
+CMD_PYLINT=`which pylint`
 
 OUTPUT_LINTER="$PWD/linter.out"
 
