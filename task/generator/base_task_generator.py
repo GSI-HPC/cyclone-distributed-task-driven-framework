@@ -75,4 +75,3 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
         logging.info("%s retrieved signal to terminate.", self._name)
         self._run_flag = False
         self._interruptable_sleep.interrupt()
-

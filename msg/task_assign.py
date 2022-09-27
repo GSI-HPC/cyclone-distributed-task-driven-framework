@@ -14,9 +14,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import inspect
 
@@ -24,7 +23,6 @@ from msg.base_message import BaseMessage
 from msg.message_type import MessageType
 from task.base_task import BaseTask
 from task.task_factory import TaskFactory
-
 
 class TaskAssign(BaseMessage):
     """The Master sends this message to a controller to assign a task."""

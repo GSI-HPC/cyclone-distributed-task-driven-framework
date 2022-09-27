@@ -14,9 +14,12 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from threading import Timer
 
 import os
 import sys
@@ -26,14 +29,9 @@ import logging
 import datetime
 import smtplib
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-
 from task.lustre_io_task import LustreIOTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
-from threading import Timer
-
 
 class LustreAlertIOTask(LustreIOTask):
 

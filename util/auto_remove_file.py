@@ -14,15 +14,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import os
 
-
 class AutoRemoveFile:
-    
+
     def __init__(self, file_path):
         self.file_path = file_path
 

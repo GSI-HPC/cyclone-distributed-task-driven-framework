@@ -14,9 +14,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 from abc import ABCMeta
 
@@ -29,7 +28,6 @@ from msg.task_finished import TaskFinished
 from msg.acknowledge import Acknowledge
 from msg.heartbeat import Heartbeat
 from msg.exit_command import ExitCommand
-
 
 class MessageFactory(metaclass=ABCMeta):
 

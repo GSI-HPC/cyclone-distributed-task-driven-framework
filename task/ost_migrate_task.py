@@ -14,16 +14,14 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import distutils.util
 import logging
 
 from task.base_task import BaseTask
 from lfs.lfs_utils import LfsUtils
-
 
 class OstMigrateTask(BaseTask):
 

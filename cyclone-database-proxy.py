@@ -14,9 +14,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import argparse
 import logging
@@ -31,7 +30,6 @@ from db.ost_perf_history_table_handler import OSTPerfHistoryTableHandler
 from version.minimal_python import MinimalPython
 
 RUN_FLAG = True
-
 
 def init_arg_parser():
 
@@ -63,7 +61,6 @@ def init_arg_parser():
 
     return parser.parse_args()
 
-
 def init_logging(log_filename, enable_debug):
 
     if enable_debug:
@@ -79,14 +76,12 @@ def init_logging(log_filename, enable_debug):
         logging.basicConfig(level=log_level,
                             format="%(asctime)s - %(levelname)s: %(message)s")
 
-
 def set_run_flag_false():
 
     global RUN_FLAG
 
     if RUN_FLAG:
         RUN_FLAG = False
-
 
 def signal_handler(signum, frame):
     # pylint: disable=unused-argument
@@ -105,7 +100,6 @@ def signal_handler(signum, frame):
 
         logging.info('Retrieved signal to terminate.')
         set_run_flag_false()
-
 
 def main():
 
@@ -221,7 +215,6 @@ def main():
         os._exit(1)
     else:
         os._exit(0)
-
 
 if __name__ == '__main__':
     main()

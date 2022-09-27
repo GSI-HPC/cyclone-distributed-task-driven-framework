@@ -14,9 +14,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import argparse
 import logging
@@ -43,9 +42,7 @@ from task.poison_pill import PoisonPill
 from version import cyclone
 from version.minimal_python import MinimalPython
 
-
 RUN_CONDITION = True
-
 
 def init_arg_parser():
 
@@ -77,7 +74,6 @@ def init_arg_parser():
 
     return parser.parse_args()
 
-
 def init_logging(log_filename, enable_debug):
 
     if enable_debug:
@@ -90,7 +86,6 @@ def init_logging(log_filename, enable_debug):
     else:
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
-
 def create_worker_ids(worker_count):
 
     worker_ids = []
@@ -99,7 +94,6 @@ def create_worker_ids(worker_count):
         worker_ids.append(f"WORKER_{i}")
 
     return worker_ids
-
 
 def create_worker_state_table(worker_ids):
 
@@ -116,7 +110,6 @@ def create_worker_state_table(worker_ids):
                            f" - expected: {len_worker_ids}")
 
     return worker_state_table
-
 
 def create_worker(worker_state_table,
                   lock_worker_state_table,
@@ -141,7 +134,6 @@ def create_worker(worker_state_table,
         worker_handle_dict[worker_id] = worker_handle
 
     return worker_handle_dict
-
 
 def start_worker(worker_handle_dict, worker_state_table):
 
@@ -177,14 +169,12 @@ def start_worker(worker_handle_dict, worker_state_table):
 
     return False
 
-
 def stop_run_condition():
 
     global RUN_CONDITION
 
     if RUN_CONDITION:
         RUN_CONDITION = False
-
 
 def signal_handler(signum, frame):
     # pylint: disable=unused-argument
@@ -203,7 +193,6 @@ def signal_handler(signum, frame):
 
         logging.info('Retrieved signal to terminate.')
         stop_run_condition()
-
 
 def main():
 
@@ -489,7 +478,6 @@ def main():
 
     logging.info('Finished')
     sys.exit(0)
-
 
 if __name__ == '__main__':
     main()

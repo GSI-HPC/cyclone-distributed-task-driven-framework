@@ -17,12 +17,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import importlib
 import inspect
 
 from msg.base_message import BaseMessage
-
 
 class TaskFactory:
 

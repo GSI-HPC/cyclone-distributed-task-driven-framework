@@ -14,9 +14,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 import multiprocessing
 import logging
@@ -27,9 +26,7 @@ import sys
 import abc
 import os
 
-
 from ctrl.critical_section import CriticalSection
-
 
 class WorkerState:
 
@@ -50,7 +47,6 @@ class WorkerState:
             return "EXECUTING"
         else:
             raise RuntimeError(f"Not supported worker state detected: {state}")
-
 
 class WorkerStateTableItem:
 
@@ -87,7 +83,6 @@ class WorkerStateTableItem:
 
     def set_timestamp(self, timestamp):
         self._timestamp.value = timestamp
-
 
 class Worker(multiprocessing.Process):
 

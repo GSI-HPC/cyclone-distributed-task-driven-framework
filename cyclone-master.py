@@ -17,7 +17,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 import argparse
 import importlib
 import logging
@@ -43,9 +42,7 @@ from msg.wait_command import WaitCommand
 from version import cyclone
 from version.minimal_python import MinimalPython
 
-
 TASK_DISTRIBUTION = True
-
 
 def init_arg_parser():
 
@@ -77,7 +74,6 @@ def init_arg_parser():
 
     return parser.parse_args()
 
-
 def init_logging(log_filename, enable_debug):
 
     if enable_debug:
@@ -90,14 +86,12 @@ def init_logging(log_filename, enable_debug):
     else:
         logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s: %(message)s")
 
-
 def stop_task_distribution():
 
     global TASK_DISTRIBUTION
 
     if TASK_DISTRIBUTION:
         TASK_DISTRIBUTION = False
-
 
 def signal_handler(signum, frame):
     # pylint: disable=unused-argument
@@ -117,7 +111,6 @@ def signal_handler(signum, frame):
         logging.info("Master Retrieved signal to terminate.")
         stop_task_distribution()
 
-
 def check_all_controller_down(count_active_controller):
 
     if not count_active_controller:
@@ -127,7 +120,6 @@ def check_all_controller_down(count_active_controller):
 
     logging.debug("Waiting for number of controllers to quit: %i", count_active_controller)
     return False
-
 
 def create_task_generator(task_queue, result_queue, config_file_reader):
 
@@ -139,7 +131,6 @@ def create_task_generator(task_queue, result_queue, config_file_reader):
     dynamic_class = getattr(dynamic_module, class_name)
 
     return dynamic_class(task_queue, result_queue, config_file)
-
 
 def main():
 
@@ -413,7 +404,6 @@ def main():
         sys.exit(1)
 
     sys.exit(0)
-
 
 if __name__ == '__main__':
     main()

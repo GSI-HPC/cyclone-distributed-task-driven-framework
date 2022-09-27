@@ -14,13 +14,11 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 from msg.base_message import BaseMessage
 from msg.message_type import MessageType
-
 
 class TaskFinished(BaseMessage):
     """Controller sends this message to the master when a task is finished."""

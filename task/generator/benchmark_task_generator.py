@@ -14,7 +14,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 """Module for task generator"""
 
@@ -29,7 +29,6 @@ from ctrl.shared_queue import SharedQueue
 from ctrl.shared_queue_str import SharedQueueStr
 from task.benchmark_task import BenchmarkTask
 from task.generator.base_task_generator import BaseTaskGenerator
-
 
 class BenchmarkTaskGenerator(BaseTaskGenerator):
     """Class for Benchmark Task Generator"""

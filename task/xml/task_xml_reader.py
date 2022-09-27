@@ -14,21 +14,18 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-
 
 from xml.etree import ElementTree
 from collections import OrderedDict
 
 import os
 
-
 class TaskXmlReaderError(Exception):
 
     def __init__(self, message):
         super().__init__(f"[XML]: {message}")
-
 
 class TaskXmlInfo:
 
@@ -38,7 +35,6 @@ class TaskXmlInfo:
         self.class_module = class_module
         self.class_name = class_name
         self.class_properties = class_properties
-
 
 class TaskXmlReader:
 
