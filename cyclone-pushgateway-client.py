@@ -17,6 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from typing import Text
+
 import argparse
 import configparser
 import logging
@@ -130,7 +132,7 @@ def process_recv_data(comm_handler: ProxyCommHandler):
     except Exception:
         logging.exception('An error occurred')
 
-def push_metics(url):
+def push_metics(url: Text, timeout: int = 0):
 
     is_debug = logging.root.isEnabledFor(logging.DEBUG)
 
@@ -143,12 +145,19 @@ def push_metics(url):
             logging.debug('Pushing metrics to pushgateway')
             start = time.time()
 
-        r = requests.post(url, data=data, timeout=10.0)
-        r.raise_for_status()
+        response = requests.post(url, data=data, timeout=timeout)
+        response.raise_for_status()
 
         if is_debug:
             logging.debug(f"Pushed metrics in {round(time.time() - start, 2)}s")
             logging.debug(data)
+
+def clear_metrics(url: Text, timeout: int = 0):
+
+    logging.debug('Clearing metrics at pushgateway')
+
+    response = requests.delete(url, timeout=timeout)
+    response.raise_for_status()
 
 def main():
 
@@ -173,28 +182,43 @@ def main():
                 logging.info('START')
                 logging.info("Pushgateway PID: %s", pid_control.pid())
 
-                push_interval = config_file_reader.push_interval
-                push_url      = config_file_reader.push_url
+                push_interval       = config_file_reader.push_interval
+                push_url            = config_file_reader.push_url
+                push_clear_interval = config_file_reader.push_clear_interval
+                push_timeout        = config_file_reader.push_timeout
 
                 init_signal_handler()
 
                 comm_handler.connect()
 
-                next_push_timestamp = int(time.time()) + push_interval
+                last_exec_timestamp  = int(time.time())
+                next_push_timestamp  = last_exec_timestamp + push_interval
+                next_clear_timestamp = last_exec_timestamp + push_clear_interval
 
                 while run_condition:
 
-                    last_exec_timestamp = int(time.time())
+                    try:
 
-                    process_recv_data(comm_handler)
+                        last_exec_timestamp = int(time.time())
 
-                    if last_exec_timestamp >= next_push_timestamp:
+                        process_recv_data(comm_handler)
 
-                        next_push_timestamp = last_exec_timestamp + push_interval
+                        if last_exec_timestamp >= next_push_timestamp:
 
-                        push_metics(push_url)
+                            push_metics(push_url, push_timeout)
 
-                        lustre_file_creation_metrics.clear()
+                            lustre_file_creation_metrics.clear()
+
+                            next_push_timestamp = last_exec_timestamp + push_interval
+
+                        if last_exec_timestamp >= next_clear_timestamp:
+
+                            clear_metrics(push_url, push_timeout)
+
+                            next_clear_timestamp = last_exec_timestamp + push_clear_interval
+
+                    except Exception:
+                        logging.exception('An error occurred during run loop')
 
                 logging.info('END')
 
