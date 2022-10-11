@@ -17,6 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 import time
 
@@ -29,12 +30,17 @@ class BenchmarkTask(BaseTask):
 
     def execute(self):
 
-        pid = os.getpid()
-        outfile = f"/tmp/benchmark_task_{pid}.tmp"
+        try:
 
-        tid_num = int(self.tid)
-        waittime = (tid_num % 100 / 1000)
-        time.sleep(waittime)
+            pid = os.getpid()
+            outfile = f"/tmp/benchmark_task_{pid}.tmp"
 
-        with open(outfile, "a") as myfile:
-            myfile.write(f"TID: {tid_num} - PID: {pid} - Wait: {waittime}\n")
+            tid_num = int(self.tid)
+            waittime = (tid_num % 100 / 1000)
+            time.sleep(waittime)
+
+            with open(outfile, "a") as myfile:
+                myfile.write(f"TID: {tid_num} - PID: {pid} - Wait: {waittime}\n")
+
+        except Exception:
+            logging.exception('Caught exception during task execution')

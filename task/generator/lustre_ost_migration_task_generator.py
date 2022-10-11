@@ -301,7 +301,7 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         self._interruptable_sleep.sleep(1)
 
                 except InterruptedError:
-                    logging.error("Caught InterruptedError exception.")
+                    logging.error('Caught InterruptedError exception')
 
         except Exception:
             logging.exception("Caught exception in %s", self._name)
@@ -384,8 +384,8 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                         logging.error("Failed line - %s: %s", error, line)
                         error_counter += 1
 
-        except Exception as error:
-            logging.error("Aborted loading of input file %s:\n%s", file_path, error)
+        except Exception:
+            logging.exception(f"Error occurred during loading of input file: {file_path}")
 
         logging.info("Input file: %s - Loaded: %i - Failed: %i", file_path, loaded_counter, error_counter)
 

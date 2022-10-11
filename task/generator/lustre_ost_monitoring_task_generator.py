@@ -90,7 +90,7 @@ class LustreOstMonitoringTaskGenerator(BaseTaskGenerator):
                 self._interruptable_sleep.sleep(self.measure_interval)
 
             except InterruptedError:
-                logging.error("Caught InterruptedError exception.")
+                logging.error('Caught InterruptedError exception')
 
             except Exception:
                 logging.exception("Caught exception in %s", self._name)

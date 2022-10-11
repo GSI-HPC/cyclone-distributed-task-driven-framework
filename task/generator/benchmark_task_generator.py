@@ -103,14 +103,10 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
                 logging.info(f"Count of completed tasks: {len_task_list} - It took: {duration}s")
 
         except InterruptedError:
-            logging.error("Caught InterruptedError exception.")
+            logging.error('Caught InterruptedError exception')
 
-        except Exception as err:
-
-            _, _, exc_tb = sys.exc_info()
-            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-
-            logging.error(f"Exception in {filename} (line: {exc_tb.tb_lineno}): {err}")
+        except Exception:
+            logging.exception("Caught exception in %s", self._name)
             logging.info(f"{self._name} exited!")
             os._exit(1)
 

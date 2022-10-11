@@ -59,7 +59,7 @@ class OstMigrateTask(BaseTask):
         try:
             logging.info(self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip))
         except Exception:
-            logging.exception("[OstMigrateTask] Failed to migrate file: %s", self.filename)
+            logging.exception("Failed to migrate file: %s", self.filename)
 
     @property
     def block(self) -> bool:

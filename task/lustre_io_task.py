@@ -159,7 +159,7 @@ class LustreIOTask(BaseTask):
                     logging.debug('Sent ost_perf_result to db-proxy.')
 
         except Exception:
-            logging.exception("Caught exception in IOTask")
+            logging.exception('Caught exception during task execution')
 
     def _initialize_payload(self):
 

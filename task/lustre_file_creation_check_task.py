@@ -128,4 +128,4 @@ class LustreFileCreationCheckTask(BaseTask):
                 logging.debug("%s|%s|%s", self.lfs_target, LustreFileCreationCheckState.IGNORED, str_ost_idx)
 
         except Exception:
-            logging.exception('Caught exception in LustreFileCreationCheckTask')
+            logging.exception('Caught exception during task execution')

@@ -138,15 +138,9 @@ class Worker(multiprocessing.Process):
                     self.worker_state_table_item.set_timestamp(int(time.time()))
 
                 try:
-
                     task.execute()
-
-                except Exception as err:
-
-                    exc_type, _, exc_tb = sys.exc_info()
-                    filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] "
-                                  f"during task execute: {err} - {filename} (line: {exc_tb.tb_lineno})")
+                except Exception:
+                    logging.exception(f"Caught exception in worker[{self.name}] during task execution")
 
                 with CriticalSection(self.cond_result_queue):
 
@@ -163,12 +157,8 @@ class Worker(multiprocessing.Process):
 
             os._exit(0)
 
-        except Exception as err:
-
-            exc_type, _, exc_tb = sys.exc_info()
-            filename = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            logging.error(f"Caught exception (type: {exc_type}) in worker[{self.name}] during run loop: {err} "
-                          f"- {filename} (line: {exc_tb.tb_lineno})")
+        except Exception:
+            logging.exception(f"Caught exception in worker[{self.name}] during run loop")
             os._exit(1)
 
     def signal_handler_shutdown(self, signal, frame):
