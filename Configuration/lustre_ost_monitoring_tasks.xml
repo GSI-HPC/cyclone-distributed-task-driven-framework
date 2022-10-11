@@ -6,7 +6,9 @@
 	</task>
 
 	<task name="LustreFileCreationCheckTask">
+
 		<class module="task.lustre_file_creation_check_task" name="LustreFileCreationCheckTask"/>
+
 		<property>
 			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
 			<lfs_target>hebe</lfs_target>
@@ -17,14 +19,14 @@
 			<pushgateway_port>5888</pushgateway_port>
 			<pushgateway_timeout>10000</pushgateway_timeout>
 		</property>
+
 	</task>
 
-	<task name="IOTask">
+	<task name="LustreIOTask">
 
-		<class module="task.io_task" name="IOTask"/>
+		<class module="task.lustre_io_task" name="LustreIOTask"/>
 
 		<property>
-
 			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
@@ -34,22 +36,19 @@
 			<lfs_target>nyx</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
 			<db_proxy_port>5777</db_proxy_port>
-
 		</property>
 
 	</task>
 
-	<task name="AlertIOTask">
+	<task name="LustreAlertIOTask">
 
-		<class module="task.alert_io_task" name="AlertIOTask"/>
+		<class module="task.lustre_alert_io_task" name="LustreAlertIOTask"/>
 
 		<property>
-
 			<mail_server>localhost</mail_server>
 			<mail_sender>hpc-data@gsi.de</mail_sender>
 			<mail_receiver>hpc-data@gsi.de</mail_receiver>
 			<mail_threshold>3600</mail_threshold>
-
 			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
@@ -59,7 +58,6 @@
 			<lfs_target>nyx</lfs_target>
 			<db_proxy_target>hostname</db_proxy_target>
 			<db_proxy_port>5777</db_proxy_port>
-
 		</property>
 
 	</task>
