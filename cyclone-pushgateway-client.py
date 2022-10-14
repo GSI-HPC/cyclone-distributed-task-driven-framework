@@ -41,15 +41,13 @@ def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='Prometheus Pushgateway for Cyclone Metrics')
 
-    default_config_file = "/etc/cyclone/pushgateway.conf"
-
     parser.add_argument('-f',
                         '--config-file',
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=f"Use this config file (default: {default_config_file})",
-                        default=default_config_file)
+                        help="Use this config file (default: %(default)s)",
+                        default='/etc/cyclone/pushgateway.conf')
 
     parser.add_argument('-D',
                         '--debug',

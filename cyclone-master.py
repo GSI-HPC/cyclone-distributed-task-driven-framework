@@ -10,7 +10,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -46,8 +46,6 @@ TASK_DISTRIBUTION = True
 
 def init_arg_parser():
 
-    default_config_file = '/etc/cyclone/master.conf'
-
     parser = argparse.ArgumentParser(description='Cyclone Master')
 
     parser.add_argument('-f',
@@ -55,8 +53,8 @@ def init_arg_parser():
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=f"Use this config file (default: {default_config_file})",
-                        default=default_config_file)
+                        help="Use this config file (default: %(default)s)",
+                        default='/etc/cyclone/master.conf')
 
     parser.add_argument('-D',
                         '--debug',
@@ -67,10 +65,8 @@ def init_arg_parser():
 
     parser.add_argument('-v',
                         '--version',
-                        dest='print_version',
-                        required=False,
-                        action='store_true',
-                        help='Print version number')
+                        action='version',
+                        version=cyclone.VERSION)
 
     return parser.parse_args()
 
@@ -144,10 +140,6 @@ def main():
     try:
 
         args = init_arg_parser()
-
-        if args.print_version:
-            print(f"Version {cyclone.VERSION}")
-            sys.exit()
 
         config_file_reader = MasterConfigFileReader(args.config_file)
 

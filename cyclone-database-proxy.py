@@ -10,7 +10,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -35,15 +35,13 @@ def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='Cyclone Database Proxy')
 
-    default_config_file = "/etc/cyclone/database-proxy.conf"
-
     parser.add_argument('-f',
                         '--config-file',
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=f"Path to the config file (default: {default_config_file})",
-                        default=default_config_file)
+                        help="Path to the config file (default: %(default)s)",
+                        default='/etc/cyclone/database-proxy.conf')
 
     parser.add_argument('--create-table',
                         dest='create_table',

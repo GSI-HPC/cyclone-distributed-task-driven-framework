@@ -10,7 +10,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -48,15 +48,13 @@ def init_arg_parser():
 
     parser = argparse.ArgumentParser(description='Cyclone Controller')
 
-    default_config_file = "/etc/cyclone/controller.conf"
-
     parser.add_argument('-f',
                         '--config-file',
                         dest='config_file',
                         type=str,
                         required=False,
-                        help=f"Path to the config file (default: {default_config_file})",
-                        default=default_config_file)
+                        help="Path to the config file (default: %(default)s)",
+                        default='/etc/cyclone/controller.conf')
 
     parser.add_argument('-D',
                         '--debug',
@@ -67,10 +65,8 @@ def init_arg_parser():
 
     parser.add_argument('-v',
                         '--version',
-                        dest='print_version',
-                        required=False,
-                        action='store_true',
-                        help='Print version number')
+                        action='version',
+                        version=cyclone.VERSION)
 
     return parser.parse_args()
 
@@ -202,10 +198,6 @@ def main():
 
         args = init_arg_parser()
 
-        if args.print_version:
-            print(f"Version {cyclone.VERSION}")
-            sys.exit()
-
         config_file_reader = ControllerConfigFileReader(args.config_file)
 
         init_logging(config_file_reader.log_filename, args.enable_debug)
@@ -221,8 +213,7 @@ def main():
 
                 logging.info("Started")
                 logging.info(f"Controller PID: {pid_control.pid()}")
-
-                logging.debug("Version: %s", cyclone.VERSION)
+                logging.info(f"Version: {cyclone.VERSION}")
 
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 signal.signal(signal.SIGHUP, signal_handler)
