@@ -41,7 +41,7 @@ class BaseHandler(metaclass=abc.ABCMeta):
         if not port in range(1024, 65535):
             raise RuntimeError('Communication port must be a number between 1024 and 65535!')
 
-        if timeout <= 0:
+        if timeout < 0:
             raise RuntimeError('No valid timeout is set!')
 
         self.target  = target
