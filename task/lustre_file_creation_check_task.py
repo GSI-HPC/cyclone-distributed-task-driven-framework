@@ -74,37 +74,40 @@ class LustreFileCreationCheckTask(BaseTask):
 
                     try:
 
+                        elapsed_time = None
+
                         str_mdt_idx = str(mdt_idx)
 
                         file_path = f"{self.target_base_dir}{os.path.sep}{self.target_mdt_sub_dir}{str_mdt_idx}{os.path.sep}{str_ost_idx}_file_creation_check.tmp"
 
                         with AutoRemoveFile(file_path):
+
                             if os.path.exists(file_path):
                                 os.remove(file_path)
 
-                        start_time = datetime.now()
-                        self._lfs_utils.set_ost_file_stripe(file_path, self.ost_idx)
-                        elapsed_time = datetime.now() - start_time
+                            start_time = datetime.now()
+                            self._lfs_utils.set_ost_file_stripe(file_path, self.ost_idx)
+                            elapsed_time = datetime.now() - start_time
 
-                        current_ost_idx = int(self._lfs_utils.stripe_info(file_path).index)
+                            current_ost_idx = int(self._lfs_utils.stripe_info(file_path).index)
 
-                        if self.ost_idx == current_ost_idx:
+                            if self.ost_idx == current_ost_idx:
 
-                            state = LustreFileCreationCheckState.OK
+                                state = LustreFileCreationCheckState.OK
 
-                            # TODO task info level or internal debug messages are more verbose level?
-                            logging.debug("%s|%s|%s|%s|%s|%s", self.lfs_target, state, file_path, str_mdt_idx, str_ost_idx, elapsed_time)
+                                # TODO task info level or internal debug messages are more verbose level?
+                                logging.debug("%s|%s|%s|%s|%s|%s", self.lfs_target, state, file_path, str_mdt_idx, str_ost_idx, elapsed_time)
 
-                            check_result = LustreFileCreationCheckResult(self.lfs_target, state, mdt_idx, self.ost_idx)
+                                check_result = LustreFileCreationCheckResult(self.lfs_target, state, mdt_idx, self.ost_idx)
 
-                        else:
+                            else:
 
-                            state = LustreFileCreationCheckState.FAILED
+                                state = LustreFileCreationCheckState.FAILED
 
-                            # TODO task info level or internal debug messages are more verbose level?
-                            logging.debug("%s|%s|%s|%s|%s|%s", self.lfs_target, state, file_path, str_mdt_idx, str_ost_idx, elapsed_time)
+                                # TODO task info level or internal debug messages are more verbose level?
+                                logging.debug("%s|%s|%s|%s|%s|%s", self.lfs_target, state, file_path, str_mdt_idx, str_ost_idx, elapsed_time)
 
-                            check_result = LustreFileCreationCheckResult(self.lfs_target, state, mdt_idx, self.ost_idx)
+                                check_result = LustreFileCreationCheckResult(self.lfs_target, state, mdt_idx, self.ost_idx)
 
                     except Exception:
 
