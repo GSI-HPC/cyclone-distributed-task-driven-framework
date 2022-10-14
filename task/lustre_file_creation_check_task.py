@@ -42,7 +42,6 @@ class LustreFileCreationCheckTask(BaseTask):
         self.target_base_dir     = target_base_dir
         self.target_mdt_sub_dir  = target_mdt_sub_dir
         self.mdt_index_rangeset  = mdt_index_rangeset
-        # TODO: Could make initialization of pushgateway attributes and comm_handler optional
         self.pushgateway_name    = pushgateway_name
         self.pushgateway_port    = int(pushgateway_port)
         self.pushgateway_timeout = int(pushgateway_timeout)
