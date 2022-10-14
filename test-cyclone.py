@@ -40,11 +40,11 @@ class TestTaskAssign(unittest.TestCase):
         self.assertEqual(task_assign.body, body)
         self.assertEqual(task_assign.to_string(), header)
 
-    def test_io_task_from_str(self):
+    def test_lustre_io_task_from_str(self):
 
         header_task_type   = "TASK_ASS"
-        header_task_module = "task.io_task"
-        header_task_class  = "IOTask"
+        header_task_module = "task.lustre_io_task"
+        header_task_class  = "LustreIOTask"
         header_task_id     = "23"
 
         header = f"{header_task_type}{BaseMessage.field_separator}   \
@@ -91,10 +91,10 @@ class TestTaskXmlReader(unittest.TestCase):
 
         self.assertEqual(task.tid, None)
 
-    def test_io_task(self):
+    def test_lustre_io_task(self):
 
         task_xml_info = \
-            TaskXmlReader.read_task_definition('Configuration/lustre_ost_monitoring_tasks.xml', 'IOTask')
+            TaskXmlReader.read_task_definition('Configuration/lustre_ost_monitoring_tasks.xml', 'LustreIOTask')
 
         task = TaskFactory().create_from_xml_info(task_xml_info)
 
