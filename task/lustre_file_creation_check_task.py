@@ -42,6 +42,7 @@ class LustreFileCreationCheckTask(BaseTask):
         self.target_base_dir     = target_base_dir
         self.target_mdt_sub_dir  = target_mdt_sub_dir
         self.mdt_index_rangeset  = mdt_index_rangeset
+        # TODO: Could make initialization of pushgateway attributes and comm_handler optional
         self.pushgateway_name    = pushgateway_name
         self.pushgateway_port    = int(pushgateway_port)
         self.pushgateway_timeout = int(pushgateway_timeout)
@@ -63,11 +64,8 @@ class LustreFileCreationCheckTask(BaseTask):
                 # TODO: Introduce different debug level... for internal framework and task specific messages.
                 logging.debug("Found active OST-IDX: %s", str_ost_idx)
 
-                comm_handler = None
-
-                if self.pushgateway_name and self.pushgateway_port:
-                    comm_handler = TaskCommHandler(self.pushgateway_name, self.pushgateway_port, self.pushgateway_timeout)
-                    comm_handler.connect()
+                comm_handler = TaskCommHandler(self.pushgateway_name, self.pushgateway_port, self.pushgateway_timeout)
+                comm_handler.connect()
 
                 # TODO: Could run in parallel for each MDT or be a seperate task for each MDT+OST...
                 for mdt_idx in self._mdt_index_list:
@@ -123,9 +121,8 @@ class LustreFileCreationCheckTask(BaseTask):
                     # TODO task info level or internal debug messages are more verbose level?
                     logging.debug(check_result)
 
-                    if comm_handler:
-                        comm_handler.send_string(check_result.to_string())
-                        logging.debug("Sent check result to pushgateway: %s", check_result)
+                    comm_handler.send_string(check_result.to_string())
+                    logging.debug("Sent check result to pushgateway: %s", check_result)
 
             else:
                 logging.debug("%s|%s|%s", self.lfs_target, LustreFileCreationCheckState.IGNORED, str_ost_idx)
