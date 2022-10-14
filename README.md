@@ -2,7 +2,7 @@
 
 A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 
-## Requisites
+## Prerequisites
 
 ### Required
 
