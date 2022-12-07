@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright 2021 Gabriele Iannetti <g.iannetti@gsi.de>
+# Copyright 2022 Gabriele Iannetti <g.iannetti@gsi.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 from enum import Enum
 from datetime import datetime, timedelta
+from types import NoneType
 from typing import Dict
 
 import logging
@@ -30,7 +31,22 @@ import socket
 import subprocess
 import yaml
 
-VERSION = '0.0.2'
+VERSION = '0.0.3'
+
+def conv_obj(arg: int|str|None) -> str:
+    """Support convertion from int, str and None objects to str.
+
+    None objects are converted to empty string.
+    """
+
+    if isinstance(arg, NoneType):
+        return ''
+    if isinstance(arg, str):
+        return arg
+    if isinstance(arg, int):
+        return str(arg)
+
+    raise TypeError(f"Argument of type {type(arg)} not supported")
 
 class LfsUtilsError(Exception):
     """Exception class LfsUtils specific errors."""
@@ -45,29 +61,26 @@ class LfsComponentType(str, Enum):
 
 class LfsComponentState:
 
-    def __init__(self, target: str, name: str, type_: str, state: str, active: str) -> None:
+    def __init__(self, target: str, name: str, type_: str, state: str, active: bool) -> None:
 
         self.target = target
-        self.name = name
-        self.type = type_
-        self.state = state
+        self.name   = name
+        self.type   = type_
+        self.state  = state
         self.active = active
-        self.idx = name
+
+        self._idx = int(name[3:], 16)
 
     @property
-    def idx(self):
+    def idx(self) -> int:
         return self._idx
-
-    @idx.setter
-    def idx(self, name):
-        self._idx = int(name[3:], 16)
 
 class LfsComponentCollection:
 
     def __init__(self) -> None:
 
-        self._mdts = {}
-        self._osts = {}
+        self._mdts = dict[int, LfsComponentState]()
+        self._osts = dict[int, LfsComponentState]()
 
     @property
     def mdts(self) -> Dict[int, LfsComponentState]:
@@ -120,17 +133,15 @@ class MigrateResult:
       - if migration of file was successful
     '''
 
-    _result = ''
+    def __init__(self,
+                 state: MigrateState,
+                 filename: str,
+                 time_elapsed: timedelta,
+                 source_idx: int|None = None,
+                 target_idx: int|None = None,
+                 error_msg: str = None):
 
-    @classmethod
-    def __conv_none__(cls, arg: str) -> str:
-
-        if arg is None:
-            return ''
-
-        return arg
-
-    def __init__(self, state: MigrateState, filename: str, time_elapsed: timedelta, source_idx: str = None, target_idx: str = None, error_msg: str = None):
+        self._result: str
 
         if not filename or not isinstance(filename, str):
             raise LfsUtilsError('Filename must be set and type of str')
@@ -139,21 +150,14 @@ class MigrateResult:
             raise LfsUtilsError('Time elapsed must be type of datetime.timedelta')
 
         if MigrateState.DISPLACED == state:
-
-            source_index = __class__.__conv_none__(source_idx)
-            target_index = __class__.__conv_none__(target_idx)
-
-            self._result = f"{MigrateState.DISPLACED}|{filename}|{time_elapsed}|{source_index}|{target_index}"
+            self._result = f"{MigrateState.DISPLACED}|{filename}|{time_elapsed}|{conv_obj(source_idx)}|{conv_obj(target_idx)}"
 
         elif MigrateState.FAILED == state:
 
             if not error_msg:
                 raise LfsUtilsError(f"State {MigrateState.FAILED} requires error_msg to be set.")
 
-            source_index = __class__.__conv_none__(source_idx)
-            target_index = __class__.__conv_none__(target_idx)
-
-            self._result = f"{MigrateState.FAILED}|{filename}|{time_elapsed}|{source_index}|{target_index}|{error_msg}"
+            self._result = f"{MigrateState.FAILED}|{filename}|{time_elapsed}|{conv_obj(source_idx)}|{conv_obj(target_idx)}|{error_msg}"
 
         elif MigrateState.IGNORED == state:
             self._result = f"{MigrateState.IGNORED}|{filename}"
@@ -162,11 +166,7 @@ class MigrateResult:
             self._result = f"{MigrateState.SKIPPED}|{filename}"
 
         elif state == MigrateState.SUCCESS:
-
-            source_index = __class__.__conv_none__(source_idx)
-            target_index = __class__.__conv_none__(target_idx)
-
-            self._result = f"{MigrateState.SUCCESS}|{filename}|{time_elapsed}|{source_index}|{target_index}"
+            self._result = f"{MigrateState.SUCCESS}|{filename}|{time_elapsed}|{conv_obj(source_idx)}|{conv_obj(target_idx)}"
 
         else:
             raise LfsUtilsError(f"Invalid state {state}")
@@ -186,14 +186,14 @@ class LfsUtils:
     MIN_OST_INDEX = 0
     MAX_OST_INDEX = 65535
 
-    def __init__(self, lfs: str = '/usr/bin/lfs', lctl: str ='/usr/sbin/lctl') -> None:
+    def __init__(self, lfs: str = '/usr/bin/lfs', lctl: str ='/usr/sbin/lctl'):
 
         self.lfs = lfs
         self.lctl = lctl
 
     def retrieve_component_states(self, file: str = None) -> Dict[str, LfsComponentCollection]:
 
-        comp_states = {}
+        comp_states = dict[str, LfsComponentCollection]()
 
         if file:
             with open(file, 'r', encoding='UTF-8') as file_handle:
@@ -224,19 +224,16 @@ class LfsUtils:
                 if target not in comp_states:
                     comp_states[target] = LfsComponentCollection()
 
-                if LfsComponentType.OST == comp_type:
-
-                    handle_comp_type = LfsComponentType.OST
+                if comp_type == LfsComponentType.OST:
                     handle_comp_state_col_item = comp_states[target].osts
-
-                else:
-
-                    handle_comp_type = LfsComponentType.MDT
+                elif comp_type == LfsComponentType.MDT:
                     handle_comp_state_col_item = comp_states[target].mdts
+                else:
+                    raise RuntimeError(f"Unknown component type found: {comp_type}")
 
                 active = ('active' == state)
 
-                comp_state_item = LfsComponentState(target, comp_name, handle_comp_type, state, active)
+                comp_state_item = LfsComponentState(target, comp_name, comp_type, state, active)
                 handle_comp_state_col_item[comp_state_item.idx] = comp_state_item
 
             else:
@@ -282,7 +279,6 @@ class LfsUtils:
             args = [self.lfs, 'getstripe', '-c', '-i', '-y', filename]
             output = subprocess.run(args, check=True, capture_output=True).stdout.decode('UTF-8')
 
-        # TODO: Write a test that checks on dict type and content...
         fields = yaml.safe_load(output)
 
         if StripeField.LMM_STRIPE_COUNT in fields:
@@ -297,7 +293,12 @@ class LfsUtils:
 
         return StripeInfo(filename, lmm_stripe_count, lmm_stripe_offset)
 
-    def migrate_file(self, filename: str, source_idx: int = None, target_idx: int = None, block: bool = False, skip: bool = True) -> MigrateResult:
+    def migrate_file(self,
+                     filename: str,
+                     source_idx: int|None = None,
+                     target_idx: int|None = None,
+                     block: bool = False,
+                     skip: bool = True) -> MigrateResult:
 
         state        = None
         pre_ost_idx  = None
@@ -308,16 +309,23 @@ class LfsUtils:
 
         try:
 
+            if source_idx and not isinstance(source_idx, int):
+                raise TypeError('If source_idx ist set, it must be type of int')
+
+            if target_idx and not isinstance(target_idx, int):
+                raise TypeError('If target_idx ist set, it must be type of int')
+
             pre_stripe_info = self.stripe_info(filename)
 
             pre_ost_idx = pre_stripe_info.index
 
             if skip and pre_stripe_info.count > 1:
                 state = MigrateState.SKIPPED
-            elif source_idx is not None and pre_ost_idx != source_idx:
+            elif source_idx != pre_ost_idx:
                 state = MigrateState.IGNORED
-            elif target_idx is not None and pre_ost_idx == target_idx:
+            elif target_idx == pre_ost_idx:
                 state = MigrateState.IGNORED
+
             else:
 
                 args = [self.lfs, 'migrate']
@@ -327,8 +335,14 @@ class LfsUtils:
                 else:
                     args.append('--non-block')
 
-                # TODO: Check OST min and max index
-                if target_idx is not None and target_idx >= 0:
+                if target_idx:
+
+                    if target_idx < LfsUtils.MIN_OST_INDEX:
+                        raise ValueError(f"target_idx is less than LfsUtils.MIN_OST_INDEX ({LfsUtils.MIN_OST_INDEX})")
+
+                    if source_idx > LfsUtils.MAX_OST_INDEX:
+                        raise ValueError(f"target_idx is greater than LfsUtils.MAX_OST_INDEX ({LfsUtils.MAX_OST_INDEX})")
+
                     args.append('-i')
                     args.append(str(target_idx))
 
@@ -345,7 +359,7 @@ class LfsUtils:
 
                 post_ost_idx = self.stripe_info(filename).index
 
-                if target_idx is not None and target_idx != post_ost_idx:
+                if target_idx != post_ost_idx:
                     state = MigrateState.DISPLACED
                 else:
                     state = MigrateState.SUCCESS
