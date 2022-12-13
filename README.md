@@ -60,7 +60,7 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
 2. The constructor of the new task class must contain each property that should be serialized to the controller instances.
 3. A XML task file can be used to preinitalize the class properties.
 
-> Check the OstMigrateTask class for an example implementation.
+> Check the LustreOstMigrateTask class for an example implementation.
 
 ### Short Introduction Slides
 

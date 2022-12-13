@@ -5,8 +5,8 @@
 		<class module="task.empty_task" name="EmptyTask"/>
 	</task>
 
-	<task name="OstMigrateTask">
-		<class module="task.ost_migrate_task" name="OstMigrateTask"/>
+	<task name="LustreOstMigrateTask">
+		<class module="task.lustre_ost_migrate_task" name="LustreOstMigrateTask"/>
 		<property>
 			<filename></filename>
 			<source_ost></source_ost>

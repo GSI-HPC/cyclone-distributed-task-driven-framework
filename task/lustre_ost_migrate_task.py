@@ -23,7 +23,7 @@ import logging
 from task.base_task import BaseTask
 from lfs.lfs_utils import LfsUtils
 
-class OstMigrateTask(BaseTask):
+class LustreOstMigrateTask(BaseTask):
 
     def __init__(self, filename, source_ost, target_ost, block, skip):
 
