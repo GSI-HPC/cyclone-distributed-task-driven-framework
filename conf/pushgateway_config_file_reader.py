@@ -34,7 +34,6 @@ class PushgatewayConfigFileReader:
 
         self.push_interval = config.getint('push', 'interval')
         self.push_url = config.get('push', 'url')
-        self.push_clear_interval = config.getint('push', 'clear_interval')
         self.push_timeout = config.getint('push', 'timeout')
 
         self.comm_target = config.get('comm', 'target')

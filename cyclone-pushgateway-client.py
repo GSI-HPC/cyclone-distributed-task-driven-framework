@@ -33,7 +33,7 @@ from ctrl.pid_control import PIDControl
 from comm.proxy_handler import ProxyCommHandler
 from version.minimal_python import MinimalPython
 
-run_condition = True
+RUN_CONDITION = True
 
 lustre_file_creation_metrics = LustreFileCreationMetricProcessor()
 
@@ -78,12 +78,12 @@ def init_logging(log_filename, enable_debug):
 
 def stop_run():
 
-    global run_condition
+    global RUN_CONDITION
 
-    if run_condition:
-        run_condition = False
+    if RUN_CONDITION:
+        RUN_CONDITION = False
 
-def signal_handler(signum, frame):
+def signal_handler(signum, _):
 
     if signum == signal.SIGHUP:
 
@@ -147,15 +147,11 @@ def push_metics(url: Text, timeout: int = 0):
         response.raise_for_status()
 
         if is_debug:
-            logging.debug(f"Pushed metrics in {round(time.time() - start, 2)}s")
+
+            duration : float = round(time.time() - start, 2)
+            logging.debug("Pushed metrics in %ss", duration)
+
             logging.debug(data)
-
-def clear_metrics(url: Text, timeout: int = 0):
-
-    logging.debug('Clearing metrics at pushgateway')
-
-    response = requests.delete(url, timeout=timeout)
-    response.raise_for_status()
 
 def main():
 
@@ -180,20 +176,18 @@ def main():
                 logging.info('START')
                 logging.info("Pushgateway PID: %s", pid_control.pid())
 
-                push_interval       = config_file_reader.push_interval
-                push_url            = config_file_reader.push_url
-                push_clear_interval = config_file_reader.push_clear_interval
-                push_timeout        = config_file_reader.push_timeout
+                push_interval = config_file_reader.push_interval
+                push_url      = config_file_reader.push_url
+                push_timeout  = config_file_reader.push_timeout
 
                 init_signal_handler()
 
                 comm_handler.connect()
 
-                last_exec_timestamp  = int(time.time())
-                next_push_timestamp  = last_exec_timestamp + push_interval
-                next_clear_timestamp = last_exec_timestamp + push_clear_interval
+                last_exec_timestamp = int(time.time())
+                next_push_timestamp = last_exec_timestamp + push_interval
 
-                while run_condition:
+                while RUN_CONDITION:
 
                     try:
 
@@ -208,12 +202,6 @@ def main():
                             lustre_file_creation_metrics.clear()
 
                             next_push_timestamp = last_exec_timestamp + push_interval
-
-                        if last_exec_timestamp >= next_clear_timestamp:
-
-                            clear_metrics(push_url, push_timeout)
-
-                            next_clear_timestamp = last_exec_timestamp + push_clear_interval
 
                     except Exception:
                         logging.exception('An error occurred during run loop')
