@@ -81,23 +81,26 @@ def set_run_flag_false():
     if RUN_FLAG:
         RUN_FLAG = False
 
-def signal_handler(signum, frame):
+def signal_handler(signum : signal.Signals, frame) -> None:
     # pylint: disable=unused-argument
 
     if signum == signal.SIGHUP:
 
-        logging.info('Retrieved hang-up signal.')
+        logging.info('Received hang-up signal')
         set_run_flag_false()
 
-    if signum == signal.SIGINT:
+    elif signum == signal.SIGINT:
 
-        logging.info('Retrieved interrupt program signal.')
+        logging.info('Received interrupt program signal')
         set_run_flag_false()
 
-    if signum == signal.SIGTERM:
+    elif signum == signal.SIGTERM:
 
-        logging.info('Retrieved signal to terminate.')
+        logging.info('Received signal to terminate')
         set_run_flag_false()
+
+    else:
+        logging.debug("Received unhandled signal: %i", signum)
 
 def main():
 

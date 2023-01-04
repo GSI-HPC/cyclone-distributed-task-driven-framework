@@ -20,7 +20,6 @@
 
 import logging
 import time
-import sys
 import os
 
 from conf.config_value_error import ConfigValueOutOfRangeError

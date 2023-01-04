@@ -69,9 +69,9 @@ class BaseTaskGenerator(multiprocessing.Process, metaclass=abc.ABCMeta):
     def validate_config(self) -> None:
         raise NotImplementedError("Must be implemented in specific TaskGenerator class!")
 
-    def _signal_handler_terminate(self, signum, frame) -> None:
+    def _signal_handler_terminate(self, signum : signal.Signals, frame) -> None:
         # pylint: disable=unused-argument
 
-        logging.info("%s retrieved signal to terminate.", self._name)
+        logging.info("%s received signal to terminate", self._name)
         self._run_flag = False
         self._interruptable_sleep.interrupt()

@@ -89,7 +89,7 @@ def stop_task_distribution():
     if TASK_DISTRIBUTION:
         TASK_DISTRIBUTION = False
 
-def signal_handler(signum, frame):
+def signal_handler(signum : signal.Signals, frame) -> None:
     # pylint: disable=unused-argument
 
     if signum == signal.SIGHUP:
@@ -97,15 +97,18 @@ def signal_handler(signum, frame):
         logging.info('Master retrieved hang-up signal')
         stop_task_distribution()
 
-    if signum == signal.SIGINT:
+    elif signum == signal.SIGINT:
 
         logging.info('Master retrieved interrupt program signal')
         stop_task_distribution()
 
-    if signum == signal.SIGTERM:
+    elif signum == signal.SIGTERM:
 
         logging.info('Master Retrieved signal to terminate')
         stop_task_distribution()
+
+    else:
+        logging.debug("Received unhandled signal: %i", signum)
 
 def check_all_controller_down(count_active_controller):
 

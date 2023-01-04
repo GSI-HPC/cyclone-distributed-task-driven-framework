@@ -172,23 +172,24 @@ def stop_run_condition():
     if RUN_CONDITION:
         RUN_CONDITION = False
 
-def signal_handler(signum, frame):
+def signal_handler(signum : signal.Signals, frame) -> None:
     # pylint: disable=unused-argument
 
-    if signum == signal.SIGHUP:
-
-        logging.info('Retrieved hang-up signal.')
-        stop_run_condition()
-
     if signum == signal.SIGINT:
+        logging.debug('Ignoring interrupt program signal')
 
-        logging.info('Retrieved interrupt program signal.')
+    elif signum == signal.SIGHUP:
+
+        logging.info('Received hang-up signal')
         stop_run_condition()
 
-    if signum == signal.SIGTERM:
+    elif signum == signal.SIGTERM:
 
-        logging.info('Retrieved signal to terminate.')
+        logging.info('Received signal to terminate')
         stop_run_condition()
+
+    else:
+        logging.debug("Received unhandled signal: %i", signum)
 
 def main():
 
@@ -215,7 +216,7 @@ def main():
                 logging.info(f"Controller PID: {pid_control.pid()}")
                 logging.info(f"Version: {cyclone.VERSION}")
 
-                signal.signal(signal.SIGINT, signal.SIG_IGN)
+                signal.signal(signal.SIGINT, signal_handler)
                 signal.signal(signal.SIGHUP, signal_handler)
                 signal.signal(signal.SIGTERM, signal_handler)
 
