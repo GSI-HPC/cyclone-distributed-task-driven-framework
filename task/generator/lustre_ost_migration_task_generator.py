@@ -330,9 +330,12 @@ class LustreOstMigrationTaskGenerator(BaseTaskGenerator):
                 file_counter += 1
 
         if file_counter:
-            self._allocate_ost_caches()
 
-        logging.info("Count of processed input files: %i", file_counter)
+            self._allocate_ost_caches()
+            logging.info("Count of processed input files: %i", file_counter)
+
+        else:
+            logging.info('None new input files found to be processed')
 
     def _load_input_file(self, file_path: str) -> None:
 
