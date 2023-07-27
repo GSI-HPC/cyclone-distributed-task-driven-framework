@@ -297,6 +297,7 @@ class LfsUtils:
                      filename: str,
                      source_idx: int|None = None,
                      target_idx: int|None = None,
+                     direct_io : bool = False,
                      block: bool = False,
                      skip: bool = True) -> MigrateResult:
 
@@ -325,10 +326,12 @@ class LfsUtils:
                 state = MigrateState.IGNORED
             elif target_idx == pre_ost_idx:
                 state = MigrateState.IGNORED
-
             else:
 
                 args = [self.lfs, 'migrate']
+
+                if not direct_io:
+                    args.append('--non-direct')
 
                 if block:
                     args.append('--block')
@@ -489,3 +492,30 @@ class LfsUtils:
 
     def create_dir_on_mdt(self, index: int, path: str) -> None:
         pass
+
+    def retrieve_mdt_idx(path: str) -> int:
+        """
+        Returns
+        -------
+        On success the MDT index on a directory path is returned, otherwise -1.
+        """
+
+        if path is None:
+            raise LfsUtilsError('Path must be set')
+
+        if os.path.isfile(path):
+            logging.warning(f"SKIPPING - Found file for determining MDT index: {path}")
+            return -1
+
+        try:
+
+            args = ['lfs', 'getdirstripe', '-i', path]
+            output = subprocess.run(args, check=True, capture_output=True).stdout.decode('UTF-8')
+
+            if not output:
+                return -1
+
+            return int(output)
+
+        except Exception:
+            logging.exception(f"Exception occured when determining MDT index on path: {path}")

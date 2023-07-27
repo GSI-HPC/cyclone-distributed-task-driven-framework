@@ -25,7 +25,7 @@ from lfs.lfs_utils import LfsUtils
 
 class LustreOstMigrateTask(BaseTask):
 
-    def __init__(self, filename, source_ost, target_ost, block, skip):
+    def __init__(self, filename, source_ost, target_ost, direct_io, block, skip):
 
         super().__init__()
 
@@ -49,6 +49,7 @@ class LustreOstMigrateTask(BaseTask):
             self._target_ost = ''
 
         # Set on initialization based on the XML file
+        self.direct_io = direct_io
         self.block = block
         self.skip = skip
 

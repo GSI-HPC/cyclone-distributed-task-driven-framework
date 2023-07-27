@@ -11,6 +11,7 @@
 			<filename></filename>
 			<source_ost></source_ost>
 			<target_ost></target_ost>
+			<direct_io>False</direct_io>
 			<block>False</block>
 			<skip>True</skip>
 		</property>
