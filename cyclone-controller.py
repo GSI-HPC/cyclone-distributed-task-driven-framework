@@ -333,7 +333,7 @@ def main():
 
                             if in_raw_data:
 
-                                logging.debug("Retrieved message (raw data): %s", in_raw_data)
+                                logging.debug("Retrieved message: %s", in_raw_data)
 
                                 in_msg = MessageFactory.create(in_raw_data)
                                 in_msg_type = in_msg.type()
@@ -381,7 +381,7 @@ def main():
 
                                 if in_raw_data:
 
-                                    logging.debug("Retrieved message (raw data): %s", in_raw_data)
+                                    logging.debug("Retrieved message: %s", in_raw_data)
 
                                     in_msg = MessageFactory.create(in_raw_data)
                                     in_msg_type = in_msg.type()
