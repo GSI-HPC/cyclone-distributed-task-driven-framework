@@ -68,6 +68,21 @@ class LustreOstMigrateTask(BaseTask):
             logging.exception("Failed to migrate file: %s", self.filename)
 
     @property
+    def direct_io(self) -> bool:
+        return self._direct_io
+
+    @direct_io.setter
+    def direct_io(self, direct_io) -> None:
+
+        if direct_io is None:
+            raise RuntimeError('direct_io parameter must be a set.')
+
+        if not isinstance(direct_io, str):
+            raise TypeError('direct_io argument must be str type.')
+
+        self._direct_io = bool(distutils.util.strtobool(direct_io))
+
+    @property
     def block(self) -> bool:
         return self._block
 
