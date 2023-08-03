@@ -310,10 +310,10 @@ class LfsUtils:
 
         try:
 
-            if source_idx and not isinstance(source_idx, int):
+            if source_idx is not None and not isinstance(source_idx, int):
                 raise TypeError('If source_idx ist set, it must be type of int')
 
-            if target_idx and not isinstance(target_idx, int):
+            if target_idx is not None and not isinstance(target_idx, int):
                 raise TypeError('If target_idx ist set, it must be type of int')
 
             pre_stripe_info = self.stripe_info(filename)
@@ -338,7 +338,7 @@ class LfsUtils:
                 else:
                     args.append('--non-block')
 
-                if target_idx:
+                if target_idx is not None:
 
                     if target_idx < LfsUtils.MIN_OST_INDEX:
                         raise ValueError(f"target_idx is less than LfsUtils.MIN_OST_INDEX ({LfsUtils.MIN_OST_INDEX})")
@@ -355,14 +355,16 @@ class LfsUtils:
 
                 args.append(filename)
 
-                # Save target OST index in case of migration failure.
-                post_ost_idx = target_idx
+                # Save target OST index in case of migration failure
+                if target_idx is not None:
+                    post_ost_idx = target_idx
 
+                logging.debug("migrate_file: %s", args)
                 subprocess.run(args, check=True, capture_output=True)
 
                 post_ost_idx = self.stripe_info(filename).index
 
-                if target_idx != post_ost_idx:
+                if target_idx is not None and target_idx != post_ost_idx:
                     state = MigrateState.DISPLACED
                 else:
                     state = MigrateState.SUCCESS
