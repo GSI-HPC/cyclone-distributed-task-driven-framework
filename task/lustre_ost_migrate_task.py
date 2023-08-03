@@ -58,7 +58,12 @@ class LustreOstMigrateTask(BaseTask):
     def execute(self):
 
         try:
-            logging.info(self._lfs_utils.migrate_file(self.filename, self.source_ost, self.target_ost, self.block, self.skip))
+            logging.info(self._lfs_utils.migrate_file(self.filename,
+                                                      self.source_ost,
+                                                      self.target_ost,
+                                                      self.direct_io,
+                                                      self.block,
+                                                      self.skip))
         except Exception:
             logging.exception("Failed to migrate file: %s", self.filename)
 
