@@ -26,7 +26,7 @@ import zmq
 from task.base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
-from lfs.lfs_utils import LfsUtils
+from lfsutils import LfsUtils
 
 class LustreIOTask(BaseTask):
 

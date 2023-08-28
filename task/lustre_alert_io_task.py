@@ -22,7 +22,6 @@ from email.mime.text import MIMEText
 from threading import Timer
 
 import os
-import sys
 import zmq
 import time
 import logging

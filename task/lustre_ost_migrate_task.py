@@ -21,7 +21,7 @@ import distutils.util
 import logging
 
 from task.base_task import BaseTask
-from lfs.lfs_utils import LfsUtils
+from lfsutils import LfsUtils
 
 class LustreOstMigrateTask(BaseTask):
 

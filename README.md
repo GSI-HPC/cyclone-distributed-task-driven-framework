@@ -1,18 +1,18 @@
 # Cyclone - A Distributed Task Driven Framework
 
-A Distributed Task Driven Framework for Generic Task Execution on a Cluster.
+A Distributed Task Driven Framework for Generic Task Execution on a Cluster
 
 ## Prerequisites
 
 ### Required
 
 * **Python** - Standard Library
-* **Python bindings for 0MQ (pyzmq)** - Interprocess communication between master, controller.
+* **Python bindings for 0MQ (pyzmq)** - Interprocess communication between master, controller
 
 ### Optional
 
-* **YAML parser and emitter for Python (PyYAML)** - Parsing stripe information from Lustre.
-* **MySQL Connector Python (mysql)** - For storing task results into a MySQL database.
+* **LfsUtils (lfsutils)** - Utility library for accessing the Lustre filesystem
+* **MySQL Connector Python (mysql)** - For storing task results into a MySQL database
 
 ## Versions
 

@@ -33,7 +33,7 @@ from typing import Dict
 from clush.RangeSet import RangeSet
 
 from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
-from lfs.lfs_utils import LfsUtils
+from lfsutils import LfsUtils
 from msg.base_message import BaseMessage
 from ctrl.shared_queue import SharedQueue
 from ctrl.shared_queue_str import SharedQueueStr
