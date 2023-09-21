@@ -15,9 +15,9 @@
 			<target_base_dir>/lustre/hebe/hpc/lfsmon/file_creation_check_monitoring</target_base_dir>
 			<target_mdt_sub_dir>mdt</target_mdt_sub_dir>
 			<mdt_index_rangeset>0-2</mdt_index_rangeset>
-			<pushgateway_name>hostname</pushgateway_name>
-			<pushgateway_port>5888</pushgateway_port>
-			<pushgateway_timeout>10000</pushgateway_timeout>
+			<pushgateway_client_name>hostname</pushgateway_client_name>
+			<pushgateway_client_port>5888</pushgateway_client_port>
+			<pushgateway_client_timeout>10000</pushgateway_client_timeout>
 		</property>
 
 	</task>

@@ -33,18 +33,25 @@ from util.type_conv_with_none import conv_int
 
 class LustreFileCreationCheckTask(BaseTask):
 
-    def __init__(self, ost_idx: str, lfs_target: str, target_base_dir: str, target_mdt_sub_dir: str, mdt_index_rangeset: str, pushgateway_name: str, pushgateway_port: str, pushgateway_timeout: str) -> None:
+    def __init__(self, ost_idx: str,
+                 lfs_target: str,
+                 target_base_dir: str,
+                 target_mdt_sub_dir: str,
+                 mdt_index_rangeset: str,
+                 pushgateway_client_name: str,
+                 pushgateway_client_port: str,
+                 pushgateway_client_timeout: str) -> None:
 
         super().__init__()
 
-        self.ost_idx             = conv_int(ost_idx)
-        self.lfs_target          = lfs_target
-        self.target_base_dir     = target_base_dir
-        self.target_mdt_sub_dir  = target_mdt_sub_dir
-        self.mdt_index_rangeset  = mdt_index_rangeset
-        self.pushgateway_name    = pushgateway_name
-        self.pushgateway_port    = int(pushgateway_port)
-        self.pushgateway_timeout = int(pushgateway_timeout)
+        self.ost_idx                    = conv_int(ost_idx)
+        self.lfs_target                 = lfs_target
+        self.target_base_dir            = target_base_dir
+        self.target_mdt_sub_dir         = target_mdt_sub_dir
+        self.mdt_index_rangeset         = mdt_index_rangeset
+        self.pushgateway_client_name    = pushgateway_client_name
+        self.pushgateway_client_port    = int(pushgateway_client_port)
+        self.pushgateway_client_timeout = int(pushgateway_client_timeout)
 
         self._lfs_utils         = LfsUtils()
         self._mdt_index_list    = []
@@ -63,7 +70,7 @@ class LustreFileCreationCheckTask(BaseTask):
                 # TODO: Introduce different debug level... for internal framework and task specific messages.
                 logging.debug("Found active OST-IDX: %s", str_ost_idx)
 
-                comm_handler = TaskCommHandler(self.pushgateway_name, self.pushgateway_port, self.pushgateway_timeout)
+                comm_handler = TaskCommHandler(self.pushgateway_client_name, self.pushgateway_client_port, self.pushgateway_client_timeout)
                 comm_handler.connect()
 
                 # TODO: Could run in parallel for each MDT or be a seperate task for each MDT+OST...
@@ -118,10 +125,10 @@ class LustreFileCreationCheckTask(BaseTask):
                         check_result = LustreFileCreationCheckResult(self.lfs_target, state)
 
                     # TODO task info level or internal debug messages are more verbose level?
-                    logging.debug(check_result)
+                    logging.debug("Sending check result to pushgateway: %s", check_result)
 
+                    # TODO: Determine if send was successful or not...
                     comm_handler.send_string(check_result.to_string())
-                    logging.debug("Sent check result to pushgateway: %s", check_result)
 
             else:
                 logging.debug("%s|%s|%s", self.lfs_target, LustreFileCreationCheckState.IGNORED, str_ost_idx)
