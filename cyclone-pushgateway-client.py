@@ -39,7 +39,7 @@ lustre_file_creation_metrics = LustreFileCreationMetricProcessor()
 
 def init_arg_parser():
 
-    parser = argparse.ArgumentParser(description='Prometheus Pushgateway for Cyclone Metrics')
+    parser = argparse.ArgumentParser(description='Prometheus Pushgateway Client for Cyclone Metrics')
 
     parser.add_argument('-f',
                         '--config-file',
@@ -47,7 +47,7 @@ def init_arg_parser():
                         type=str,
                         required=False,
                         help="Use this config file (default: %(default)s)",
-                        default='/etc/cyclone/pushgateway.conf')
+                        default='/etc/cyclone/pushgateway-client.conf')
 
     parser.add_argument('-D',
                         '--debug',
@@ -122,7 +122,7 @@ def process_recv_data(comm_handler: ProxyCommHandler):
 
         if recv_data:
 
-            logging.debug("Recieved data: %s", recv_data)
+            logging.debug("Received data: %s", recv_data)
 
             # Currently just the result of LustreFileCreationCheckTask is supported.
             # If multiple task results should be supported, add type field to message.
