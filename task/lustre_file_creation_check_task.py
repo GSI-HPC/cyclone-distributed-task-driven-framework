@@ -67,7 +67,6 @@ class LustreFileCreationCheckTask(BaseTask):
 
             if self._lfs_utils.is_ost_idx_active(self.lfs_target, self.ost_idx):
 
-                # TODO: Introduce different debug level... for internal framework and task specific messages.
                 logging.debug("Found active OST-IDX: %s", str_ost_idx)
 
                 comm_handler = TaskCommHandler(self.pushgateway_client_name, self.pushgateway_client_port, self.pushgateway_client_timeout)
@@ -99,7 +98,6 @@ class LustreFileCreationCheckTask(BaseTask):
 
                                 state = LustreFileCreationCheckState.OK
 
-                                # TODO task info level or internal debug messages are more verbose level?
                                 logging.debug("%s|%s|%s|%s|%s|%s", self.lfs_target, state, file_path, str_mdt_idx, str_ost_idx, elapsed_time)
 
                                 check_result = LustreFileCreationCheckResult(self.lfs_target, state, mdt_idx, self.ost_idx)
@@ -108,7 +106,6 @@ class LustreFileCreationCheckTask(BaseTask):
 
                                 state = LustreFileCreationCheckState.FAILED
 
-                                # TODO task info level or internal debug messages are more verbose level?
                                 logging.debug("%s|%s|%s|%s|%s|%s", self.lfs_target, state, file_path, str_mdt_idx, str_ost_idx, elapsed_time)
 
                                 check_result = LustreFileCreationCheckResult(self.lfs_target, state, mdt_idx, self.ost_idx)
@@ -124,10 +121,8 @@ class LustreFileCreationCheckTask(BaseTask):
 
                         check_result = LustreFileCreationCheckResult(self.lfs_target, state)
 
-                    # TODO task info level or internal debug messages are more verbose level?
                     logging.debug("Sending check result to pushgateway: %s", check_result)
 
-                    # TODO: Determine if send was successful or not...
                     comm_handler.send_string(check_result.to_string())
 
             else:
