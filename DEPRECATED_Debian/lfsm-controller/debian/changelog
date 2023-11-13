@@ -1,5 +1,0 @@
-lfsm-controller (1.3) jessie-testing; urgency=medium
-
-  * Added creation of /var/run/lfsm/ directory in SystemD unit before service execution.
-
- -- Gabriele Iannetti <g.iannetti@gsi.de>  Wed, 24 Jan 2018 15:58:40 +0200

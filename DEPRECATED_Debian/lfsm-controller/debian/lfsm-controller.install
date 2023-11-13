@@ -1,2 +1,0 @@
-../../Pyinstaller/pybuild/dist/lfsm-controller.py usr/sbin
-../../Configuration/controller.conf etc/lfsm/

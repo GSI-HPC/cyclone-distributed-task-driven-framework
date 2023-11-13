@@ -1,9 +1,0 @@
-Source: lfsm-master
-Maintainer: Gabriele Iannetti <g.iannetti@gsi.de>
-Build-Depends: debhelper (>= 9), dh-systemd
-
-Homepage: https://github.com/GSI-HPC/lustre_task_driven_monitoring_framework
-Package: lfsm-master
-Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: Master of Task Driven Framework for Lustre Monitoring
