@@ -98,7 +98,7 @@ class TestTaskXmlReader(unittest.TestCase):
 
         task = TaskFactory().create_from_xml_info(task_xml_info)
 
-        self.assertEqual(task.pushgateway_timeout, 10000)
+        self.assertEqual(task.pushgateway_client_timeout, 10000)
 
 if __name__ == '__main__':
     unittest.main()

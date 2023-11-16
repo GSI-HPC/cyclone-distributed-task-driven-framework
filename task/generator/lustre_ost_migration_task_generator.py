@@ -22,10 +22,10 @@ import re
 import os
 from typing import Dict
 
-from clush.RangeSet import RangeSet
+from ClusterShell.RangeSet import RangeSet
+from lfsutils.lib import LfsUtils
 
 from conf.config_value_error import ConfigValueError, ConfigValueOutOfRangeError
-from lfsutils import LfsUtils
 from msg.base_message import BaseMessage
 from ctrl.shared_queue import SharedQueue
 from ctrl.shared_queue_str import SharedQueueStr

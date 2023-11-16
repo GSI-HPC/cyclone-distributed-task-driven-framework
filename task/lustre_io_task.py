@@ -14,10 +14,11 @@ import os
 import time
 import zmq
 
+from lfsutils.lib import LfsUtils
+
 from task.base_task import BaseTask
 from db.ost_perf_result import OSTPerfResult
 from util.auto_remove_file import AutoRemoveFile
-from lfsutils import LfsUtils
 
 class LustreIOTask(BaseTask):
 

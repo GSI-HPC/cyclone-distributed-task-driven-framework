@@ -8,18 +8,18 @@
 # the terms of the GNU General Public Licence version 3 (GPL Version 3),
 # copied verbatim in the file "LICENCE".
 
-from datetime import datetime
-
 import logging
 import os
 
-from clush.RangeSet import RangeSet
-from comm.task_handler import TaskCommHandler
+from datetime import datetime
 
-from lfsutils import LfsUtils
+from ClusterShell.RangeSet import RangeSet
+from lfsutils.lib import LfsUtils
+
+from comm.task_handler import TaskCommHandler
 from prometheus.lustre_file_creation_check import LustreFileCreationCheckResult, LustreFileCreationCheckState
-from util.auto_remove_file import AutoRemoveFile
 from task.base_task import BaseTask
+from util.auto_remove_file import AutoRemoveFile
 from util.type_conv_with_none import conv_int
 
 class LustreFileCreationCheckTask(BaseTask):

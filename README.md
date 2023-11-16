@@ -4,7 +4,7 @@ A Distributed Task Driven Framework for Generic Task Execution on a Cluster
 
 ## Prerequisites
 
-Python modules are listed in parentheses.
+Python modules are listed in the follwing within parentheses.
 
 ### Required
 
@@ -13,6 +13,7 @@ Python modules are listed in parentheses.
 
 ### Optional
 
+* **ClusterShell (clustershell)** - For RangeSet notation specifying Lustre OST indexes
 * **LfsUtils (lfsutils)** - Utility library for accessing the Lustre filesystem
 * **MySQL Connector Python (mysql)** - For storing task results into a MySQL database
 * **HTTP library (requests)** - For communication with the Prometheus Pushgateway

@@ -14,11 +14,12 @@ import logging
 import copy
 import os
 
-from clush.RangeSet import RangeSet
+from ClusterShell.RangeSet import RangeSet
+from lfsutils.lib import LfsUtils
+
 from ctrl.critical_section import CriticalSection
 from ctrl.shared_queue import SharedQueue
 from ctrl.shared_queue_str import SharedQueueStr
-from lfsutils import LfsUtils
 from task.base_task import BaseTask
 from task.xml.task_xml_reader import TaskXmlReader
 from task.task_factory import TaskFactory

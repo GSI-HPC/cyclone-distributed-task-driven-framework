@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 TARGET_DIR=pybuild
 
 case "$1" in
