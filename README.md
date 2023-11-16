@@ -9,7 +9,7 @@ Python modules are listed in the follwing within parentheses.
 ### Required
 
 * **Python** - Standard Library
-* **Python bindings for 0MQ (pyzmq)** - Interprocess communication between master, controller
+* **Python bindings for 0MQ (pyzmq)** - Interprocess communication between components e.g. master, controller, etc.
 
 ### Optional
 
