@@ -67,7 +67,7 @@ Python modules are listed in the follwing within parentheses.
 
 > Check the LustreOstMigrateTask class for an example implementation.
 
-### Short Introduction Slides
+### Slides
 
-Short introduction slides can be downloaded [here](https://www.eofs.eu/_media/events/lad17/05_gabriele_iannetti_task_driven_framework_for_lustre_monitoring.pdf) from the Lustre Administrators and Developers Workshop (LAD) 2017.
-
+* [Introduction as Task Driven Framework for Lustre Monitoring](Slides/2017_10_04-task_driven_framework_for_lustre_monitoring.pdf)
+* [File Migration on Lustre](Slides/2024_02_22-lustre_file_migration.pdf)
