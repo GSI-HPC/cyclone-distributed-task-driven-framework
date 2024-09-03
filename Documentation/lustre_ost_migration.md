@@ -8,34 +8,34 @@ Migrate files on Lustre between OSTs.
 
 [Configuration File for Task Generator](../Configuration/lustre_ost_migration_task_generator.conf)
 
-### Section: **control**
+### Section: control
 
 | Name        | Type   | Value                              | Description                                      |
 | ----------- | ------ | ---------------------------------- | ------------------------------------------------ |
 | local\_mode | String | yes/no, on/off, true/false and 1/0 | Specifies if local or productive mode is enabled |
 
-### Section: **control.local_mode**
+### Section: control.local\_mode
 
 | Name        | Type   | Value  | Description                                     |
 | ----------- | ------ | ------ | ----------------------------------------------- |
 | num\_osts   | Number | 1-1000 | Specifies the number of Lustre OSTs to simulate |
 
-### Section: **control.threshold**
+### Section: control.threshold
 
-| Name                | Type   | Value  | Description                                                                     |
-| ------------------- | ------ | ------ | ------------------------------------------------------------------------------- |
-| update\_fill\_level | Number | 1-3600 | Time period in seconds when to update Lustre OSTs fill level                    |
-| reload\_files       | Number | 1-3600 | Time period in seconds when to reload input files                               |
-| print\_caches       | Number | 1-3600 | Time period in seconds when to print the caches with number of files to migrate |
+| Name                | Type   | Value  | Description                                                              |
+| ------------------- | ------ | ------ | ------------------------------------------------------------------------ |
+| update\_fill\_level | Number | 1-3600 | Time in seconds when to update Lustre OSTs fill level                    |
+| reload\_files       | Number | 1-3600 | Time in seconds when to reload input files                               |
+| print\_caches       | Number | 1-3600 | Time in seconds when to print the caches with number of files to migrate |
 
-### Section: **task**
+### Section: task
 
 | Name       | Type   | Value  | Description           |
 | ---------- | ------ | ------ | --------------------- |
 | task\_file | String | Path   | Path to task XML file |
 | task\_name | String | Path   | Name of task to load  |
 
-### Section: **migration**
+### Section: migration
 
 | Name                         | Type     | Value | Description                                                                 |
 | ---------------------------- | -------- | ----- | --------------------------------------------------------------------------- |
@@ -44,7 +44,7 @@ Migrate files on Lustre between OSTs.
 | ost\_fill\_threshold\_target | Number   | 1-90  | Lustre OST fill level threshold in percentage for filling up target OSTs    |
 | ost\_targets                 | RangeSet | 0-999 | List of decimal OST indexes comma separated and ranges defined with hyphen  |
 
-### Section: **lustre**
+### Section: lustre
 
 | Name      | Type   | Value  | Description            |
 | --------- | ------ | ------ | ---------------------- |
@@ -52,7 +52,7 @@ Migrate files on Lustre between OSTs.
 
 ## Input File Lists
 
-The input file lists to be processed must be located within the directory specified in the `input_dir` parameter  
+The input file lists to be processed must be located within the directory specified in the `input_dir` parameter
 of the task generators config file:
 
 ```
