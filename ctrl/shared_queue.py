@@ -109,7 +109,7 @@ class SharedQueue:
         Returns
         -------
         object
-            on success an object retrieved from the SharedQueue is returned,
+            on success an object from the SharedQueue is returned,
             otherwise None is returned.
         """
 

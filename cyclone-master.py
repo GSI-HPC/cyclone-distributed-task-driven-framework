@@ -85,17 +85,17 @@ def signal_handler(signum : signal.Signals, frame) -> None:
 
     if signum == signal.SIGHUP:
 
-        logging.info('Master retrieved hang-up signal')
+        logging.info('Master received hang-up signal')
         stop_task_distribution()
 
     elif signum == signal.SIGINT:
 
-        logging.info('Master retrieved interrupt program signal')
+        logging.info('Master received interrupt program signal')
         stop_task_distribution()
 
     elif signum == signal.SIGTERM:
 
-        logging.info('Master Retrieved signal to terminate')
+        logging.info('Master received signal to terminate')
         stop_task_distribution()
 
     else:
@@ -189,7 +189,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug("Retrieved message: %s", recv_data)
+                            logging.debug("Received message: %s", recv_data)
 
                             recv_msg = MessageFactory.create(recv_data)
                             recv_msg_type = recv_msg.type()
@@ -273,7 +273,7 @@ def main():
 
                                         if recv_msg.sender == task_status_dict[tid].controller:
 
-                                            logging.debug("Retrieved finished message for TID: %s", tid)
+                                            logging.debug("Received finished message for TID: %s", tid)
                                             task_status_dict[tid].state = TaskState.finished()
                                             task_status_dict[tid].timestamp = int(time.time())
 
@@ -281,7 +281,7 @@ def main():
                                             result_queue.push(tid)
 
                                         else:
-                                            logging.warning('Retrieved task finished from different controller')
+                                            logging.warning('Received task finished from different controller')
 
                                     else:
                                         raise RuntimeError('Inconsistency detected on task finished')

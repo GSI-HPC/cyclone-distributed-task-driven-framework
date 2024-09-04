@@ -157,7 +157,7 @@ def main():
 
                         if recv_data:
 
-                            logging.debug("Retrieved data: %s", recv_data)
+                            logging.debug("Received data: %s", recv_data)
 
                             table_handler.insert(recv_data)
 
