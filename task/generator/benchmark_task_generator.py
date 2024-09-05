@@ -40,7 +40,7 @@ class BenchmarkTaskGenerator(BaseTaskGenerator):
             raise ConfigValueOutOfRangeError("num_tasks", min_num_tasks, max_num_tasks)
 
         min_poll_time_ms = 1
-        max_poll_time_ms = 10000
+        max_poll_time_ms = 1000
 
         if not min_poll_time_ms <= self._poll_time_ms <= max_poll_time_ms:
             raise ConfigValueOutOfRangeError("poll_time_ms", min_poll_time_ms, max_poll_time_ms)

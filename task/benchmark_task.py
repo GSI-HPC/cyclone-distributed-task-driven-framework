@@ -27,7 +27,7 @@ class BenchmarkTask(BaseTask):
             outfile = f"/tmp/benchmark_task_{pid}.tmp"
 
             tid_num = int(self.tid)
-            waittime = (tid_num % 100 / 1000)
+            waittime = (tid_num % 101 / 1000) # Up to 100ms
             time.sleep(waittime)
 
             with open(outfile, "a") as myfile:

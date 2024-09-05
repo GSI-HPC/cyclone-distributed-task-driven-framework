@@ -6,7 +6,7 @@ Migrate files on Lustre between OSTs.
 
 ## Configuration
 
-[Configuration File for Task Generator](../Configuration/lustre_ost_migration_task_generator.conf)
+[Example config file for the task generator](../Configuration/lustre_ost_migration_task_generator.conf)
 
 ### Section: control
 
