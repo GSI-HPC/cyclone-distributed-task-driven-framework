@@ -22,6 +22,6 @@ To drop the wait time and get a more precise result for the message communicatio
 
 | Name           | Type   | Value  | Description                                             |
 | -------------- | ------ | ------ | ------------------------------------------------------- |
-| num\_tasks     | Number | 1-100M | Number of tasks to be processed                         |
-| poll\_time\_ms | Number | 1-1000 | Time for the task generator to check for finished tasks |
+| num\_tasks     | int    | 1-100M | Number of tasks to be processed                         |
+| poll\_time\_ms | int    | 1-1000 | Time for the task generator to check for finished tasks |
 

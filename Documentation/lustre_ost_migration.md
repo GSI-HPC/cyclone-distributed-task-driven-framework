@@ -1,61 +1,83 @@
 # Lustre OST Migration
 
-Migrate files on Lustre between OSTs.
+Migrate files on Lustre between OSTs.  
 
-## Description
+The file migration is done from source to target OSTs until a specific fill threshold is reached.  
+
+To keep the load of the Lustre OSS low, the file migration does a 1-to-1 mapping between source to target OSTs.  
+
+If more than one source and target OST should be used to increase the file migration processes at a time,  
+this feature must be implemented (see [issue](https://github.com/GSI-HPC/cyclone-distributed-task-driven-framework/issues/27)).  
+
+To migrate files on Lustre OSTs Cyclone uses so called input files.  
+An input file consists of datasets with two columns separated with a whitespace for each file to migrate:  
+1. Decimal OST index
+2. Filepath
+
+> The OST indexes within input files define the source OST indexes that Cyclone will migrate data from.  
+> Therefore it is not required to specify those indexes, since Cyclone will determine them automatically.
+
+To speed up a migration, Robinhood is used to determine the OST index where a file is located on Lustre.  
+Please refer to the following [slides](Slides/2024_02_22-lustre_file_migration.pdf) for a Lustre file migration.  
 
 ## Configuration
 
+#### Task Generator
+
 [Example config file for the task generator](../Configuration/lustre_ost_migration_task_generator.conf)
 
-### Section: control
+#### Section: control
 
 | Name        | Type   | Value                              | Description                                      |
 | ----------- | ------ | ---------------------------------- | ------------------------------------------------ |
 | local\_mode | String | yes/no, on/off, true/false and 1/0 | Specifies if local or productive mode is enabled |
 
-### Section: control.local\_mode
+#### Section: control.local\_mode
 
 | Name        | Type   | Value  | Description                                     |
 | ----------- | ------ | ------ | ----------------------------------------------- |
-| num\_osts   | Number | 1-1000 | Specifies the number of Lustre OSTs to simulate |
+| num\_osts   | Int    | 1-1000 | Specifies the number of Lustre OSTs to simulate |
 
-### Section: control.threshold
+#### Section: control.threshold
 
 | Name                | Type   | Value  | Description                                                              |
 | ------------------- | ------ | ------ | ------------------------------------------------------------------------ |
-| update\_fill\_level | Number | 1-3600 | Time in seconds when to update Lustre OSTs fill level                    |
-| reload\_files       | Number | 1-3600 | Time in seconds when to reload input files                               |
-| print\_caches       | Number | 1-3600 | Time in seconds when to print the caches with number of files to migrate |
+| update\_fill\_level | Int    | 1-3600 | Time in seconds when to update Lustre OSTs fill level                    |
+| reload\_files       | Int    | 1-3600 | Time in seconds when to reload input files                               |
+| print\_caches       | Int    | 1-3600 | Time in seconds when to print the caches with number of files to migrate |
 
-### Section: task
+#### Section: task
 
 | Name       | Type   | Value  | Description           |
 | ---------- | ------ | ------ | --------------------- |
 | task\_file | String | Path   | Path to task XML file |
 | task\_name | String | Path   | Name of task to load  |
 
-### Section: migration
+#### Section: migration
 
 | Name                         | Type     | Value | Description                                                                 |
 | ---------------------------- | -------- | ----- | --------------------------------------------------------------------------- |
 | input\_dir                   | String   | Path  | Path to input directory where to process input file lists from              |
-| ost\_fill\_threshold\_source | Number   | 0-90  | Lustre OST fill level threshold in percentage for reducing down source OSTs |
-| ost\_fill\_threshold\_target | Number   | 1-90  | Lustre OST fill level threshold in percentage for filling up target OSTs    |
+| ost\_fill\_threshold\_source | Int      | 0-90  | Lustre OST fill level threshold in percentage for reducing down source OSTs |
+| ost\_fill\_threshold\_target | Int      | 1-90  | Lustre OST fill level threshold in percentage for filling up target OSTs    |
 | ost\_targets                 | RangeSet | 0-999 | List of decimal OST indexes comma separated and ranges defined with hyphen  |
 
-### Section: lustre
+#### Section: lustre
 
 | Name      | Type   | Value  | Description            |
 | --------- | ------ | ------ | ---------------------- |
 | fs\_path  | String | Path   | Lustre filesystem path |
 
-## Input File Lists
+### Task
 
-The input file lists to be processed must be located within the directory specified in the `input_dir` parameter
-of the task generators config file:
+[Example config file for the task](../Configuration/lustre_ost_migration_tasks.xml)
 
-```
-[migration]
-input_dir = ...
-```
+| Name        | Type   | Value      | Description                        |
+| ----------- | ------ | ---------- | ---------------------------------- |
+| filename    | String | -          | Placeholder, filled during runtime |
+| source\_ost | Int    | -          | Placeholder, filled during runtime |
+| target\_ost | Int    | -          | Placeholder, filled during runtime |
+| direct\_io  | Bool   | True/False | Enables direct IO                  |
+| block       | Bool   | True/False | Enables blocking file migration    |
+| skip        | Bool   | True/False | Skip stripped files                |
+

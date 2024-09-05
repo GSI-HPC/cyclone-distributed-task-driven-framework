@@ -95,7 +95,7 @@ Tasks are executed by so called worker within a controller instance.
 
 If a task execution runs into a timeout, the proper task is redispatched.  
 
-> This feature is currently not available and needs to be updated ([see issue](https://github.com/GSI-HPC/cyclone-distributed-task-driven-framework/issues/15)).
+> This feature is currently not available and needs to be updated (see [issue](https://github.com/GSI-HPC/cyclone-distributed-task-driven-framework/issues/15)).
 
 ## Supported Use Cases
 
@@ -225,7 +225,7 @@ The controller will shutdown itself when receiving a stop signal by the master o
 A controller can be send also a stop signal by the proper <PID> locally on a target host.  
 The PID can be found e.g. in the proper log or PID file.
 
-> In any case, if a controller gets killed or crashed this will result in an inconsistent state in Cyclone ([see issue](https://github.com/GSI-HPC/cyclone-distributed-task-driven-framework/issues/24)).
+> In any case, if a controller gets killed or crashed this will result in an inconsistent state in Cyclone (see [issue](https://github.com/GSI-HPC/cyclone-distributed-task-driven-framework/issues/24)).
 
 ## How to Create a Task
 
