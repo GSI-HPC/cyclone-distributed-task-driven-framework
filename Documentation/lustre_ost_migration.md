@@ -18,11 +18,13 @@ An input file consists of datasets with two columns separated with a whitespace 
 > Therefore it is not required to specify those indexes, since Cyclone will determine them automatically.
 
 To speed up a migration, Robinhood is used to determine the OST index where a file is located on Lustre.  
-Please refer to the following [slides](Slides/2024_02_22-lustre_file_migration.pdf) for a Lustre file migration.  
+Please refer to the following [slides](../Slides/2024_02_22-lustre_file_migration.pdf) for a Lustre file migration.  
+
+As for the task result description please refer to the [lfs-utils library MigrateResult class](https://github.com/GSI-HPC/lfs-utils). 
 
 ## Configuration
 
-#### Task Generator
+### [Task Generator](../task/generator/lustre_ost_migration_task_generator.py)
 
 [Example config file for the task generator](../Configuration/lustre_ost_migration_task_generator.conf)
 
@@ -48,10 +50,10 @@ Please refer to the following [slides](Slides/2024_02_22-lustre_file_migration.p
 
 #### Section: task
 
-| Name       | Type   | Value  | Description           |
-| ---------- | ------ | ------ | --------------------- |
-| task\_file | String | Path   | Path to task XML file |
-| task\_name | String | Path   | Name of task to load  |
+| Name       | Type   | Value | Description              |
+| ---------- | ------ | ----- | ------------------------ |
+| task\_file | String | Path  | Path to task config file |
+| task\_name | String | Name  | Name of task to load     |
 
 #### Section: migration
 
@@ -60,7 +62,7 @@ Please refer to the following [slides](Slides/2024_02_22-lustre_file_migration.p
 | input\_dir                   | String   | Path  | Path to input directory where to process input file lists from              |
 | ost\_fill\_threshold\_source | Int      | 0-90  | Lustre OST fill level threshold in percentage for reducing down source OSTs |
 | ost\_fill\_threshold\_target | Int      | 1-90  | Lustre OST fill level threshold in percentage for filling up target OSTs    |
-| ost\_targets                 | RangeSet | 0-999 | List of decimal OST indexes comma separated and ranges defined with hyphen  |
+| ost\_targets                 | RangeSet | n>=0  | List of decimal OST indexes comma separated and ranges defined with hyphen  |
 
 #### Section: lustre
 
@@ -68,7 +70,7 @@ Please refer to the following [slides](Slides/2024_02_22-lustre_file_migration.p
 | --------- | ------ | ------ | ---------------------- |
 | fs\_path  | String | Path   | Lustre filesystem path |
 
-### Task
+### [Task](../task/lustre_ost_migrate_task.py)
 
 [Example config file for the task](../Configuration/lustre_ost_migration_tasks.xml)
 

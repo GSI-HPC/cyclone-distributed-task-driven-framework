@@ -10,7 +10,7 @@
 		<class module="task.lustre_file_creation_check_task" name="LustreFileCreationCheckTask"/>
 
 		<property>
-			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
+			<ost_idx></ost_idx> <!-- leave empty, set during runtime by proper TaskGenerator -->
 			<lfs_target>hebe</lfs_target>
 			<target_base_dir>/lustre/hebe/hpc/lfsmon/file_creation_check_monitoring</target_base_dir>
 			<target_mdt_sub_dir>mdt</target_mdt_sub_dir>
@@ -27,7 +27,7 @@
 		<class module="task.lustre_io_task" name="LustreIOTask"/>
 
 		<property>
-			<ost_idx></ost_idx> <!-- set during runtime by proper TaskGenerator -->
+			<ost_idx></ost_idx> <!-- leave empty, set during runtime by proper TaskGenerator -->
 			<block_size_bytes>1000000</block_size_bytes>
 			<total_size_bytes>1000000</total_size_bytes>
 			<write_file_sync>on</write_file_sync>
