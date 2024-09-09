@@ -114,12 +114,12 @@ If a task execution runs into a timeout, the proper task is redispatched.
 
 ##### Section: control
 
-| Name                       | Type   | Value  | Description                                                    |
-| -------------------------- | ------ | ------ | -------------------------------------------------------------- |
-| pid\_file                  | String | Path   | Path to pid file for running just one master process           |
-| controller\_timeout        | Number | n >= 0 | Timeout in seconds waiting for an expected controller response |
-| controller\_wait\_duration | Number | n >= 0 | Wait time in seconds for controller if no tasks are available  |
-| task\_resend\timeout       | Number | n >= 0 | Time duration before resending a task                          |
+| Name                       | Type   | Value | Description                                                    |
+| -------------------------- | ------ | ----- | -------------------------------------------------------------- |
+| pid\_file                  | String | Path  | Path to pid file for running just one master process           |
+| controller\_timeout        | Number | n>=0  | Timeout in seconds waiting for an expected controller response |
+| controller\_wait\_duration | Number | n>=0  | Wait time in seconds for controller if no tasks are available  |
+| task\_resend\_timeout      | Number | n>=0  | Time duration before resending a task                          |
 
 ##### Section: comm
 
@@ -127,7 +127,7 @@ If a task execution runs into a timeout, the proper task is redispatched.
 | -------------------------- | ------ | ------------ | ----------------------------------------------------------- |
 | target                     | String | \*           | Network target from which to accept messages '\*' means all |
 | port                       | Number | 1024 - 65535 | TCP port for network communication with controller          |
-| poll\_timeout              | Number | n >= 0       | Polling timeout in seconds waiting for controller messages  |
+| poll\_timeout              | Number | n>=0         | Polling timeout in seconds waiting for controller messages  |
 
 ##### Section: log
 
@@ -180,11 +180,11 @@ cat Runtime/master.pid
 
 ##### Section: control
 
-| Name                           | Type   | Value  | Description                                                    |
-| ------------------------------ | ------ | ------ | -------------------------------------------------------------- |
-| pid\_file                      | String | Path   | Path to pid file for running just one controller process       |
-| request\_retry\_wait\_duration | Number | n >= 0 | Seconds to wait until trying next request to master            |
-| max\_num\_request\_retries     | Number | n >= 0 | Max number of request attempts before quiting                  |
+| Name                           | Type   | Value | Description                                                    |
+| ------------------------------ | ------ | ----- | -------------------------------------------------------------- |
+| pid\_file                      | String | Path  | Path to pid file for running just one controller process       |
+| request\_retry\_wait\_duration | Number | n>=0  | Seconds to wait until trying next request to master            |
+| max\_num\_request\_retries     | Number | n>=0  | Max number of request attempts before quiting                  |
 
 ##### Section: comm
 
@@ -192,7 +192,7 @@ cat Runtime/master.pid
 | ------------------------------ | ------ | ------------ | -------------------------------------------------------- |
 | target                         | String | IP-Addr      | IP address of master process                             |
 | port                           | Number | 1024 - 65535 | TCP port for network communication with master           |
-| poll\_timeout                  | Number | n > 0        | Polling timeout for new messages                         |
+| poll\_timeout                  | Number | n>0          | Polling timeout for new messages                         |
 
 ##### Section: log
 
@@ -202,9 +202,9 @@ cat Runtime/master.pid
 
 ##### Section: processing
 
-| Name                           | Type   | Value  | Description                                                    |
-| ------------------------------ | ------ | ------ | -------------------------------------------------------------- |
-| worker\_count                  | Number | n > 0  | Number of worker processes available for task processing       |
+| Name                           | Type   | Value | Description                                                    |
+| ------------------------------ | ------ | ----- | -------------------------------------------------------------- |
+| worker\_count                  | Number | n>0   | Number of worker processes available for task processing       |
 
 #### Start
 
